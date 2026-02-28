@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 [RequireComponent(typeof(Rigidbody))]
 public class Mover : MonoBehaviour
