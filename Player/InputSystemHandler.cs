@@ -6,14 +6,17 @@ public class InputSystemHandler : MonoBehaviour
 {
     public event Action<Vector2> OnMoveInput;
     public event Action<Vector2> OnCameraRotInput;
+    public event Action<Vector2> OnMouseScrollInput;
 
     Vector2 _moveInput;
     Vector2 _cameraRotInput;
+    Vector2 _cameraZoomInput;
 
     private void Update()
     {
         OnMoveInput?.Invoke(_moveInput);
         OnCameraRotInput?.Invoke(_cameraRotInput);
+        OnMouseScrollInput?.Invoke(_cameraZoomInput);
     }
 
     public void HandleMoveInput(InputAction.CallbackContext context)
@@ -24,5 +27,10 @@ public class InputSystemHandler : MonoBehaviour
     public void HandleCameraRotInput(InputAction.CallbackContext context)
     {
         _cameraRotInput = context.ReadValue<Vector2>();
+    }
+
+    public void HandlePlayerScrollWhellInput(InputAction.CallbackContext context)
+    {
+        _cameraZoomInput = context.ReadValue<Vector2>();
     }
 }

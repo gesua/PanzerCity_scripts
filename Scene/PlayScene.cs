@@ -1,3 +1,4 @@
+using Unity.Cinemachine;
 using UnityEngine;
 
 public class PlayScene : MonoBehaviour
@@ -5,10 +6,15 @@ public class PlayScene : MonoBehaviour
     [Header("----- 컴포넌트 -----")]
     [SerializeField] InputSystemHandler _inputSystemHandler;
     [SerializeField] Player _player;
+    [SerializeField] CameraTarget _cameraTarget;
 
     private void Start()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+
         _inputSystemHandler.OnMoveInput += HandleMoveInput;
+        _inputSystemHandler.OnCameraRotInput += HandleCameraRotateInput;
+        _inputSystemHandler.OnMouseScrollInput += HandleCameraZoomInput;
     }
 
     void HandleMoveInput(Vector2 inputVector)
@@ -16,5 +22,15 @@ public class PlayScene : MonoBehaviour
         // x,y 축을 x,z축으로 변경
         Vector3 moveVector = Vector3.forward * inputVector.y + Vector3.right * inputVector.x;
         _player.Move(moveVector);
+    }
+
+    void HandleCameraRotateInput(Vector2 inputVector)
+    {
+        _cameraTarget.Rotate(inputVector);
+    }
+
+    void HandleCameraZoomInput(Vector2 inputVector)
+    {
+        _cameraTarget.Zoom(inputVector);
     }
 }
