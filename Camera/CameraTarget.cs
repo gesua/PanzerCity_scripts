@@ -1,9 +1,8 @@
 using Unity.Cinemachine;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 /// <summary>
-/// 주인공 캐릭터를 따라다니는 카메라 타겟
+/// 플레이어를 따라다니는 카메라 타겟
 /// </summary>
 public class CameraTarget : MonoBehaviour
 {
