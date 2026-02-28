@@ -1,20 +1,16 @@
 using System;
 using UnityEngine;
+using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 [RequireComponent(typeof(Rigidbody))]
 public class Mover : MonoBehaviour
 {
-    [Header("----- 컴포넌트 -----")]
-    [SerializeField] Transform _turret; // 포탑
-
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _forwardSpeed = 5f;  // 전진 속력
     [SerializeField] float _backwardSpeed = 2f; // 후진 속력
     [SerializeField] float _rotSpeed = 100f;    // 회전 속력
     [SerializeField] float _acceleration = 10f; // 가속도(속도 증가율)
     [SerializeField] float _deceleration = 5f;  // 감속도(키를 놓았을 때 천천히 멈추는 속도)
-
-    [SerializeField] float _turretRotSpeed = 100f; // 포탑 회전 속력
 
     public event Action<Vector3> OnMoved;
     Rigidbody _rigid;
@@ -95,18 +91,5 @@ public class Mover : MonoBehaviour
 
         _dirX = 0;
         OnMoved?.Invoke(_velocity);
-    }
-
-    void Update()
-    {
-        // 포탑 회전
-        Vector3 direction = Camera.main.transform.forward;
-        direction.y = 0f;
-
-        if (direction.sqrMagnitude > Util.Epsilon)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            _turret.rotation = Quaternion.RotateTowards(_turret.rotation, targetRotation, _turretRotSpeed * Time.deltaTime);
-        }
     }
 }
