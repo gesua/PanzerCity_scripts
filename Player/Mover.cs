@@ -35,7 +35,17 @@ public class Mover : MonoBehaviour
         }
 
         // 회전 입력 처리 (x는 회전)
-        _dirX = (_rigid.linearVelocity.z < -Util.Epsilon) ? -dir.x : dir.x; // 후진할 땐 좌우 반대
+        if (dir.z >= 0)
+        {
+            // 후진 중에는 정방향 회전 안 되게
+            Vector3 localVelocity = transform.InverseTransformDirection(_rigid.linearVelocity);
+            if (localVelocity.z > -Util.Epsilon) _dirX = dir.x;
+            else _dirX = 0f;
+        }
+        else // 후진할 땐 좌우 반전
+        {
+            _dirX = -dir.x;
+        }
         dir.x = 0;
 
         // z 축(전/후진) 입력이 거의 0이면 목표 속도를 0으로 설정하되
