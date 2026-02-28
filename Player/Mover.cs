@@ -35,7 +35,7 @@ public class Mover : MonoBehaviour
         }
 
         // 회전 입력 처리 (x는 회전)
-        _dirX = dir.x;
+        _dirX = (_rigid.linearVelocity.z < -Util.Epsilon) ? -dir.x : dir.x; // 후진할 땐 좌우 반대
         dir.x = 0;
 
         // z 축(전/후진) 입력이 거의 0이면 목표 속도를 0으로 설정하되
