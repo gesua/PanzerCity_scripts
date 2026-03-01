@@ -15,15 +15,20 @@ public class Turret : MonoBehaviour
         _rotSpeed = rotSpeed;
     }
 
-    void Update()
+    private void Update()
     {
         // 포탑 회전
         Vector3 direction = Camera.main.transform.forward;
         direction.y = 0f;
 
-        if (direction.sqrMagnitude > Util.Epsilon)
+        // 0벡터 체크
+        if (direction.sqrMagnitude < Mathf.Epsilon) return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        float angle = Quaternion.Angle(_turret.transform.rotation, targetRotation);
+
+        if (angle > Util.Epsilon)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
             _turret.transform.rotation = Quaternion.RotateTowards(_turret.transform.rotation, targetRotation, _rotSpeed * Time.deltaTime);
         }
     }

@@ -14,6 +14,7 @@ public class Player : MonoBehaviour
 
     public void Initialize()
     {
+        _model.Initialize();
         _mover.Initialize(_model.ForwardSpeed, _model.BackwardSpeed, _model.RotSpeed, _model.Acceleration, _model.Deceleration);
         _turret.SetRotSpeed(_model.TurretRotSpeed);
     }
