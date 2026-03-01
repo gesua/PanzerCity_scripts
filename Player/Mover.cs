@@ -4,14 +4,14 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Mover : MonoBehaviour
 {
-    [Header("----- 런타임 데이터 -----")]
-    [SerializeField] float _forwardSpeed = 5f;  // 전진 속력
-    [SerializeField] float _backwardSpeed = 2f; // 후진 속력
-    [SerializeField] float _rotSpeed = 100f;    // 회전 속력
-    [SerializeField] float _acceleration = 10f; // 가속도(속도 증가율)
-    [SerializeField] float _deceleration = 5f;  // 감속도(키를 놓았을 때 천천히 멈추는 속도)
+    float _forwardSpeed;    // 전진 속력
+    float _backwardSpeed;   // 후진 속력
+    float _rotSpeed;        // 회전 속력
+    float _acceleration;    // 가속도(속도 증가율)
+    float _deceleration;    // 감속도(키를 놓았을 때 천천히 멈추는 속도)
 
     public event Action<Vector3> OnMoved;
+
     Rigidbody _rigid;
     Vector3 _velocity;
     float _currentSpeed;   // 로컬 전진 방향에 대한 현재 속도(음수면 후진)
@@ -21,6 +21,15 @@ public class Mover : MonoBehaviour
     private void Awake()
     {
         _rigid = GetComponent<Rigidbody>();
+    }
+
+    public void Initialize(float forwardSpeed, float backwardSpeed, float rotSpeed, float acceleration, float deceleration)
+    {
+        _forwardSpeed = forwardSpeed;
+        _backwardSpeed = backwardSpeed;
+        _rotSpeed = rotSpeed;
+        _acceleration = acceleration;
+        _deceleration = deceleration;
     }
 
     public void Move(Vector3 dir)

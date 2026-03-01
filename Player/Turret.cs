@@ -8,8 +8,12 @@ public class Turret : MonoBehaviour
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Transform _turret; // 포탑
 
-    [Header("----- 런타임 데이터 -----")]
-    [SerializeField] float _rotSpeed = 100f; // 포탑 회전 속력
+    float _rotSpeed; // 포탑 회전 속력
+
+    public void SetRotSpeed(float rotSpeed)
+    {
+        _rotSpeed = rotSpeed;
+    }
 
     void Update()
     {
