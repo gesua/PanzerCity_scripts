@@ -1,4 +1,4 @@
-using System.Collections;
+using System;
 using UnityEngine;
 
 public enum Direction
@@ -26,6 +26,11 @@ public class Enemy : MonoBehaviour
 
     Vector3 lookDir; // 이동할 방향
     bool isRot; // 회전해야 하는지 체크
+
+    /// <summary>
+    /// 적 제거 이벤트
+    /// </summary>
+    public event Action<Enemy> OnRemoved;
 
     /// <summary>
     /// 적 캐릭터 상태 객체들
@@ -66,7 +71,7 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public void RandomDir()
     {
-        Direction dir = (Direction)Random.Range(0, 4);
+        Direction dir = (Direction)UnityEngine.Random.Range(0, 4);
 
         lookDir = dir switch
         {
@@ -87,6 +92,8 @@ public class Enemy : MonoBehaviour
     {
         // 0벡터 체크
         if (lookDir.sqrMagnitude < Mathf.Epsilon) return;
+
+        Debug.Log("왜 안 움직임? "+isRot);
 
         // 방향 맞춰야 할 상황
         if (isRot)
@@ -109,5 +116,20 @@ public class Enemy : MonoBehaviour
             Vector3 move = transform.forward * _model.ForwardSpeed * Time.fixedDeltaTime;
             _rigid.MovePosition(_rigid.position + move);
         }
+    }
+
+    /// <summary>
+    /// 제거하는 함수
+    /// </summary>
+    public void Remove()
+    {
+        // 자신 제거 이벤트 발행
+        OnRemoved?.Invoke(this);
+
+        // 자신 제거 이벤트 전체 구독 해지
+        OnRemoved = null;
+
+        // 자신 게임오브젝트 제거
+        gameObject.DestroyOrReturnToPool();
     }
 }

@@ -17,5 +17,7 @@ public class GameManager : Singleton<GameManager>
 
         _resourceManager = gameObject.GetOrAddComponent<ResourceManager>();
         _poolManager = gameObject.GetOrAddComponent<PoolManager>();
+
+        _poolManager.Initialize(_resourceManager);
     }
 }

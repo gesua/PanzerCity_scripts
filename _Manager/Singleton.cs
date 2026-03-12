@@ -43,8 +43,6 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
 
     protected virtual void Awake()
     {
-        Debug.Log("여기 안 들어오나?");
-
         // 싱글톤 인스턴스가 없으면 자신으로 등록
         if (_instance == null)
         {

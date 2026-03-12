@@ -6,14 +6,14 @@ using UnityEngine;
 /// </summary>
 public static class Extension
 {
-    /*// <summary>
+    /// <summary>
     /// 게임오브젝트가 오브젝트 풀링을 사용하면 Pool로 되돌리고
     /// Pooling을 하지않는 게임오브젝트면 파괴하는 함수
     /// </summary>
     public static void DestroyOrReturnToPool(this GameObject go)
     {
         Util.DestroyOrReturnToPool(go);
-    }*/
+    }
 
     /// <summary>
     /// 요소들 중 랜덤한 1개 요소를 골라 반환하는 함수

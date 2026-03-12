@@ -6,7 +6,7 @@ public static class Util
 {
     public const float Epsilon = 0.01f;
 
-    /*// <summary>
+    /// <summary>
     /// 게임오브젝트가 오브젝트 풀링을 사용하면 Pool로 되돌리고
     /// Pooling을 하지않는 게임오브젝트면 파괴하는 함수
     /// </summary>
@@ -21,7 +21,7 @@ public static class Util
         {
             Object.Destroy(go);
         }
-    }*/
+    }
 
     // 제네릭(타입을 마치 변수처럼 다루는 방식)
     /// <summary>

@@ -43,6 +43,7 @@ public class IdleState : EnemyState
     public override void Enter()
     {
         _timer = Random.Range(0, _roamSpan); // 타이머 랜덤
+        _enemy.RandomDir();
     }
 
     public override void Exit()
