@@ -22,6 +22,8 @@ public class TankModel : MonoBehaviour
 
     [Header("----- 공격 -----")]
     [SerializeField] int _damage = 1;   // 공격력
+    [SerializeField] float _reloadMinTime = 1.0f; // AI용 최소 재장전 시간(이거 플레이어는 어쩌지)
+    [SerializeField] float _reloadMaxTime = 1.0f; // AI용 최대 재장전 시간
 
     public float ForwardSpeed => _forwardSpeed;
     public float BackwardSpeed => _backwardSpeed;

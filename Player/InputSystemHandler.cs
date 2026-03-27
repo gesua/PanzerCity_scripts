@@ -7,6 +7,7 @@ public class InputSystemHandler : MonoBehaviour
     public event Action<Vector2> OnMoveInput;
     public event Action<Vector2> OnCameraRotInput;
     public event Action<Vector2> OnMouseScrollInput;
+    public event Action OnAttackInput;
 
     Vector2 _moveInput;
     Vector2 _cameraRotInput;
@@ -32,5 +33,13 @@ public class InputSystemHandler : MonoBehaviour
     public void HandlePlayerScrollWhellInput(InputAction.CallbackContext context)
     {
         _cameraZoomInput = context.ReadValue<Vector2>();
+    }
+
+    public void HandleAttackInput(InputAction.CallbackContext context)
+    {
+        if (context.performed == true)
+        {
+            OnAttackInput?.Invoke();
+        }
     }
 }

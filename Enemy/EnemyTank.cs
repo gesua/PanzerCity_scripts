@@ -12,14 +12,13 @@ public enum Direction
 /// <summary>
 /// 배회하면서 주기적으로 공격
 /// </summary>
-public class Enemy : MonoBehaviour
+public class EnemyTank : TankBase
 {
     [Header("----- 타겟 -----")]
     [SerializeField] Transform _target; // 플레이어
 
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] Rigidbody _rigid;
-    [SerializeField] TankModel _model;
     [SerializeField] float _roamSpan = 3f;      // 최대 배회 간격
     [SerializeField] float _attackSpan = 1f;    // 최대 공격 간격
     [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
@@ -30,7 +29,7 @@ public class Enemy : MonoBehaviour
     /// <summary>
     /// 적 제거 이벤트
     /// </summary>
-    public event Action<Enemy> OnRemoved;
+    public event Action<EnemyTank> OnRemoved;
 
     /// <summary>
     /// 적 캐릭터 상태 객체들
@@ -92,8 +91,6 @@ public class Enemy : MonoBehaviour
     {
         // 0벡터 체크
         if (lookDir.sqrMagnitude < Mathf.Epsilon) return;
-
-        Debug.Log("왜 안 움직임? "+isRot);
 
         // 방향 맞춰야 할 상황
         if (isRot)

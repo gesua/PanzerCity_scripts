@@ -4,7 +4,7 @@ public class PlayScene : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
     [SerializeField] InputSystemHandler _inputSystemHandler;
-    [SerializeField] Player _player;
+    [SerializeField] PlayerTank _player;
     [SerializeField] CameraTarget _cameraTarget;
 
     private void Start()
@@ -14,6 +14,7 @@ public class PlayScene : MonoBehaviour
         _inputSystemHandler.OnMoveInput += HandleMoveInput;
         _inputSystemHandler.OnCameraRotInput += HandleCameraRotateInput;
         _inputSystemHandler.OnMouseScrollInput += HandleCameraZoomInput;
+        _inputSystemHandler.OnAttackInput += HandleAttackInput;
     }
 
     void HandleMoveInput(Vector2 inputVector)
@@ -31,5 +32,10 @@ public class PlayScene : MonoBehaviour
     void HandleCameraZoomInput(Vector2 inputVector)
     {
         _cameraTarget.Zoom(inputVector);
+    }
+
+    void HandleAttackInput()
+    {
+        _player.Attack();
     }
 }

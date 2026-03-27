@@ -1,9 +1,8 @@
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class PlayerTank : TankBase
 {
     [Header("----- 컴포넌트 -----")]
-    [SerializeField] TankModel _model;
     [SerializeField] Mover _mover;
     [SerializeField] Turret _turret;
 

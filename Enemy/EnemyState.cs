@@ -12,14 +12,14 @@ public enum EnemyStateType
 
 public abstract class EnemyState
 {
-    protected Enemy _enemy;
+    protected EnemyTank _enemy;
 
     /// <summary>
     /// 현재 상태 종류 반환
     /// </summary>
     public abstract EnemyStateType StateType { get; }
 
-    public EnemyState(Enemy enemy)
+    public EnemyState(EnemyTank enemy)
     {
         _enemy = enemy;
     }
@@ -35,7 +35,7 @@ public class IdleState : EnemyState
     float _timer; // 시간 잴거
 
     public override EnemyStateType StateType => EnemyStateType.Idle;
-    public IdleState(Enemy enemy, float roamSpan) : base(enemy)
+    public IdleState(EnemyTank enemy, float roamSpan) : base(enemy)
     {
         _roamSpan = roamSpan;
     }

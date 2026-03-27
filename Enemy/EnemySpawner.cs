@@ -15,7 +15,7 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] Transform[] _spawnPos;     // 스폰 위치
 
     [Header("----- 적 리스트(읽기 전용) -----")]
-    [SerializeField] List<Enemy> _enemies = new(); // 생성된 적 리스트
+    [SerializeField] List<EnemyTank> _enemies = new(); // 생성된 적 리스트
 
     [SerializeField] int[] _spawnIndex;      // 스폰 순서
     int _spawnedCount = 0;  // 스폰된 수
@@ -66,7 +66,7 @@ public class EnemySpawner : MonoBehaviour
         _spawnedCount++;
 
         // 복제본 초기화
-        Enemy enemy = enemyGo.GetComponent<Enemy>();
+        EnemyTank enemy = enemyGo.GetComponent<EnemyTank>();
         enemy.Initialize();
 
         // 복제본 리스트에 추가
@@ -135,7 +135,7 @@ public class EnemySpawner : MonoBehaviour
     /// 적 제거 시 자동으로 실행되는 함수
     /// </summary>
     /// <param name="enemy">제거된 적</param>
-    void HandleEnemyRemoved(Enemy enemy)
+    void HandleEnemyRemoved(EnemyTank enemy)
     {
         // 생성된 적 목록에서 제거된 적 제거
         _enemies.Remove(enemy);
