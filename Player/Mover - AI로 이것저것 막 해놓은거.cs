@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Mover : MonoBehaviour
+public class Mover2 : MonoBehaviour
 {
     float _forwardSpeed;    // 전진 속력
     float _backwardSpeed;   // 후진 속력
