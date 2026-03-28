@@ -4,6 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Mover : MonoBehaviour
 {
+    // 기본 스탯
     float _forwardSpeed;    // 전진 속력
     float _backwardSpeed;   // 후진 속력
     float _rotSpeed;        // 회전 속력
@@ -12,6 +13,7 @@ public class Mover : MonoBehaviour
 
     public event Action<Vector3> OnMoved;
 
+    // 가속 관련
     Rigidbody _rigid;
     Vector3 _velocity;
     float _currentSpeed;   // 로컬 전진 방향에 대한 현재 속도(음수면 후진)

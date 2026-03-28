@@ -12,7 +12,7 @@ public class Mover2 : MonoBehaviour
 
     // 자동 회전 튜닝 파라미터
     float _autoRotSpeedMultiplier = 2f;
-    float _contactDetectDot = 0.05f;
+    //float _contactDetectDot = 0.05f;
 
     // 헤드온(거의 정면 충돌) 판정과 제동용 파라미터
     float _minSlideMagnitude = 0.12f;     // 이 값보다 작으면 '거의 정면 충돌'로 간주

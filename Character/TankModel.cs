@@ -20,10 +20,12 @@ public class TankModel : MonoBehaviour
     [SerializeField] int _maxHp = 1;    // 최대 체력
     [SerializeField] int _currentHp;    // 현재 체력
 
-    [Header("----- 공격 -----")]
-    [SerializeField] int _damage = 1;   // 공격력
+    [Header("----- 포탄 -----")]
+    [SerializeField] int _shellDamage = 1;   // 포탄 공격력
+    [SerializeField] float _shellSpeed = 10f; // 포탄 속력
     [SerializeField] float _reloadMinTime = 1.0f; // AI용 최소 재장전 시간(이거 플레이어는 어쩌지)
     [SerializeField] float _reloadMaxTime = 1.0f; // AI용 최대 재장전 시간
+    [SerializeField] LayerMask _hitLayer; // 포탄과 충돌할 레이어(본인 빼고 다 넣으면 됨)
 
     public float ForwardSpeed => _forwardSpeed;
     public float BackwardSpeed => _backwardSpeed;
@@ -34,7 +36,11 @@ public class TankModel : MonoBehaviour
     public int MaxHp => _maxHp;
     public int CurrentHp => _currentHp;
     public bool IsAlive => _currentHp > 0; // 살아있는지 여부
-    public int Damage => _damage;
+    public int ShellDamage => _shellDamage;
+    public float ShellSpeed => _shellSpeed;
+    public float ReloadMinTime => _reloadMinTime;
+    public float ReloadMaxTime => _reloadMaxTime;
+    public LayerMask HitLayer => _hitLayer;
 
     /// <summary>
     /// 체력 변경 이벤트(현재 체력, 최대 체력)
