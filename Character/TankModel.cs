@@ -23,7 +23,7 @@ public class TankModel : MonoBehaviour, IDamageable
     [Header("----- 포탄 -----")]
     [SerializeField] int _shellDamage = 1;   // 포탄 공격력
     [SerializeField] float _shellSpeed = 10f; // 포탄 속력
-    [SerializeField] float _explosionRadius = 5f; // 포탄 폭발 반경
+    [SerializeField] float _explosionRadius = 1f; // 포탄 폭발 반경
     [SerializeField] float _reloadMinTime = 1.0f; // AI용 최소 재장전 시간(이거 플레이어는 어쩌지)
     [SerializeField] float _reloadMaxTime = 1.0f; // AI용 최대 재장전 시간
     [SerializeField] LayerMask _hitLayer; // 포탄과 충돌할 레이어(본인 빼고 다 넣으면 됨)
