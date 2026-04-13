@@ -3,6 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(TankModel))]
 public abstract class TankBase : MonoBehaviour, IAttackable
 {
+    int _tankID; // TankData에서 데이터 가져올 ID
     protected TankModel _model;
     [SerializeField] string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
@@ -12,6 +13,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     protected virtual void Awake()
     {
         _model = GetComponent<TankModel>();
+        //TankData data = DataManager.Instance.GetTankData(_tankID); // 아직 데이터 가져오는거 안 만듦
         _model.Initialize();
 
         // Pool 생성
@@ -29,7 +31,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
 
         // 포탄 초기화
         Shell shell = shellGo.GetComponent<Shell>();
-        shell.Initialize(_model.ShellDamage, _model.ShellSpeed, _model.HitLayer, gameObject.layer);
+        shell.Initialize(_model.ShellDamage, _model.ShellSpeed, _model.ExplosionRadius, _model.HitLayer, gameObject.layer);
     }
 
     /*

@@ -41,6 +41,12 @@ public class EnemyTank : TankBase
     /// </summary>
     EnemyState _currentState;
 
+    protected override void Awake()
+    {
+        base.Awake();
+        _model.OnDead += HandleDead; // 사망 이벤트 구독
+    }
+
     private void Start()
     {
         Initialize();
@@ -113,6 +119,14 @@ public class EnemyTank : TankBase
             Vector3 move = transform.forward * _model.ForwardSpeed * Time.fixedDeltaTime;
             _rigid.MovePosition(_rigid.position + move);
         }
+    }
+
+    /// <summary>
+    /// 사망 처리
+    /// </summary>
+    protected virtual void HandleDead()
+    {
+        Remove();
     }
 
     /// <summary>

@@ -7,9 +7,11 @@ public class GameManager : Singleton<GameManager>
 {
     ResourceManager _resourceManager;
     PoolManager _poolManager;
+    EffectSpawner _effectSpawner;
 
     public ResourceManager ResourceManager => _resourceManager;
     public PoolManager PoolManager => _poolManager;
+    public EffectSpawner EffectSpawner => _effectSpawner;
 
     protected override void Awake()
     {
@@ -17,7 +19,9 @@ public class GameManager : Singleton<GameManager>
 
         _resourceManager = gameObject.GetOrAddComponent<ResourceManager>();
         _poolManager = gameObject.GetOrAddComponent<PoolManager>();
+        _effectSpawner = gameObject.GetOrAddComponent<EffectSpawner>();
 
         _poolManager.Initialize(_resourceManager);
+        _effectSpawner.Initialize();
     }
 }
