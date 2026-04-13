@@ -93,6 +93,8 @@ public class Mover : MonoBehaviour
         // y 성분은 물리 기반으로 유지
         _velocity.y = currentY;
 
+        //_rigid.AddTorque 회전값 주는거
+
         _rigid.linearVelocity = _velocity;
 
         // 회전
