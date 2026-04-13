@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 탱크 기본 데이터
 /// </summary>
-public class TankModel : MonoBehaviour
+public class TankModel : MonoBehaviour, IDamageable
 {
     [Header("----- 이동 -----")]
     [SerializeField] float _forwardSpeed = 5f;  // 전진 속력

@@ -40,7 +40,7 @@ public class Shell : MonoBehaviour
         if (!_hitLayer.Contains(collision.gameObject.layer)) return;
 
         // 충돌한 대상이 탱크면 피해 입히기
-        collision.gameObject.GetComponent<TankModel>()?.TakeDamage(_damage);
+        collision.gameObject.GetComponent<IDamageable>()?.TakeDamage(_damage);
 
         Explode();
         Remove();
