@@ -12,14 +12,6 @@ public class EffectSpawner : MonoBehaviour
 {
     PoolManager _poolManager;
 
-    /*
-    private void Awake()
-    {
-        _poolManager = GameManager.Instance.PoolManager;
-
-        _poolManager.GetPool(GetPrefabPath(EffectType.SmallExplosion), 10);
-    }*/
-
     public void Initialize()
     {
         _poolManager = GameManager.Instance.PoolManager;
