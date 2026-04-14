@@ -56,9 +56,9 @@ public class CameraObstacleFade : MonoBehaviour
         {
             foreach (Material mat in rend.materials)
             {
-                Color c = mat.color;
-                c.a = 1f;
-                mat.color = c;
+                Color color = mat.color;
+                color.a = 1f;
+                mat.color = color;
             }
         }
         fadedObjects.Clear();

@@ -10,7 +10,6 @@ public class PlayScene : MonoBehaviour
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
-        Debug.Log("PlayScene Start");
 
         _inputSystemHandler.OnMoveInput += HandleMoveInput;
         _inputSystemHandler.OnCameraRotInput += HandleCameraRotateInput;
