@@ -12,7 +12,9 @@ public class Turret : MonoBehaviour
     [SerializeField] float _minAngle = -10f; // 주포 최소 각도 (내림)
     [SerializeField] float _maxAngle = 20f;  // 주포 최대 각도 (올림)
 
-    float _rotSpeed; // 포탑 회전 속력
+    [SerializeField] LayerMask _aimLayerMask; // 에임용 레이어 마스크
+    
+    float _rotSpeed; // 포탑(주포) 회전 속력
 
     public void SetRotSpeed(float rotSpeed)
     {
@@ -50,11 +52,29 @@ public class Turret : MonoBehaviour
     /// </summary>
     void RotateBarrel()
     {
-        // 카메라 상하 각도
-        float cameraAngle = Camera.main.transform.eulerAngles.x;
-        // 카메라 X 각도는 360도 기준이라 -180 ~ 180으로 변환
-        if (cameraAngle > 180f) cameraAngle -= 360f;
-        float clampedAngle = Mathf.Clamp(cameraAngle, _minAngle, _maxAngle);
-        _barrel.localEulerAngles = new Vector3(clampedAngle, 0f, 0f);
+        // 화면 중앙에서 레이캐스트
+        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f));
+        Vector3 targetPoint;
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, _aimLayerMask))
+        {
+            targetPoint = hit.point; // 맞은 지점
+        }
+        else
+        {
+            targetPoint = ray.origin + ray.direction * 1000f; // 아무것도 없으면 먼 지점
+        }
+
+        // 주포에서 타겟 지점으로 방향 계산
+        Vector3 direction = targetPoint - _barrel.position;
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+        // 주포 로컬 X 각도만 추출해서 제한
+        float angle = targetRotation.eulerAngles.x;
+        if (angle > 180f) angle -= 360f;
+        float clampedAngle = Mathf.Clamp(angle, _minAngle, _maxAngle);
+
+        Quaternion target = Quaternion.Euler(clampedAngle, 0f, 0f);
+        _barrel.localRotation = Quaternion.RotateTowards(_barrel.localRotation, target, _rotSpeed * Time.deltaTime);
     }
 }

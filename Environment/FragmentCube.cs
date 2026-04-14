@@ -47,7 +47,6 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
 
     public void TakeDamage(int damage, float explosionForce)
     {
-        Vector3 dir = (transform.position - transform.parent.position).normalized;
         _rigid.AddForce(transform.position * explosionForce, ForceMode.Impulse);
     }
 }
