@@ -26,7 +26,7 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
         if (_isFading)
         {
             _timer+= Time.deltaTime;
-            _color.a = Mathf.Lerp(1f, 0f, _timer / _fadeDuration);
+            _color.a = Mathf.Lerp(0.5f, 0f, _timer / _fadeDuration);
             _renderer.material.color = _color;
         }
     }
@@ -48,6 +48,6 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
     public void TakeDamage(int damage, float explosionForce)
     {
         Vector3 dir = (transform.position - transform.parent.position).normalized;
-        _rigid.AddForce(dir * explosionForce, ForceMode.Impulse);
+        _rigid.AddForce(transform.position * explosionForce, ForceMode.Impulse);
     }
 }

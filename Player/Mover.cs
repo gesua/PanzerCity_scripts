@@ -58,6 +58,15 @@ public class Mover : MonoBehaviour
         }
         dir.x = 0;
 
+        // 테스트 중인 회전
+        Debug.Log($"Angular Velocity: {Mathf.Abs(_rigid.angularVelocity.y)}");
+        if (Mathf.Abs(_rigid.angularVelocity.y) < _testMaxRotSpeed)
+        {
+            Debug.Log($"뭔 값이길래 맛이 감? : {Vector3.up * _dirX * _testRotSpeed}");
+            _rigid.AddTorque(Vector3.up * _dirX * _testRotSpeed, ForceMode.Acceleration);
+        }
+        _dirX = 0f;
+
         // z 축(전/후진) 입력이 거의 0이면 목표 속도를 0으로 설정하되
         // 회전은 유지한다. (감속 중에도 transform.forward 방향으로 속도가 정렬되도록 스칼라 속도 사용)
         if (Mathf.Abs(dir.z) < Util.Epsilon)
@@ -68,16 +77,24 @@ public class Mover : MonoBehaviour
 
         if (dir.z > Util.Epsilon) // 전진
         {
-            _targetSpeed = _forwardSpeed;
+            //_targetSpeed = _forwardSpeed;
+            _rigid.AddForce(transform.forward * _testForwardSpeed, ForceMode.Acceleration);
         }
         else if (dir.z < -Util.Epsilon) // 후진
         {
-            _targetSpeed = -_backwardSpeed;
+            //_targetSpeed = -_backwardSpeed;
+            _rigid.AddForce(-transform.forward * _testBackwardSpeed, ForceMode.Acceleration);
         }
     }
 
+    [SerializeField] float _testForwardSpeed = 10f;
+    [SerializeField] float _testBackwardSpeed = 5f;
+    [SerializeField] float _testRotSpeed = 100f;
+    [SerializeField] float _testMaxRotSpeed = 5f;
+
     private void FixedUpdate()
     {
+        /*
         // 현재 수직(중력) 속도는 유지
         float currentY = _rigid.linearVelocity.y;
 
@@ -89,7 +106,7 @@ public class Mover : MonoBehaviour
 
         // 로컬 forward 방향으로 속도 설정 -> 회전 중일 때 transform.forward가 바뀌면 속도 방향도 따라간다
         _velocity = transform.forward * _currentSpeed;
-
+        
         // y 성분은 물리 기반으로 유지
         _velocity.y = currentY;
 
@@ -97,11 +114,15 @@ public class Mover : MonoBehaviour
 
         _rigid.linearVelocity = _velocity;
 
-        // 회전
-        Quaternion deltaRotation = Quaternion.Euler(Vector3.up * _dirX * _rotSpeed * Time.fixedDeltaTime);
-        _rigid.MoveRotation(_rigid.rotation * deltaRotation);
+        */
 
-        _dirX = 0;
+        // 회전
+        //Quaternion deltaRotation = Quaternion.Euler(Vector3.up * _dirX * _rotSpeed * Time.fixedDeltaTime);
+        //_rigid.MoveRotation(_rigid.rotation * deltaRotation);
+
+
+
+        //_dirX = 0f;
         OnMoved?.Invoke(_velocity);
     }
 }

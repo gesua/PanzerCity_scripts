@@ -35,12 +35,14 @@ public class Shell : MonoBehaviour
         Invoke(nameof(Remove), _lifeTime); // 생존시간 후 회수
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider other)
     {
-        if (!_hitLayer.Contains(collision.gameObject.layer)) return;
+        Debug.Log("충돌: " + other.gameObject.name);
+
+        if (!_hitLayer.Contains(other.gameObject.layer)) return;
 
         // 충돌한 대상이 탱크면 피해 입히기
-        collision.gameObject.GetComponent<IDamageable>()?.TakeDamage(_damage);
+        other.gameObject.GetComponent<IDamageable>()?.TakeDamage(_damage);
 
         Explode();
         Remove();
