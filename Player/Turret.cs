@@ -8,6 +8,7 @@ public class Turret : MonoBehaviour
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Transform _turret; // 포탑
     [SerializeField] Transform _barrel; // 주포
+    [SerializeField] RectTransform _turretCrosshair; // 포탑 조준점 UI
     [Header("----- 주포 각도 제한 -----")]
     [SerializeField] float _minAngle = -10f; // 주포 최소 각도 (내림)
     [SerializeField] float _maxAngle = 20f;  // 주포 최대 각도 (올림)
@@ -25,6 +26,7 @@ public class Turret : MonoBehaviour
     {
         RotateTurret();
         RotateBarrel();
+        TurretCrosshair();
     }
 
     /// <summary>
@@ -76,5 +78,27 @@ public class Turret : MonoBehaviour
 
         Quaternion target = Quaternion.Euler(clampedAngle, 0f, 0f);
         _barrel.localRotation = Quaternion.RotateTowards(_barrel.localRotation, target, _rotSpeed * Time.deltaTime);
+    }
+
+    /// <summary>
+    /// 포탑 조준점
+    /// </summary>
+    void TurretCrosshair()
+    {
+        Ray ray = new Ray(_barrel.position, _barrel.forward);
+        Vector3 targetPoint;
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, _aimLayerMask))
+        {
+            targetPoint = hit.point;
+        }
+        else
+        {
+            targetPoint = ray.origin + ray.direction * 1000f;
+        }
+
+        // 월드 좌표 → 스크린 좌표 변환
+        Vector2 screenPos = Camera.main.WorldToScreenPoint(targetPoint);
+        _turretCrosshair.position = screenPos;
     }
 }
