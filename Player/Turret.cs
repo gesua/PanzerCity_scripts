@@ -97,7 +97,7 @@ public class Turret : MonoBehaviour
             targetPoint = ray.origin + ray.direction * 1000f;
         }
 
-        // 월드 좌표 → 스크린 좌표 변환
+        // 월드 좌표를 스크린 좌표로 변환
         Vector2 screenPos = Camera.main.WorldToScreenPoint(targetPoint);
         _turretCrosshair.position = screenPos;
     }
