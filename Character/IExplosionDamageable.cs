@@ -5,5 +5,10 @@ using UnityEngine;
 /// </summary>
 public interface IExplosionDamageable
 {
-    void TakeDamage(int damage);
+    /// <summary>
+    /// 피해 입음
+    /// </summary>
+    /// <param name="damage">입는 피해량</param>
+    /// <param name="explosionForce">폭발력</param>
+    void TakeDamage(int damage, float explosionForce);
 }

@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class CubeFadeOut : MonoBehaviour, IExplosionDamageable
+public class FragmentCube : MonoBehaviour, IExplosionDamageable
 {
     [SerializeField] Material _transparentMat; // 교체할 머터리얼
     float _fadeDuration; // 페이드 지속시간
@@ -14,7 +14,6 @@ public class CubeFadeOut : MonoBehaviour, IExplosionDamageable
 
     // 주변 터질 때 영향 받을거
     Rigidbody _rigid;
-    float _explosionForce = 10f; // 폭발력
 
     void Awake()
     {
@@ -46,9 +45,9 @@ public class CubeFadeOut : MonoBehaviour, IExplosionDamageable
         gameObject.layer = 0; // 레이어를 Default로 변경하여 충돌 감지 방지
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, float explosionForce)
     {
         Vector3 dir = (transform.position - transform.parent.position).normalized;
-        _rigid.AddForce(dir * _explosionForce, ForceMode.Impulse);
+        _rigid.AddForce(dir * explosionForce, ForceMode.Impulse);
     }
 }

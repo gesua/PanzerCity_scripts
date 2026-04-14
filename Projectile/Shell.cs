@@ -58,7 +58,7 @@ public class Shell : MonoBehaviour
         Collider[] colliders = Physics.OverlapSphere(transform.position, _explosionRadius, _hitLayer);
         foreach (Collider col in colliders)
         {
-            col.GetComponent<IExplosionDamageable>()?.TakeDamage(_damage);
+            col.GetComponent<IExplosionDamageable>()?.TakeDamage(_damage, _explosionRadius);
         }
     }
 

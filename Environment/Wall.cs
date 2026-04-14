@@ -6,21 +6,20 @@ using UnityEngine;
 public class Wall : MonoBehaviour, IExplosionDamageable
 {
     float _disappearDelay = 5f; // 사라지는 시간
-    float _explosionForce = 10f; // 폭발력
     Collider _collider;
 
     // 자식 큐브들
     Rigidbody[] _cubeRigids;
-    CubeFadeOut[] _cubeFadeOuts;
+    FragmentCube[] _cubeFadeOuts;
 
     void Awake()
     {
         _cubeRigids = GetComponentsInChildren<Rigidbody>();
-        _cubeFadeOuts = GetComponentsInChildren<CubeFadeOut>();
+        _cubeFadeOuts = GetComponentsInChildren<FragmentCube>();
         _collider = GetComponent<Collider>();
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, float explosionForce)
     {
         _collider.enabled = false; // 충돌 비활성화
 
@@ -30,11 +29,11 @@ public class Wall : MonoBehaviour, IExplosionDamageable
 
             // 폭발 방향으로 날리기
             Vector3 dir = (transform.position - transform.parent.position).normalized;
-            rigid.AddForce(dir * _explosionForce, ForceMode.Impulse);
+            rigid.AddForce(dir * explosionForce, ForceMode.Impulse);
         }
 
         // 큐브들 페이드 아웃
-        foreach (CubeFadeOut fadeOut in _cubeFadeOuts)
+        foreach (FragmentCube fadeOut in _cubeFadeOuts)
         {
             fadeOut.StartFade(_disappearDelay);
         }
