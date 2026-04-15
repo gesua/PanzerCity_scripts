@@ -37,8 +37,6 @@ public class Shell : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("충돌: " + other.gameObject.name);
-
         if (!_hitLayer.Contains(other.gameObject.layer)) return;
 
         // 충돌한 대상이 탱크면 피해 입히기

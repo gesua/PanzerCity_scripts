@@ -32,18 +32,27 @@ public abstract class EnemyState
 public class IdleState : EnemyState
 {
     float _roamSpan; // 최대 배회할 시간
-    float _timer; // 시간 잴거
+    float _roamTimer; // 배회 시간 잴거
+    
+    float _minAttackTime; // 최소 공격 시간
+    float _maxAttackTime; // 최대 공격 시간
+    float _attackInterval; // 공격 간격
+    float _attackTimer; // 공격 시간 잴거
 
     public override EnemyStateType StateType => EnemyStateType.Idle;
-    public IdleState(EnemyTank enemy, float roamSpan) : base(enemy)
+    public IdleState(EnemyTank enemy, float roamSpan, float minAttackTime, float maxAttackTime) : base(enemy)
     {
         _roamSpan = roamSpan;
+        _minAttackTime = minAttackTime;
+        _maxAttackTime = maxAttackTime;
     }
 
     public override void Enter()
     {
-        _timer = Random.Range(0, _roamSpan); // 타이머 랜덤
+        _roamTimer = Random.Range(0, _roamSpan); // 배회 간격 랜덤
         _enemy.RandomDir();
+
+        _attackInterval = Random.Range(_minAttackTime, _maxAttackTime); // 공격 간격 랜덤
     }
 
     public override void Exit()
@@ -52,15 +61,33 @@ public class IdleState : EnemyState
 
     public override void Update()
     {
-        _timer += Time.deltaTime;
+        // 배회 관련
+        _roamTimer += Time.deltaTime;
 
         // 방향 갱신
-        if (_timer > _roamSpan)
+        if (_roamTimer > _roamSpan)
         {
-            _timer = Random.Range(0, _roamSpan); // 타이머 랜덤
+            _roamTimer = Random.Range(0, _roamSpan); // 배회 간격 랜덤
             _enemy.RandomDir();
         }
 
         _enemy.Roam(); // 배회
+
+        // 공격 관련
+        _attackTimer += Time.deltaTime;
+
+        if (_attackTimer > _attackInterval)
+        {
+            _attackTimer = 0f;
+            _attackInterval = Random.Range(_minAttackTime, _maxAttackTime); // 공격 간격 랜덤
+            _enemy.Attack(); // 공격
+        }
+
+        // 감지 관련
+        if (_enemy.CanSeePlayer())
+        {
+            // Debug.Log("플레이어 감지!"); // 디버그용
+            //_enemy.ChangeState(EnemyStateType.Combat); // 상태 전환
+        }
     }
 }

@@ -31,7 +31,7 @@ public class Wall : MonoBehaviour, IExplosionDamageable
             //Vector3 dir = (transform.position - transform.parent.position).normalized;
             //rigid.AddForce(transform.localPosition * explosionForce * 10f, ForceMode.Impulse);
             //Vector3 expPos = transform.position + Vector3.up * -1f;
-            rigid.AddExplosionForce(explosionForce, pos, explosionForce * 100f);
+            rigid.AddExplosionForce(explosionForce, pos, 1000f, 0f, ForceMode.Impulse);
         }
 
         // 큐브들 페이드 아웃

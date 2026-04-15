@@ -6,21 +6,24 @@ using System.Collections.Generic;
 /// </summary>
 public class CameraObstacleFade : MonoBehaviour
 {
-    public Transform player;
-    public LayerMask obstacleLayer; // 투명화 시킬 레이어(Material - SurfaceType - Transparent)
+    [SerializeField] Transform _player;
+    [SerializeField] LayerMask _obstacleLayer; // 투명화 시킬 레이어
+    [SerializeField] Material _transparentMat; // 교체할 머터리얼
 
-    private List<MeshRenderer> fadedObjects = new List<MeshRenderer>(); // 투명화된 객체
+    private List<MeshRenderer> _fadedObjects = new List<MeshRenderer>(); // 투명화된 객체
+    private Dictionary<MeshRenderer, Material[]> _originalMaterials = new Dictionary<MeshRenderer, Material[]>(); // 원본 머터리얼 보관
+
 
     void Update()
     {
-        // 투명화된 객체 복구
-        if (fadedObjects.Count > 0) RestoreObjects();
+        // 이전에 교체된 객체 복구
+        if (_fadedObjects.Count > 0) RestoreObjects();
 
-        Vector3 dir = player.position - transform.position;
+        Vector3 dir = _player.position - transform.position;
         float distance = dir.magnitude;
 
         Ray ray = new Ray(transform.position, dir.normalized);
-        RaycastHit[] hits = Physics.RaycastAll(ray, distance, obstacleLayer);
+        RaycastHit[] hits = Physics.RaycastAll(ray, distance, _obstacleLayer);
 
         foreach (RaycastHit hit in hits)
         {
@@ -28,7 +31,7 @@ public class CameraObstacleFade : MonoBehaviour
             if (rend != null)
             {
                 FadeObject(rend);
-                fadedObjects.Add(rend);
+                if (!_fadedObjects.Contains(rend)) _fadedObjects.Add(rend);
             }
         }
     }
@@ -36,15 +39,23 @@ public class CameraObstacleFade : MonoBehaviour
     /// <summary>
     /// 객체 투명화
     /// </summary>
-    /// <param name="rend"></param>
     void FadeObject(MeshRenderer rend)
     {
-        foreach (Material mat in rend.materials)
+        if (rend == null) return;
+        if (_originalMaterials.ContainsKey(rend)) return; // 이미 교체된 경우 중복 처리 방지
+
+        // 원본 머터리얼 저장
+        Material[] origMats = rend.materials;
+        _originalMaterials[rend] = origMats;
+
+        // 슬롯 수에 맞추어 머터리얼 교체
+        int slotCount = origMats.Length;
+        Material[] replacement = new Material[slotCount];
+        for (int i = 0; i < slotCount; i++)
         {
-            Color c = mat.color;
-            c.a = 0.1f;
-            mat.color = c;
+            replacement[i] = _transparentMat;
         }
+        rend.materials = replacement;
     }
 
     /// <summary>
@@ -52,15 +63,15 @@ public class CameraObstacleFade : MonoBehaviour
     /// </summary>
     void RestoreObjects()
     {
-        foreach (MeshRenderer rend in fadedObjects)
+        foreach (MeshRenderer rend in _fadedObjects)
         {
-            foreach (Material mat in rend.materials)
+            if (rend == null) continue;
+            if (_originalMaterials.TryGetValue(rend, out Material[] origMats))
             {
-                Color color = mat.color;
-                color.a = 1f;
-                mat.color = color;
+                rend.materials = origMats; // 원본 머터리얼로 복구
+                _originalMaterials.Remove(rend);
             }
         }
-        fadedObjects.Clear();
+        _fadedObjects.Clear();
     }
 }

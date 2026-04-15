@@ -49,6 +49,6 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
     {
         //_rigid.AddForce(transform.position * explosionForce, ForceMode.Impulse);
         //_rigid.AddExplosionForce(explosionForce, transform.position, explosionForce);
-        _rigid.AddExplosionForce(explosionForce, pos, explosionForce * 100f);
+        _rigid.AddExplosionForce(explosionForce, pos, 1000f, 0f, ForceMode.Impulse);
     }
 }
