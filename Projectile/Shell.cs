@@ -54,7 +54,7 @@ public class Shell : MonoBehaviour
     private void Explode()
     {
         // 이펙트 재생
-        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.SmallExplosion, transform.position);
+        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.CompleteShellExplosion, transform.position);
 
         // 범위 피해
         Collider[] colliders = Physics.OverlapSphere(transform.position, _explosionRadius, _hitLayer);

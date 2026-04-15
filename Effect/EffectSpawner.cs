@@ -2,6 +2,11 @@ using UnityEngine;
 
 public enum EffectType // 파일 이름과 동일하게 해야함
 {
+    // _Tanks 이펙트
+    CompleteShellExplosion,
+    TankExplosion,
+    // UnityTechnologies 이펙트
+    TinyExplosion,
     SmallExplosion,
 }
 
@@ -15,6 +20,9 @@ public class EffectSpawner : MonoBehaviour
     public void Initialize()
     {
         _poolManager = GameManager.Instance.PoolManager;
+        _poolManager.GetPool(GetPrefabPath(EffectType.CompleteShellExplosion), 10);
+        _poolManager.GetPool(GetPrefabPath(EffectType.TankExplosion), 10);
+        _poolManager.GetPool(GetPrefabPath(EffectType.TinyExplosion), 10);
         _poolManager.GetPool(GetPrefabPath(EffectType.SmallExplosion), 10);
     }
 

@@ -24,6 +24,9 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     {
         if (!CanAttack) return;
 
+        // 포신 이펙트 생성
+        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.TinyExplosion, _firePoint.position);
+
         // 포탄 생성
         GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPrefabPath);
         shellGo.transform.position = _firePoint.position;
