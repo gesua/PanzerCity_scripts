@@ -45,8 +45,10 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
         gameObject.layer = 0; // 레이어를 Default로 변경하여 충돌 감지 방지
     }
 
-    public void TakeDamage(int damage, float explosionForce)
+    public void TakeDamage(int damage, float explosionForce, Vector3 pos)
     {
-        _rigid.AddForce(transform.position * explosionForce, ForceMode.Impulse);
+        //_rigid.AddForce(transform.position * explosionForce, ForceMode.Impulse);
+        //_rigid.AddExplosionForce(explosionForce, transform.position, explosionForce);
+        _rigid.AddExplosionForce(explosionForce, pos, explosionForce * 100f);
     }
 }

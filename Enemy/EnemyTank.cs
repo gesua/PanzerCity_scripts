@@ -126,6 +126,9 @@ public class EnemyTank : TankBase
     /// </summary>
     protected virtual void HandleDead()
     {
+        // 폭발 이펙트 재생
+        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.SmallExplosion, transform.position);
+
         Remove();
     }
 

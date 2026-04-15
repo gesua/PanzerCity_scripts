@@ -102,4 +102,25 @@ public class Mover : MonoBehaviour
         _dirX = 0f;
         OnMoved?.Invoke(_velocity);
     }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        // 장애물에 충돌했을 때 가속도 제거
+
+        //if (!_obstacleLayer.Contains(collision.gameObject.layer)) return;
+
+        bool blocked = false;
+        foreach (ContactPoint contact in collision.contacts)
+        {
+            float dot = Vector3.Dot(transform.forward, contact.normal);
+            if (_targetSpeed > 0f && dot < -0.5f) { blocked = true; break; }
+            if (_targetSpeed < 0f && dot > 0.5f) { blocked = true; break; }
+        }
+
+        if (blocked)
+        {
+            _currentSpeed = 0f;
+            _targetSpeed = 0f;
+        }
+    }
 }

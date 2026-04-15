@@ -19,7 +19,7 @@ public class Wall : MonoBehaviour, IExplosionDamageable
         _collider = GetComponent<Collider>();
     }
 
-    public void TakeDamage(int damage, float explosionForce)
+    public void TakeDamage(int damage, float explosionForce, Vector3 pos)
     {
         _collider.enabled = false; // 충돌 비활성화
 
@@ -29,7 +29,9 @@ public class Wall : MonoBehaviour, IExplosionDamageable
 
             // 폭발 방향으로 날리기
             //Vector3 dir = (transform.position - transform.parent.position).normalized;
-            rigid.AddForce(transform.position * explosionForce, ForceMode.Impulse);
+            //rigid.AddForce(transform.localPosition * explosionForce * 10f, ForceMode.Impulse);
+            //Vector3 expPos = transform.position + Vector3.up * -1f;
+            rigid.AddExplosionForce(explosionForce, pos, explosionForce * 100f);
         }
 
         // 큐브들 페이드 아웃

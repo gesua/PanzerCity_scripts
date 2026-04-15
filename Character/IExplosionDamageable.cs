@@ -10,5 +10,6 @@ public interface IExplosionDamageable
     /// </summary>
     /// <param name="damage">입는 피해량</param>
     /// <param name="explosionForce">폭발력</param>
-    void TakeDamage(int damage, float explosionForce);
+    /// <param name="pos">폭발 위치</param>
+    void TakeDamage(int damage, float explosionForce, Vector3 pos);
 }
