@@ -9,6 +9,10 @@ public class PlayerTank : TankBase
     [SerializeField] Mover _mover;
     [SerializeField] Turret _turret;
 
+    bool _isSniperMode;
+
+    protected override bool ShowMuzzleEffect => !_isSniperMode;
+
     private void Start()
     {
         Initialize();
@@ -24,5 +28,10 @@ public class PlayerTank : TankBase
     public void Move(Vector3 dir)
     {
         _mover.Move(dir);
+    }
+
+    public void SetSniperMode(bool active)
+    {
+        _isSniperMode = active;
     }
 }

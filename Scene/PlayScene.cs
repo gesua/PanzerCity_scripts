@@ -47,5 +47,6 @@ public class PlayScene : MonoBehaviour
     void HandleSniperInput()
     {
         _sniperMode.ToggleSniperMode();
+        _player.SetSniperMode(_sniperMode.IsSniper);
     }
 }

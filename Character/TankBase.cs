@@ -13,6 +13,8 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     [SerializeField] string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
 
+    protected virtual bool ShowMuzzleEffect => true; // 포신 이펙트 보여줄지 여부(플레이어 저격 모드엔 안 보임)
+
     protected virtual void Awake()
     {
         _model = GetComponent<TankModel>();
@@ -25,8 +27,12 @@ public abstract class TankBase : MonoBehaviour, IAttackable
 
     public virtual void Attack()
     {
-        // 포신 이펙트 생성
-        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.TinyExplosion, _firePoint.position);
+        // 저격 모드엔 포신 이펙트 안 보이게 함
+        if (ShowMuzzleEffect)
+        {
+            // 포신 이펙트 생성
+            GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.TinyExplosion, _firePoint.position);
+        }
 
         // 포탄 생성
         GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPrefabPath);
