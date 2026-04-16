@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 탱크 포탑
+/// 플레이어 탱크 포탑
+/// 카메라가 바라보는 곳으로 포탑을 회전시키고, 주포각을 맞춤
 /// </summary>
 public class Turret : MonoBehaviour
 {

@@ -1,6 +1,11 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// 플레이어 움직임 담당
+/// 목표 속도를 정해놓고, 가속도를 서서히 올리는 방식
+/// *드리프트를 구현하고 싶은데 AddTorque가 이상하게 움직여서 AddForce를 사용하지 않음
+/// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class Mover : MonoBehaviour
 {
@@ -13,12 +18,12 @@ public class Mover : MonoBehaviour
 
     public event Action<Vector3> OnMoved;
 
-    // 가속 관련
+    // 물리 연산 관련
     Rigidbody _rigid;
     Vector3 _velocity;
     float _currentSpeed;   // 로컬 전진 방향에 대한 현재 속도(음수면 후진)
     float _targetSpeed;    // 목표 속도(스칼라)
-    float _dirX;
+    float _dirX;           // 좌우 방향
 
     private void Awake()
     {
@@ -105,10 +110,7 @@ public class Mover : MonoBehaviour
 
     private void OnCollisionStay(Collision collision)
     {
-        // 장애물에 충돌했을 때 가속도 제거
-
-        //if (!_obstacleLayer.Contains(collision.gameObject.layer)) return;
-
+        // 뭔가에 충돌했을 때 가속도 제거
         bool blocked = false;
         foreach (ContactPoint contact in collision.contacts)
         {

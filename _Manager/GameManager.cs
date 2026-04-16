@@ -2,6 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 매니저 관리하는 매니저
+/// 현재 리소스 매니저, 풀 매니저, 이펙트스포너(이펙트 관리) 가지고 있음
 /// </summary>
 public class GameManager : Singleton<GameManager>
 {

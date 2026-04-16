@@ -11,7 +11,8 @@ public enum EffectType // 파일 이름과 동일하게 해야함
 }
 
 /// <summary>
-/// VFX(비주얼 이펙트)를 원하는 위치에 스폰하는 역할
+/// VFX(비주얼 이펙트)를 원하는 위치에 스폰
+/// GameManager에서 관리되고 있음
 /// </summary>
 public class EffectSpawner : MonoBehaviour
 {

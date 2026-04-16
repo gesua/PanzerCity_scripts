@@ -1,7 +1,9 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
+/// <summary>
+/// Extension에서 갖다쓰는 용도
+/// </summary>
 public static class Util
 {
     public const float Epsilon = 0.01f;

@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// 플레이어 탱크
+/// </summary>
 public class PlayerTank : TankBase
 {
     [Header("----- 컴포넌트 -----")]

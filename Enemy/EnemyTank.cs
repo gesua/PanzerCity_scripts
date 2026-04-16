@@ -10,7 +10,10 @@ public enum Direction
 }
 
 /// <summary>
-/// 배회하면서 주기적으로 공격
+/// 적 탱크 AI
+/// 상태머신으로 움직임
+/// 배회, 감지 기능을 가지고 있음
+/// 스폰 후 배회하다 플레이어를 감지하면 성격에 따라 다르게 행동
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class EnemyTank : TankBase

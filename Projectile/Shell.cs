@@ -1,5 +1,10 @@
 using UnityEngine;
 
+/// <summary>
+/// 탱크 포탄
+/// 적이 쏜 포탄에 적이 안 맞게 되어있음
+/// 플레이어가 쏜 포탄으로 적 포탄을 없앨 수 있음
+/// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class Shell : MonoBehaviour
 {
@@ -47,7 +52,7 @@ public class Shell : MonoBehaviour
     }
 
     /// <summary>
-    /// 폭발 계산
+    /// 폭발 계산 (HACK:현재 적이 쏜 포탄이 폭발하면 적 경전차가 그거에 맞고 죽을듯, TakeDamage에 누가 쏜건지 넣어놔야 할듯)
     /// </summary>
     private void Explode()
     {

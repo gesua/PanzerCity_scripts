@@ -1,6 +1,12 @@
 using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// 벽에 들어있는 큐브 조각
+/// 벽 하나에 큐브 4개 들어있음
+/// Wall이 파괴될 때 굴러다니며 투명해짐
+/// 이미 투명해진 큐브들도 사라지기 전까지 포탄에 영향을 받음
+/// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class FragmentCube : MonoBehaviour, IExplosionDamageable
 {

@@ -2,6 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 벽
+/// 포탄에 부숴지는 기능을 가지고 있음
 /// </summary>
 public class Wall : MonoBehaviour, IExplosionDamageable
 {

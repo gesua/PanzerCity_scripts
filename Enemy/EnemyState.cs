@@ -10,6 +10,9 @@ public enum EnemyStateType
     Count   // 상태 종류 개수(카운트용)
 }
 
+/// <summary>
+/// 적 AI 상태머신
+/// </summary>
 public abstract class EnemyState
 {
     protected EnemyTank _enemy;

@@ -3,6 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// 탱크 기본 데이터
+/// 데이터는 TankData에서 가져오면 됨
 /// </summary>
 public class TankModel : MonoBehaviour, IDamageable
 {
@@ -64,6 +65,7 @@ public class TankModel : MonoBehaviour, IDamageable
 
         OnHpChanged?.Invoke(_currentHp, _maxHp);
 
+        // 사망
         if (IsAlive == false)
         {
             OnDead?.Invoke();

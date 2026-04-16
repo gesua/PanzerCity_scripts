@@ -6,7 +6,6 @@ using UnityEngine;
 /// - 게임 전역 매니저에 적합
 /// - 이 클래스를 상속 받으면 싱글톤 객체 사용 가능
 /// </summary>
-/// <typeparam name="T"></typeparam>
 public class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {
     // 유일한 인스턴스

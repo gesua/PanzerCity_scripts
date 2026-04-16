@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// 씬 관리
+/// </summary>
 public class PlayScene : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]

@@ -2,6 +2,9 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// InputSystem 사용할거
+/// </summary>
 public class InputSystemHandler : MonoBehaviour
 {
     public event Action<Vector2> OnMoveInput;

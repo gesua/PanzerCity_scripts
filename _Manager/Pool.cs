@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 게임오브젝트 Pool(오브젝트 풀링)
 /// 게임오브젝트들을 미리 생성해뒀다가 필요할 때 건네주고
-/// 사용이 다 됐으면 다시 돌려받는 역할
+/// 사용이 다 됐으면 다시 돌려받음
 /// </summary>
 public class Pool
 {

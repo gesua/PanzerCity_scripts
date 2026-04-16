@@ -2,7 +2,8 @@ using Unity.Cinemachine;
 using UnityEngine;
 
 /// <summary>
-/// 주인공 캐릭터를 따라다니는 카메라 타겟
+/// Cinemachine이 바라보게 할 카메라 타겟
+/// 카메라 각도 및 감도 조절
 /// </summary>
 public class CameraTarget : MonoBehaviour
 {

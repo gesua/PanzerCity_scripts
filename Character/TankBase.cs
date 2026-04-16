@@ -1,5 +1,10 @@
 using UnityEngine;
 
+/// <summary>
+/// 플레이어와 적이 사용할 TankBase
+/// 데이터테이블에서 _tankID로 TankModel을 불러옴
+/// 공격 기능이 들어있음
+/// </summary>
 [RequireComponent(typeof(TankModel))]
 public abstract class TankBase : MonoBehaviour, IAttackable
 {

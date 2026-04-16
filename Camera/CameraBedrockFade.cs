@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 /// <summary>
 /// 플레이어와 카메라 사이 오브젝트 투명화
+/// 알파값을 바꾸는게 아니라 준비한 머터리얼과 교체
+/// Transparent로 배치해 놓으면 그림자 같은 그래픽이 이상하게 보임
+/// Opaque로 배치해 놓고, 투명화 할 때만 Transparent 머터리얼로 교체
 /// </summary>
 public class CameraObstacleFade : MonoBehaviour
 {

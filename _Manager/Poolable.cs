@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Pooling된 게임오브젝트를 관리하는 역할
+/// Pooling된 게임오브젝트를 관리
 /// Pool에서 가져온 게임오브젝트를 Pool로 반환하는 기능
 /// </summary>
 public class Poolable : MonoBehaviour

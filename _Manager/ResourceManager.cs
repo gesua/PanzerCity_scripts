@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 유니티의 Resources를 활용해 게임의 리소스를 관리하는 매니저
+/// 유니티의 Resources 폴더를 활용해 게임의 리소스를 관리하는 매니저
 /// </summary>
 public class ResourceManager : MonoBehaviour
 {

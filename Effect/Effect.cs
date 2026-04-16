@@ -2,6 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// VFX(비주얼 이펙트)를 담당
+/// 이펙트에 붙여놓으면 됨
 /// </summary>
 [RequireComponent(typeof(ParticleSystem))]
 public class Effect : MonoBehaviour
@@ -14,7 +15,7 @@ public class Effect : MonoBehaviour
     }
 
     /// <summary>
-    /// 이펙트를 재생하는 함수
+    /// 이펙트 재생
     /// </summary>
     public void Play()
     {
