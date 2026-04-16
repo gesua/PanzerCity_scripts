@@ -148,12 +148,14 @@ public class EnemyTank : TankBase
         foreach (Collider col in colliders)
         {
             // 포탄이면 무시
-            if (col.GetComponent<Shell>() != null) continue;
+            if (col.TryGetComponent(out Shell shell)) continue;
 
             // TODO:4군데 모서리로 한다면 이렇게 가져오면 안됨
-            if (_target == null) _target = col.GetComponent<Turret>()?.TurretTr;
-            if (_target == null) continue;
-
+            if (_target == null)
+            {
+                if (col.TryGetComponent(out Turret turret) == false) continue;
+                _target = turret.TurretTr;
+            }
             Vector3 playerPos = _target.position;
 
             // 부채꼴 체크 (포탑 전방 기준)

@@ -36,7 +36,11 @@ public class PlayScene : MonoBehaviour
 
     void HandleCameraZoomInput(Vector2 inputVector)
     {
-        _cameraTarget.Zoom(inputVector);
+        // 저격 모드가 아닐 때만 줌 조절
+        if (_sniperMode.IsSniper == false)
+        {
+            _cameraTarget.Zoom(inputVector);
+        }
     }
 
     void HandleAttackInput()
