@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using static UnityEngine.UI.Image;
 
 public enum Direction
 {
@@ -26,7 +27,7 @@ public class EnemyTank : TankBase
     [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
     // 감지 관련
     float _detectionRange = 1000f;                  // 감지 거리(걍 최대치로 할거임)
-    [SerializeField] float _detectionAngle = 60f;   // 감지 각도 (부채꼴 반각)
+    [SerializeField] float _detectionAngle = 30f;   // 감지 각도 (부채꼴 반각)
     [SerializeField] LayerMask _playerLayer;        // 감지할 레이어
     [SerializeField] LayerMask _obstacleLayer;      // 시야 차단 레이어
     [SerializeField] Transform _turret;             // 포탑
@@ -132,6 +133,9 @@ public class EnemyTank : TankBase
         }
     }
 
+    [SerializeField] Transform testPlayerPos;
+    [SerializeField] Transform testOrigin;
+
     /// <summary>
     /// 플레이어 감지
     /// </summary>
@@ -147,17 +151,28 @@ public class EnemyTank : TankBase
             // 포탄이면 무시
             if (col.GetComponent<Shell>() != null) continue;
 
-            Vector3 playerPos = col.transform.position;
+            //Vector3 playerPos = col.transform.position;
+            //Vector3 origin = transform.position + Vector3.up * 1f;
+            Vector3 playerPos = testPlayerPos.position;
+            Vector3 origin = testOrigin.position;
 
             // 부채꼴 체크 (포탑 전방 기준)
-            Vector3 dirToPlayer = (playerPos - _turret.position).normalized;
+            Vector3 dirToPlayer = (playerPos - origin).normalized;
             float angle = Vector3.Angle(_turret.forward, dirToPlayer);
-            if (angle > _detectionAngle) return false;
+            if (angle > _detectionAngle) continue;
 
             // 시야 차단 체크 (벽 등에 가려져 있으면 감지 안 됨)
-            float distance = Vector3.Distance(_turret.position, playerPos);
-            if (Physics.Raycast(_turret.position, dirToPlayer, distance, _obstacleLayer)) return false;
+            float distance = Vector3.Distance(origin, playerPos);
+            Debug.DrawRay(origin, dirToPlayer * distance, Color.red);
+            RaycastHit hit;
+            if (Physics.Raycast(origin, dirToPlayer, out hit, distance, _obstacleLayer))
+            {
+                Debug.Log("Raycast Hit: " + hit.transform.name, hit.transform.gameObject);
+                continue;
+            }
 
+            Debug.Log("플레이어 감지!");
+            _target = col.transform; // 타겟 설정
             return true;
         }
         return false;
@@ -198,23 +213,24 @@ public class EnemyTank : TankBase
         if (_turret == null) return;
 
         // 부채꼴 (포탑 전방 기준)
-        Gizmos.color = Color.red;
+        Vector3 origin = transform.position;
+        Gizmos.color = Color.yellow;
         Vector3 forward = _turret.forward;
         Vector3 leftDir = Quaternion.Euler(0f, -_detectionAngle, 0f) * forward;
         Vector3 rightDir = Quaternion.Euler(0f, _detectionAngle, 0f) * forward;
 
-        // Gizmos.DrawRay(_turret.position, forward * _detectionRange);
-        // Gizmos.DrawRay(_turret.position, leftDir * _detectionRange);
-        // Gizmos.DrawRay(_turret.position, rightDir * _detectionRange);
+        Gizmos.DrawRay(origin, forward * _detectionRange);
+        Gizmos.DrawRay(origin, leftDir * _detectionRange);
+        Gizmos.DrawRay(origin, rightDir * _detectionRange);
 
         // 부채꼴 호 그리기
         int segments = 20;
         float angleStep = (_detectionAngle * 2f) / segments;
-        Vector3 prevPoint = _turret.position + leftDir * _detectionRange;
+        Vector3 prevPoint = origin + leftDir * _detectionRange;
         for (int i = 1; i <= segments; i++)
         {
             Vector3 dir = Quaternion.Euler(0f, -_detectionAngle + angleStep * i, 0f) * forward;
-            Vector3 nextPoint = _turret.position + dir * _detectionRange;
+            Vector3 nextPoint = origin + dir * _detectionRange;
             Gizmos.DrawLine(prevPoint, nextPoint);
             prevPoint = nextPoint;
         }

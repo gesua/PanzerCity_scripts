@@ -13,8 +13,6 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     [SerializeField] string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
 
-    public bool CanAttack { get; protected set; } = true;
-
     protected virtual void Awake()
     {
         _model = GetComponent<TankModel>();
@@ -27,8 +25,6 @@ public abstract class TankBase : MonoBehaviour, IAttackable
 
     public virtual void Attack()
     {
-        if (!CanAttack) return;
-
         // 포신 이펙트 생성
         GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.TinyExplosion, _firePoint.position);
 
@@ -41,13 +37,4 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         Shell shell = shellGo.GetComponent<Shell>();
         shell.Initialize(_model.ShellDamage, _model.ShellSpeed, _model.ExplosionRadius, _model.HitLayer, gameObject.layer);
     }
-
-    /*
-    IEnumerator ReloadRoutine()
-    {
-        CanAttack = false;
-        yield return new WaitForSeconds(GetReloadTime());
-        CanAttack = true;
-    }
-    */
 }

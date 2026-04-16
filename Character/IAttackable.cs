@@ -5,6 +5,5 @@ using UnityEngine;
 /// </summary>
 public interface IAttackable
 {
-    bool CanAttack { get; }
     void Attack();
 }

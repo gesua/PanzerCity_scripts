@@ -11,6 +11,7 @@ public class InputSystemHandler : MonoBehaviour
     public event Action<Vector2> OnCameraRotInput;
     public event Action<Vector2> OnMouseScrollInput;
     public event Action OnAttackInput;
+    public event Action OnSniperInput;
 
     Vector2 _moveInput;
     Vector2 _cameraRotInput;
@@ -33,16 +34,27 @@ public class InputSystemHandler : MonoBehaviour
         _cameraRotInput = context.ReadValue<Vector2>();
     }
 
+    // 마우스 휠
     public void HandlePlayerScrollWhellInput(InputAction.CallbackContext context)
     {
         _cameraZoomInput = context.ReadValue<Vector2>();
     }
 
+    // 좌클릭
     public void HandleAttackInput(InputAction.CallbackContext context)
     {
         if (context.performed == true)
         {
             OnAttackInput?.Invoke();
+        }
+    }
+
+    // Shift키
+    public void HandleSniperInput(InputAction.CallbackContext context)
+    {
+        if (context.performed == true)
+        {
+            OnSniperInput?.Invoke();
         }
     }
 }

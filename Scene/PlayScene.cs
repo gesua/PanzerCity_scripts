@@ -9,6 +9,7 @@ public class PlayScene : MonoBehaviour
     [SerializeField] InputSystemHandler _inputSystemHandler;
     [SerializeField] PlayerTank _player;
     [SerializeField] CameraTarget _cameraTarget;
+    [SerializeField] SniperModeController _sniperMode;
 
     private void Start()
     {
@@ -18,6 +19,7 @@ public class PlayScene : MonoBehaviour
         _inputSystemHandler.OnCameraRotInput += HandleCameraRotateInput;
         _inputSystemHandler.OnMouseScrollInput += HandleCameraZoomInput;
         _inputSystemHandler.OnAttackInput += HandleAttackInput;
+        _inputSystemHandler.OnSniperInput += HandleSniperInput;
     }
 
     void HandleMoveInput(Vector2 inputVector)
@@ -40,5 +42,10 @@ public class PlayScene : MonoBehaviour
     void HandleAttackInput()
     {
         _player.Attack();
+    }
+
+    void HandleSniperInput()
+    {
+        _sniperMode.ToggleSniperMode();
     }
 }
