@@ -17,6 +17,7 @@ public class Turret : MonoBehaviour
     [SerializeField] LayerMask _aimLayerMask; // 에임용 레이어 마스크
     
     float _rotSpeed; // 포탑(주포) 회전 속력
+    public Transform TurretTr => _turret; 
 
     public void SetRotSpeed(float rotSpeed)
     {

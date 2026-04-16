@@ -134,7 +134,6 @@ public class EnemyTank : TankBase
     }
 
     [SerializeField] Transform testPlayerPos;
-    [SerializeField] Transform testOrigin;
 
     /// <summary>
     /// 플레이어 감지
@@ -151,27 +150,23 @@ public class EnemyTank : TankBase
             // 포탄이면 무시
             if (col.GetComponent<Shell>() != null) continue;
 
-            //Vector3 playerPos = col.transform.position;
-            //Vector3 origin = transform.position + Vector3.up * 1f;
-            Vector3 playerPos = testPlayerPos.position;
-            Vector3 origin = testOrigin.position;
+            // TODO:4군데 모서리로 한다면 이렇게 가져오면 안됨
+            if (_target == null) _target = col.GetComponent<Turret>()?.TurretTr;
+            if (_target == null) continue;
+
+            Vector3 playerPos = _target.position;
 
             // 부채꼴 체크 (포탑 전방 기준)
-            Vector3 dirToPlayer = (playerPos - origin).normalized;
+            Vector3 dirToPlayer = (playerPos - _turret.position).normalized;
             float angle = Vector3.Angle(_turret.forward, dirToPlayer);
             if (angle > _detectionAngle) continue;
 
             // 시야 차단 체크 (벽 등에 가려져 있으면 감지 안 됨)
-            float distance = Vector3.Distance(origin, playerPos);
-            Debug.DrawRay(origin, dirToPlayer * distance, Color.red);
-            RaycastHit hit;
-            if (Physics.Raycast(origin, dirToPlayer, out hit, distance, _obstacleLayer))
-            {
-                Debug.Log("Raycast Hit: " + hit.transform.name, hit.transform.gameObject);
-                continue;
-            }
+            float distance = Vector3.Distance(_turret.position, playerPos);
+            Debug.DrawRay(_turret.position, dirToPlayer * distance, Color.red);
+            if (Physics.Raycast(_turret.position, dirToPlayer, distance, _obstacleLayer)) continue;
 
-            Debug.Log("플레이어 감지!");
+            Debug.Log("플레이어 감지!", gameObject);
             _target = col.transform; // 타겟 설정
             return true;
         }

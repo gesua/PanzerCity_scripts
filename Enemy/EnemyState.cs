@@ -42,6 +42,9 @@ public class IdleState : EnemyState
     float _attackInterval; // 공격 간격
     float _attackTimer; // 공격 시간 잴거
 
+    float _playerDetectInterval = 0.2f; // 플레이어 체크 간격
+    float _playerDetectTimer; // 플레이어 감지 시간 잴거
+
     public override EnemyStateType StateType => EnemyStateType.Idle;
     public IdleState(EnemyTank enemy, float roamSpan, float minAttackTime, float maxAttackTime) : base(enemy)
     {
@@ -66,19 +69,15 @@ public class IdleState : EnemyState
     {
         // 배회 관련
         _roamTimer += Time.deltaTime;
-
-        // 방향 갱신
         if (_roamTimer > _roamSpan)
         {
             _roamTimer = Random.Range(0, _roamSpan); // 배회 간격 랜덤
-            _enemy.RandomDir();
+            _enemy.RandomDir(); // 방향 갱신
         }
-
         _enemy.Roam(); // 배회
 
         // 공격 관련
         _attackTimer += Time.deltaTime;
-
         if (_attackTimer > _attackInterval)
         {
             _attackTimer = 0f;
@@ -86,11 +85,16 @@ public class IdleState : EnemyState
             _enemy.Attack(); // 공격
         }
 
-        // 감지 관련
-        if (_enemy.CanSeePlayer())
+        // 플레이어 감지 관련
+        _playerDetectTimer += Time.deltaTime;
+        if(_playerDetectTimer > _playerDetectInterval)
         {
-            // Debug.Log("플레이어 감지!"); // 디버그용
-            //_enemy.ChangeState(EnemyStateType.Combat); // 상태 전환
+            _playerDetectTimer = 0f;
+            if (_enemy.CanSeePlayer())
+            {
+                // Debug.Log("플레이어 감지!"); // 디버그용
+                //_enemy.ChangeState(EnemyStateType.Trace); // 상태 전환
+            }
         }
     }
 }
