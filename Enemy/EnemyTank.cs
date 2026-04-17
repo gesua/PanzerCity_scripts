@@ -2,6 +2,9 @@ using System;
 using UnityEngine;
 using static UnityEngine.UI.Image;
 
+/// <summary>
+/// 배회할 방향
+/// </summary>
 public enum Direction
 {
     Up,
@@ -17,10 +20,9 @@ public enum Direction
 /// 스폰 후 배회하다 플레이어를 감지하면 성격에 따라 다르게 행동
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(EnemyTankDestructionEffect))]
 public class EnemyTank : TankBase
 {
-    [Header("----- 타겟 -----")]
-    [SerializeField] Transform _target; // 플레이어
 
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _roamSpan = 3f;      // 최대 배회 간격
@@ -32,9 +34,13 @@ public class EnemyTank : TankBase
     [SerializeField] LayerMask _obstacleLayer;      // 시야 차단 레이어
     [SerializeField] Transform _turret;             // 포탑
 
+    Transform _target; // 플레이어
     Rigidbody _rigid;
     Vector3 lookDir; // 이동할 방향
     bool isRot; // 회전해야 하는지 체크
+
+    EnemyTankDestructionEffect _destructionEffect; // 파괴 연출
+    Collider _collider; // 파괴될 때 콜라이더 비활성화 용도
 
     /// <summary>
     /// 적 제거 이벤트
@@ -67,6 +73,7 @@ public class EnemyTank : TankBase
         _model.Initialize();
 
         _rigid = GetComponent<Rigidbody>();
+        _destructionEffect = GetComponent<EnemyTankDestructionEffect>();
 
         // 상태 객체들 생성
         // 1) 방치 상태 객체 생성
@@ -133,8 +140,6 @@ public class EnemyTank : TankBase
         }
     }
 
-    [SerializeField] Transform testPlayerPos;
-
     /// <summary>
     /// 플레이어 감지
     /// </summary>
@@ -165,10 +170,8 @@ public class EnemyTank : TankBase
 
             // 시야 차단 체크 (벽 등에 가려져 있으면 감지 안 됨)
             float distance = Vector3.Distance(_turret.position, playerPos);
-            Debug.DrawRay(_turret.position, dirToPlayer * distance, Color.red);
             if (Physics.Raycast(_turret.position, dirToPlayer, distance, _obstacleLayer)) continue;
 
-            Debug.Log("플레이어 감지!", gameObject);
             _target = col.transform; // 타겟 설정
             return true;
         }
@@ -183,6 +186,12 @@ public class EnemyTank : TankBase
         // 폭발 이펙트 재생
         GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.SmallExplosion, transform.position);
 
+
+
+        // 사망 효과 재생
+        _destructionEffect.Play();
+
+        // 제거
         Remove();
     }
 
@@ -201,12 +210,9 @@ public class EnemyTank : TankBase
         gameObject.DestroyOrReturnToPool();
     }
 
+    /* 감지범위 시각화
     void OnDrawGizmos()
     {
-        // 감지 범위 원
-        //Gizmos.color = Color.yellow;
-        //Gizmos.DrawWireSphere(transform.position, _detectionRange);
-
         if (_turret == null) return;
 
         // 부채꼴 (포탑 전방 기준)
@@ -232,4 +238,5 @@ public class EnemyTank : TankBase
             prevPoint = nextPoint;
         }
     }
+    */
 }

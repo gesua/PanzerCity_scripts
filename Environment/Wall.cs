@@ -29,9 +29,6 @@ public class Wall : MonoBehaviour, IExplosionDamageable
             rigid.isKinematic = false; // 물리 활성화
 
             // 폭발 방향으로 날리기
-            //Vector3 dir = (transform.position - transform.parent.position).normalized;
-            //rigid.AddForce(transform.localPosition * explosionForce * 10f, ForceMode.Impulse);
-            //Vector3 expPos = transform.position + Vector3.up * -1f;
             rigid.AddExplosionForce(explosionForce, pos, 1000f, 0f, ForceMode.Impulse);
         }
 

@@ -18,18 +18,17 @@ public class CameraBedrockChange : MonoBehaviour
         // 외곽벽 모델 복구
         if (_changedBedrocks.Count > 0) RestoreBedrocks();
 
-        Vector3 dir = _player.position - transform.position;
+        // 플레이어에서 카메라로 향하는 Raycast
+        Vector3 dir = transform.position - _player.position;
         float distance = dir.magnitude;
 
-        Ray ray = new Ray(transform.position, dir.normalized);
-        float radius = 0.5f;
-        RaycastHit[] hits = Physics.SphereCastAll(ray, radius, distance, _obstacleLayer);
-        //RaycastHit[] hits = Physics.RaycastAll(ray, distance, _obstacleLayer);
+        Ray ray = new Ray(_player.position, dir.normalized);
+        RaycastHit[] hits = Physics.RaycastAll(ray, distance, _obstacleLayer); // RaycastAll로 안 해도 되지만 혹시 변경될 수 있으니 유지
 
+        // 외곽벽 모델 교체
         foreach (RaycastHit hit in hits)
         {
-            BedrockController block = hit.collider.GetComponent<BedrockController>();
-            if (block != null)
+            if(hit.collider.TryGetComponent<BedrockController>(out BedrockController block))
             {
                 block.ShowTransparent();
                 if (!_changedBedrocks.Contains(block)) _changedBedrocks.Add(block);
@@ -37,6 +36,9 @@ public class CameraBedrockChange : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 외곽벽 모델 복구
+    /// </summary>
     void RestoreBedrocks()
     {
         foreach (BedrockController bedrock in _changedBedrocks)

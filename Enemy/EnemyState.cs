@@ -1,10 +1,12 @@
 using UnityEngine;
 
+/// <summary>
+/// 적 상태 종류
+/// </summary>
 public enum EnemyStateType
 {
     Idle,   // 평소
-    Trace,  // 추적
-    Combat, // 전투
+    Combat, // 교전
     Dead,   // 사망
 
     Count   // 상태 종류 개수(카운트용)
@@ -32,6 +34,10 @@ public abstract class EnemyState
     public abstract void Exit();
 }
 
+/// <summary>
+/// 스폰시 방치 상태
+/// 배회하고, 일정 간격으로 공격하며, 플레이어 감지 시 교전 상태로 전환
+/// </summary>
 public class IdleState : EnemyState
 {
     float _roamSpan; // 최대 배회할 시간
@@ -98,3 +104,37 @@ public class IdleState : EnemyState
         }
     }
 }
+/*
+public class DeadState : EnemyState
+{
+    float _duration; // 시체 지속시간
+    float _timer; // 시간 잴거
+
+    public override EnemyStateType StateType => EnemyStateType.Dead;
+
+    public DeadState(Enemy enemy, float duration) : base(enemy)
+    {
+        _duration = duration;
+    }
+
+    public override void Enter()
+    {
+        _enemy.Stop();
+    }
+
+    public override void Exit()
+    {
+    }
+
+    public override void Update()
+    {
+        _timer += Time.deltaTime;
+
+        if (_timer > _duration)
+        {
+            _timer = 0;
+            _enemy.Remove(); // 랙돌에서 하기 때문에 여기로 오기 전에 제거됨
+        }
+    }
+}
+*/
