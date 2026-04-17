@@ -10,10 +10,10 @@ public abstract class TankBase : MonoBehaviour, IAttackable
 {
     int _tankID; // TankData에서 데이터 가져올 ID
     protected TankModel _model;
-    [SerializeField] string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
+    string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
 
-    [SerializeField] string _playerShellPrefabPath = "PlayerShell"; // 플레이어만 쓸 전용 프리팹 HACK: 포탄 사라지는거 해결중
+    string _playerShellPrefabPath = "PlayerShell"; // 플레이어만 쓸 전용 프리팹 HACK: 포탄 사라지는거 해결중
 
     protected virtual bool ShowMuzzleEffect => true; // 포신 이펙트 보여줄지 여부(플레이어 저격 모드엔 안 보임)
 

@@ -37,7 +37,7 @@ public class Shell : MonoBehaviour
         _rigid.excludeLayers = ~hitLayer; // rigidbody도 hitlayer만 충돌되게
 
         _rigid.linearVelocity = transform.forward * _speed;
-        //Invoke(nameof(Remove), _lifeTime); // 생존시간 후 회수
+        //Invoke(nameof(Remove), _lifeTime); // 생존시간 후 회수 HACK: 포탄 사라지는거 해결중
     }
 
     private void OnTriggerEnter(Collider other)
@@ -48,8 +48,7 @@ public class Shell : MonoBehaviour
         other.gameObject.GetComponent<IDamageable>()?.TakeDamage(_damage);
 
         Explode();
-        //Remove();
-        RemoveTest(other.gameObject);
+        Remove(other.gameObject);
     }
 
     /// <summary>
@@ -71,23 +70,7 @@ public class Shell : MonoBehaviour
     /// <summary>
     /// 포탄 없앰
     /// </summary>
-    public void Remove()
-    {
-        Debug.Log("포탄 생존시간 만료로 회수", gameObject);
-
-        CancelInvoke(nameof(Remove)); // invoke 끄기
-
-        // rigidbody 초기화
-        _rigid.linearVelocity = Vector3.zero;
-        _rigid.angularVelocity = Vector3.zero;
-
-        gameObject.DestroyOrReturnToPool();
-    }
-
-    /// <summary>
-    /// 포탄 없앰
-    /// </summary>
-    public void RemoveTest(GameObject obj)
+    public void Remove(GameObject obj)
     {
         if (gameObject.layer == 8)
             Debug.Log($"포탄 충돌로 회수 : {obj.name} : {gameObject.layer}", gameObject);
