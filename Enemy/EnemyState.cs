@@ -104,7 +104,11 @@ public class IdleState : EnemyState
         }
     }
 }
-/*
+
+/// <summary>
+/// 사망 상태
+/// 파괴된 모델로 바꿔주고 일정시간 후 제거
+/// </summary>
 public class DeadState : EnemyState
 {
     float _duration; // 시체 지속시간
@@ -112,14 +116,13 @@ public class DeadState : EnemyState
 
     public override EnemyStateType StateType => EnemyStateType.Dead;
 
-    public DeadState(Enemy enemy, float duration) : base(enemy)
+    public DeadState(EnemyTank enemy, float duration) : base(enemy)
     {
         _duration = duration;
     }
 
     public override void Enter()
     {
-        _enemy.Stop();
     }
 
     public override void Exit()
@@ -137,4 +140,3 @@ public class DeadState : EnemyState
         }
     }
 }
-*/
