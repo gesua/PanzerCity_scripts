@@ -10,7 +10,8 @@ public class InputSystemHandler : MonoBehaviour
     public event Action<Vector2> OnMoveInput;
     public event Action<Vector2> OnCameraRotInput;
     public event Action<Vector2> OnMouseScrollInput;
-    public event Action OnAttackInput;
+    public event Action OnAttackStarted;
+    public event Action OnAttackCanceled;
     public event Action OnSniperInput;
 
     Vector2 _moveInput;
@@ -43,10 +44,8 @@ public class InputSystemHandler : MonoBehaviour
     // 좌클릭
     public void HandleAttackInput(InputAction.CallbackContext context)
     {
-        if (context.performed == true)
-        {
-            OnAttackInput?.Invoke();
-        }
+        if (context.started) OnAttackStarted?.Invoke();
+        if (context.canceled) OnAttackCanceled?.Invoke();
     }
 
     // Shift키

@@ -11,6 +11,8 @@ public class PlayScene : MonoBehaviour
     [SerializeField] CameraTarget _cameraTarget;
     [SerializeField] SniperModeController _sniperMode;
 
+    bool _isFiring; // 좌클릭 누르고 있는 상태인지
+
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -18,7 +20,9 @@ public class PlayScene : MonoBehaviour
         _inputSystemHandler.OnMoveInput += HandleMoveInput;
         _inputSystemHandler.OnCameraRotInput += HandleCameraRotateInput;
         _inputSystemHandler.OnMouseScrollInput += HandleCameraZoomInput;
-        _inputSystemHandler.OnAttackInput += HandleAttackInput;
+        _inputSystemHandler.OnAttackStarted += () => _isFiring = true;
+        _inputSystemHandler.OnAttackCanceled += () => _isFiring = false;
+        //_inputSystemHandler.OnAttackInput += HandleAttackInput;
         _inputSystemHandler.OnSniperInput += HandleSniperInput;
     }
 
@@ -43,14 +47,14 @@ public class PlayScene : MonoBehaviour
         }
     }
 
-    void HandleAttackInput()
-    {
-        _player.Attack();
-    }
-
     void HandleSniperInput()
     {
         _sniperMode.ToggleSniperMode();
         _player.SetSniperMode(_sniperMode.IsSniper);
+    }
+
+    private void Update()
+    {
+        if (_isFiring) _player.Attack(); // 좌클릭 누르고 있는 동안에 자동 발사
     }
 }
