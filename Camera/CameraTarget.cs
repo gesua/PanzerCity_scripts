@@ -11,9 +11,9 @@ public class CameraTarget : MonoBehaviour
     [SerializeField] Transform _target;
     [SerializeField] CinemachineThirdPersonFollow _cinema;
 
-    // x축 회전: Pitch
-    // y축 회전: Yaw
-    // z축 회전: Roll
+    // x축 회전:Pitch
+    // y축 회전:Yaw
+    // z축 회전:Roll
     [Header("----- 설정 데이터 -----")]
     [Tooltip("x축 회전 감도")]
     [SerializeField] float _pitchSense = 0.1f;
@@ -21,16 +21,25 @@ public class CameraTarget : MonoBehaviour
     [SerializeField] float _yawSense = 0.1f;
     [SerializeField] float _minPitch = -30f;    // x축 회전 최소값
     [SerializeField] float _maxPitch = 45f;     // x축 회전 최대값
-    [SerializeField] float _rotDamp = 10f;
+    [SerializeField] float _rotDamp = 10f;      // 회전 보간 속도
     [SerializeField] float _minZoom = 2f;       // 최소 줌 거리
+    [SerializeField] float _zoomSmooth = 10f;   // 줌 보간 속도
 
+    float _targetDistance; // 목표 거리
     float _pitch;
     float _yaw;
 
+    private void Awake()
+    {
+        _targetDistance = _cinema.CameraDistance; // 시작 시 현재 거리로 초기화
+    }
 
     private void LateUpdate()
     {
         transform.position = _target.position;
+
+        // 현재 카메라 거리를 목표 거리로 부드럽게 보간
+        _cinema.CameraDistance = Mathf.Lerp(_cinema.CameraDistance, _targetDistance, _zoomSmooth * Time.deltaTime);
     }
 
     /// <summary>
@@ -65,6 +74,7 @@ public class CameraTarget : MonoBehaviour
     /// <param name="scrollInput">마우스 휠 입력</param>
     public void Zoom(Vector2 scrollInput)
     {
-        _cinema.CameraDistance = Mathf.Max(_minZoom, _cinema.CameraDistance - scrollInput.y); // 휠 방향에 맞게
+        // 목표 거리 갱신
+        _targetDistance = Mathf.Max(_minZoom, _targetDistance - scrollInput.y);
     }
 }
