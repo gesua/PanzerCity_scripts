@@ -48,7 +48,8 @@ public class Shell : MonoBehaviour
         other.gameObject.GetComponent<IDamageable>()?.TakeDamage(_damage);
 
         Explode();
-        Remove();
+        //Remove();
+        RemoveTest();
     }
 
     /// <summary>
@@ -72,6 +73,24 @@ public class Shell : MonoBehaviour
     /// </summary>
     public void Remove()
     {
+        Debug.Log("포탄 생존시간 만료로 회수", gameObject);
+
+        CancelInvoke(nameof(Remove)); // invoke 끄기
+
+        // rigidbody 초기화
+        _rigid.linearVelocity = Vector3.zero;
+        _rigid.angularVelocity = Vector3.zero;
+
+        gameObject.DestroyOrReturnToPool();
+    }
+
+    /// <summary>
+    /// 포탄 없앰
+    /// </summary>
+    public void RemoveTest()
+    {
+        Debug.Log("포탄 충돌로 회수", gameObject);
+
         CancelInvoke(nameof(Remove)); // invoke 끄기
 
         // rigidbody 초기화

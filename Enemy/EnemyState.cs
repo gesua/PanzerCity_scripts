@@ -136,7 +136,7 @@ public class DeadState : EnemyState
         if (_timer > _duration)
         {
             _timer = 0;
-            _enemy.Remove(); // 랙돌에서 하기 때문에 여기로 오기 전에 제거됨
+            _enemy.Remove();
         }
     }
 }

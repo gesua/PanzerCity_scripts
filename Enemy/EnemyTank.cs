@@ -26,7 +26,7 @@ public class EnemyTank : TankBase
 
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _roamSpan = 3f;      // 최대 배회 간격
-    [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
+    [SerializeField] float _deadDuration = 1f;  // 사망 상태 지속 시간
     // 감지 관련
     float _detectionRange = 1000f;                  // 감지 거리(걍 최대치로 할거임)
     [SerializeField] float _detectionAngle = 30f;   // 감지 각도 (부채꼴 반각)
@@ -40,7 +40,7 @@ public class EnemyTank : TankBase
     bool isRot; // 회전해야 하는지 체크
 
     EnemyTankDestructionEffect _destructionEffect; // 파괴 연출
-    Collider _collider; // 파괴될 때 콜라이더 비활성화 용도
+    BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
 
     /// <summary>
     /// 적 제거 이벤트
@@ -60,6 +60,11 @@ public class EnemyTank : TankBase
     protected override void Awake()
     {
         base.Awake();
+
+        _rigid = GetComponent<Rigidbody>();
+        _destructionEffect = GetComponent<EnemyTankDestructionEffect>();
+        _collider = GetComponent<BoxCollider>();
+
         _model.OnDead += HandleDead; // 사망 이벤트 구독
     }
 
@@ -71,13 +76,13 @@ public class EnemyTank : TankBase
     public void Initialize()
     {
         _model.Initialize();
+        _collider.enabled = true;
 
-        _rigid = GetComponent<Rigidbody>();
-        _destructionEffect = GetComponent<EnemyTankDestructionEffect>();
-
-        // 상태 객체들 생성
-        // 1) 방치 상태 객체 생성
+        // 상태 객체들
+        // 방치 상태 객체 생성
         _states[(int)EnemyStateType.Idle] = new IdleState(this, _roamSpan, _model.MinAttackTime, _model.MaxAttackTime);
+        // 사망 상태 객체 생성
+        _states[(int)EnemyStateType.Dead] = new DeadState(this, _deadDuration);
 
         // 현재 상태 설정
         _currentState = _states[(int)EnemyStateType.Idle];
@@ -186,13 +191,13 @@ public class EnemyTank : TankBase
         // 폭발 이펙트 재생
         GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.SmallExplosion, transform.position);
 
-
+        // 사망 상태로 변경
+        _collider.enabled = false; // 콜라이더 비활성화
+        _currentState = _states[(int)EnemyStateType.Dead];
+        _currentState.Enter();
 
         // 사망 효과 재생
         _destructionEffect.Play();
-
-        // 제거
-        Remove();
     }
 
     /// <summary>
@@ -200,6 +205,9 @@ public class EnemyTank : TankBase
     /// </summary>
     public void Remove()
     {
+        // 사망 효과 리셋
+        _destructionEffect.ResetState();
+
         // 자신 제거 이벤트 발행
         OnRemoved?.Invoke(this);
 
