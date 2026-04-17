@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// Transparent로 배치해 놓으면 그림자 같은 그래픽이 이상하게 보임
 /// Opaque로 배치해 놓고, 투명화 할 때만 Transparent 머터리얼로 교체
 /// </summary>
-public class CameraObstacleFade : MonoBehaviour
+public class CameraBedrockFade : MonoBehaviour
 {
     [SerializeField] Transform _player;
     [SerializeField] LayerMask _obstacleLayer; // 투명화 시킬 레이어
