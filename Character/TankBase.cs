@@ -13,6 +13,8 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     [SerializeField] string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
 
+    [SerializeField] string _playerShellPrefabPath = "PlayerShell"; // 플레이어만 쓸 전용 프리팹 HACK: 포탄 사라지는거 해결중
+
     protected virtual bool ShowMuzzleEffect => true; // 포신 이펙트 보여줄지 여부(플레이어 저격 모드엔 안 보임)
 
     protected virtual void Awake()
@@ -22,6 +24,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         _model.Initialize();
 
         // Pool 생성
+        GameManager.Instance.PoolManager.GetPool(_playerShellPrefabPath); // 플레이어 전용 포탄 풀 생성 HACK: 포탄 사라지는거 해결중
         GameManager.Instance.PoolManager.GetPool(_shellPrefabPath);
     }
 
@@ -34,10 +37,25 @@ public abstract class TankBase : MonoBehaviour, IAttackable
             GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.TinyExplosion, _firePoint.position);
         }
 
-        // 포탄 생성
-        GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPrefabPath);
+        GameObject shellGo;
+        // 플레이어 전용 포탄 HACK: 포탄 사라지는거 해결중
+        if (gameObject.name == "Player")
+        {
+            // 플레이어 전용 포탄 생성
+            shellGo = GameManager.Instance.PoolManager.GetFromPool(_playerShellPrefabPath);
+        }
+        else // 일반 포탄
+        {
+            shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPrefabPath);
+        }
+
+        //Rigidbody shellRigid = shellGo.GetComponent<Rigidbody>();
+        //shellRigid.position = _firePoint.position;
+        //shellRigid.rotation = _firePoint.rotation;
+
         shellGo.transform.position = _firePoint.position;
         shellGo.transform.rotation = _firePoint.rotation;
+        shellGo.SetActive(true);
 
         // 포탄 초기화
         Shell shell = shellGo.GetComponent<Shell>();

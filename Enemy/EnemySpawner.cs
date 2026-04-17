@@ -57,22 +57,22 @@ public class EnemySpawner : MonoBehaviour
         // 스테이지 스폰 수만큼 생성했으면 종료
         if(_spawnedCount >= _stageSpawnCount) return;
 
-        // 프리팹 복제본 생성
+        // 생성
         GameObject enemyGo = GameManager.Instance.PoolManager.GetFromPool(_enemyPrefabPath);
         enemyGo.transform.SetParent(transform);
 
-        // 복제본 위치 설정
+        // 위치 설정
         enemyGo.transform.position = _spawnPos[_spawnIndex[_spawnedCount]].position;
         _spawnedCount++;
 
-        // 복제본 초기화
+        // 초기화
         EnemyTank enemy = enemyGo.GetComponent<EnemyTank>();
         enemy.Initialize();
 
-        // 복제본 리스트에 추가
+        // 리스트에 추가
         _enemies.Add(enemy);
 
-        // 복제본의 제거 이벤트 구독
+        // 제거 이벤트 구독
         enemy.OnRemoved += HandleEnemyRemoved;
     }
 

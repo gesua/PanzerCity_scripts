@@ -71,7 +71,7 @@ public class Pool
         if (_pool.Count > 0)
         {
             GameObject go = _pool.Pop();
-            go.SetActive(true);
+            //go.SetActive(true); HACK:포탄 사라지는거 해결중
             return go;
         }
 

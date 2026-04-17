@@ -50,6 +50,8 @@ public class EffectSpawner : MonoBehaviour
         effectGo.transform.SetParent(parent);
         effectGo.transform.position = pos;
 
+        effectGo.SetActive(true); // HACK: 포탄 사라지는거 해결중
+
         // 이펙트 재생
         if (effectGo.TryGetComponent(out Effect effect) == true)
         {

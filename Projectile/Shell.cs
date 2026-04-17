@@ -37,7 +37,7 @@ public class Shell : MonoBehaviour
         _rigid.excludeLayers = ~hitLayer; // rigidbody도 hitlayer만 충돌되게
 
         _rigid.linearVelocity = transform.forward * _speed;
-        Invoke(nameof(Remove), _lifeTime); // 생존시간 후 회수
+        //Invoke(nameof(Remove), _lifeTime); // 생존시간 후 회수
     }
 
     private void OnTriggerEnter(Collider other)
@@ -49,7 +49,7 @@ public class Shell : MonoBehaviour
 
         Explode();
         //Remove();
-        RemoveTest();
+        RemoveTest(other.gameObject);
     }
 
     /// <summary>
@@ -87,9 +87,10 @@ public class Shell : MonoBehaviour
     /// <summary>
     /// 포탄 없앰
     /// </summary>
-    public void RemoveTest()
+    public void RemoveTest(GameObject obj)
     {
-        Debug.Log("포탄 충돌로 회수", gameObject);
+        if (gameObject.layer == 8)
+            Debug.Log($"포탄 충돌로 회수 : {obj.name} : {gameObject.layer}", gameObject);
 
         CancelInvoke(nameof(Remove)); // invoke 끄기
 
