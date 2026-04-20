@@ -10,13 +10,13 @@ public class InputSystemHandler : MonoBehaviour
     public event Action<Vector2> OnMoveInput;
     public event Action<Vector2> OnCameraRotInput;
     public event Action<Vector2> OnMouseScrollInput;
-    public event Action OnAttackStarted;
-    public event Action OnAttackCanceled;
+    public event Action<bool> OnAttackInput;
     public event Action OnSniperInput;
 
-    Vector2 _moveInput;
-    Vector2 _cameraRotInput;
-    Vector2 _cameraZoomInput;
+    bool _onAttack = false;     // 좌클릭 상태 토글
+    Vector2 _moveInput;         // 이동 입력
+    Vector2 _cameraRotInput;    // 카메라 회전 입력
+    Vector2 _cameraZoomInput;   // 카메라 줌
 
     private void Update()
     {
@@ -41,11 +41,19 @@ public class InputSystemHandler : MonoBehaviour
         _cameraZoomInput = context.ReadValue<Vector2>();
     }
 
-    // 좌클릭
+    // 좌클릭 입력 토글
     public void HandleAttackInput(InputAction.CallbackContext context)
     {
-        if (context.started) OnAttackStarted?.Invoke();
-        if (context.canceled) OnAttackCanceled?.Invoke();
+        if (context.started)
+        {
+            _onAttack = true;
+            OnAttackInput?.Invoke(_onAttack);
+        }
+        else if (context.canceled)
+        {
+            _onAttack = false;
+            OnAttackInput?.Invoke(_onAttack);
+        }
     }
 
     // Shift키

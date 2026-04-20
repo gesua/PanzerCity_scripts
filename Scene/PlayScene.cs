@@ -20,9 +20,7 @@ public class PlayScene : MonoBehaviour
         _inputSystemHandler.OnMoveInput += HandleMoveInput;
         _inputSystemHandler.OnCameraRotInput += HandleCameraRotateInput;
         _inputSystemHandler.OnMouseScrollInput += HandleCameraZoomInput;
-        _inputSystemHandler.OnAttackStarted += () => _isFiring = true;
-        _inputSystemHandler.OnAttackCanceled += () => _isFiring = false;
-        //_inputSystemHandler.OnAttackInput += HandleAttackInput;
+        _inputSystemHandler.OnAttackInput += HandleAttackInput;
         _inputSystemHandler.OnSniperInput += HandleSniperInput;
     }
 
@@ -38,6 +36,14 @@ public class PlayScene : MonoBehaviour
         _cameraTarget.Rotate(inputVector);
     }
 
+    /// <summary>
+    /// 좌클릭 누르고 있는 동안에 자동 발사
+    /// </summary>
+    void HandleAttackInput(bool isAttack)
+    {
+        _player.IsAttack(isAttack);
+    }
+
     void HandleCameraZoomInput(Vector2 inputVector)
     {
         // 저격 모드가 아닐 때만 줌 조절
@@ -51,10 +57,5 @@ public class PlayScene : MonoBehaviour
     {
         _sniperMode.ToggleSniperMode();
         _player.SetSniperMode(_sniperMode.IsSniper);
-    }
-
-    private void Update()
-    {
-        if (_isFiring) _player.Attack(); // 좌클릭 누르고 있는 동안에 자동 발사
     }
 }
