@@ -14,6 +14,8 @@ public class PlayerTank : TankBase
     bool _isSniperMode; // 저격 모드인지(Shift)
     float _reloadTimer; // 재장전 시간 잴거
 
+    public Transform TurretTr => _turret.TurretTr;
+
     protected override bool ShowMuzzleEffect => !_isSniperMode;
 
     private void Start()
