@@ -27,7 +27,7 @@ public class PlayerTank : TankBase
 
     public void Initialize()
     {
-        _mover.Initialize(_model.ForwardSpeed, _model.BackwardSpeed, _model.RotSpeed, _model.Acceleration, _model.Deceleration);
+        _mover.Initialize(_model);
         _turret.SetRotSpeed(_model.TurretRotSpeed);
     }
 

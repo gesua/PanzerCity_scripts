@@ -30,13 +30,13 @@ public class Mover : MonoBehaviour
         _rigid = GetComponent<Rigidbody>();
     }
 
-    public void Initialize(float forwardSpeed, float backwardSpeed, float rotSpeed, float acceleration, float deceleration)
+    public void Initialize(TankModel tankModel)
     {
-        _forwardSpeed = forwardSpeed;
-        _backwardSpeed = backwardSpeed;
-        _rotSpeed = rotSpeed;
-        _acceleration = acceleration;
-        _deceleration = deceleration;
+        _forwardSpeed = tankModel.ForwardSpeed;
+        _backwardSpeed = tankModel.BackwardSpeed;
+        _rotSpeed = tankModel.RotSpeed;
+        _acceleration = tankModel.Acceleration;
+        _deceleration = tankModel.Deceleration;
     }
 
     public void Move(Vector3 dir)
