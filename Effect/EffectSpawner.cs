@@ -46,8 +46,8 @@ public class EffectSpawner : MonoBehaviour
         GameObject effectGo = _poolManager.GetFromPool(GetPrefabPath(effectType));
 
         // Pool에서 가져온 게임 오브젝트 설정
-        if (parent == null) parent = transform;
-        effectGo.transform.SetParent(parent);
+        //if (parent == null) parent = transform;
+        //effectGo.transform.SetParent(parent);
         effectGo.transform.position = pos;
 
         effectGo.SetActive(true); // HACK: 포탄 사라지는거 해결중

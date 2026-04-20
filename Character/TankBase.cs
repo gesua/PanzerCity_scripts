@@ -20,7 +20,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     protected virtual void Awake()
     {
         _model = GetComponent<TankModel>();
-        //TankData data = DataManager.Instance.GetTankData(_tankID); // 아직 데이터 가져오는거 안 만듦
+        //TankData data = GameManager.Instance.DataManager.GetTankData(_tankID);
         _model.Initialize();
 
         // Pool 생성

@@ -11,8 +11,6 @@ public class PlayScene : MonoBehaviour
     [SerializeField] CameraTarget _cameraTarget;
     [SerializeField] SniperModeController _sniperMode;
 
-    bool _isFiring; // 좌클릭 누르고 있는 상태인지
-
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
