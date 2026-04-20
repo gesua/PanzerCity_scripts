@@ -57,6 +57,23 @@ public class TankModel : MonoBehaviour, IDamageable
         OnHpChanged?.Invoke(_currentHp, _maxHp);
     }
 
+    public void Initialize(TankData data)
+    {
+        _maxHp = data.MaxHP;
+        _currentHp = data.MaxHP;
+        _forwardSpeed = data.MoveSpeed_Fwd;
+        _backwardSpeed = data.MoveSpeed_Bwd;
+        _rotSpeed = data.RotateSpeed;
+        _turretRotSpeed = data.TurretRotateSpeed;
+        _minAttackTime = data.MinAttackTime;
+        _maxAttackTime = data.MaxAttackTime;
+        _shellDamage = data.ShellDamage;
+        _shellSpeed = data.ShellSpeed;
+        _explosionRadius = data.ExplosionRadius;
+
+        OnHpChanged?.Invoke(_currentHp, _maxHp);
+    }
+
     public void TakeDamage(int damage)
     {
         if (IsAlive == false) return;

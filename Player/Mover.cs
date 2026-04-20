@@ -22,7 +22,7 @@ public class Mover : MonoBehaviour
     Rigidbody _rigid;
     Vector3 _velocity;
     float _currentSpeed;   // 로컬 전진 방향에 대한 현재 속도(음수면 후진)
-    float _targetSpeed;    // 목표 속도(스칼라)
+    float _targetSpeed;    // 목표 속도
     float _dirX;           // 좌우 방향
 
     private void Awake()

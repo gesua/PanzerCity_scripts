@@ -13,8 +13,8 @@ public class TankData
     public float MoveSpeed_Bwd;
     public float RotateSpeed;
     public float TurretRotateSpeed;
-    public float ReloadMinTime;
-    public float ReloadMaxTime;
+    public float MinAttackTime;
+    public float MaxAttackTime;
     public int ShellDamage;
     public float ShellSpeed;
     public float ExplosionRadius;

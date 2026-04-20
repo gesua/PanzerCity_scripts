@@ -26,7 +26,7 @@ public class EnemyTank : TankBase
 
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _roamSpan = 3f;      // 최대 배회 간격
-    [SerializeField] float _deadDuration = 1f;  // 사망 상태 지속 시간
+    [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
     // 감지 관련
     float _detectionRange = 1000f;                  // 감지 거리(걍 최대치로 할거임)
     [SerializeField] float _detectionAngle = 30f;   // 감지 각도 (부채꼴 반각)
@@ -75,7 +75,6 @@ public class EnemyTank : TankBase
 
     public void Initialize()
     {
-        _model.Initialize();
         _collider.enabled = true;
 
         gameObject.SetActive(true); // HACK: 포탄 사라지는거 해결중
