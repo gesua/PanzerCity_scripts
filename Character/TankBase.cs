@@ -8,7 +8,8 @@ using UnityEngine;
 [RequireComponent(typeof(TankModel))]
 public abstract class TankBase : MonoBehaviour, IAttackable
 {
-    public int _tankID; // TankData에서 데이터 가져올 ID
+    [SerializeField] int _tankID; // TankData에서 데이터 가져올 ID
+
     protected TankModel _model;
     string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
     [SerializeField] Transform _firePoint; // 포탄 생성 위치

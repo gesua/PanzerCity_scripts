@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 데이터테이블에서 탱크의 데이터를 가져와 저장하는 클래스
+/// 탱크 종류별 스탯 데이터테이블
 /// </summary>
 [System.Serializable]
 public class TankData
