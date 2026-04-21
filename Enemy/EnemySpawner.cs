@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,6 +30,7 @@ public class EnemySpawner : MonoBehaviour
 
     int[] _spawnPosIndex;      // 스폰 위치 순서
     int _spawnedCount = 0;  // 스폰된 수
+    float _enemySpawnEffectTime = 1f; // 스폰 이펙트 지속시간
 
     List<int> _spawnList; // TankID 순서 리스트
     int _stageSpawnCount; // 스테이지당 스폰할 횟수
@@ -83,29 +83,39 @@ public class EnemySpawner : MonoBehaviour
         int tankID = _spawnList[_spawnedCount];
         TankData tankData = GameManager.Instance.DataManager.GetTankData(tankID);
         string prefabPath = $"Tank/{tankData.TankID}{tankData.TankType}";
+        Vector3 spawnPos = _spawnPos[_spawnPosIndex[_spawnedCount]].position; // 코루틴에서 _spawnedCount값 바뀔 수 있으니 미리 처리
 
-        // 생성
-        GameObject enemyGo = GameManager.Instance.PoolManager.GetFromPool(prefabPath);
-        enemyGo.transform.SetParent(transform);
+        // 스폰 이펙트 먼저 재생
+        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.Twinkle, spawnPos + Vector3.up); // 바닥에서 1만큼 띄움
 
-        // 위치 설정
-        enemyGo.transform.position = _spawnPos[_spawnPosIndex[_spawnedCount]].position;
-
-        // 초기화
-        EnemyTank enemy = enemyGo.GetComponent<EnemyTank>();
-        enemy.Initialize();
-
-        // 리스트에 추가
-        _enemies.Add(enemy);
+        // 이펙트 후 탱크 생성
+        StartCoroutine(SpawnAfterEffect(prefabPath, spawnPos));
 
         // 적 스폰 UI에서 아이콘 제거
         _enemyUI.SetEnemySpawn(_spawnedCount);
 
         // 카운트 증가
         _spawnedCount++;
+    }
 
-        // 제거 이벤트 구독
-        enemy.OnRemoved += HandleEnemyRemoved;
+    /// <summary>
+    /// 이펙트 후 탱크 생성 코루틴
+    /// </summary>
+    IEnumerator SpawnAfterEffect(string prefabPath, Vector3 pos)
+    {
+        yield return new WaitForSeconds(_enemySpawnEffectTime); // 이펙트 지속시간
+
+        // 탱크 생성
+        GameObject enemyGo = GameManager.Instance.PoolManager.GetFromPool(prefabPath);
+        enemyGo.transform.SetParent(transform);
+        enemyGo.transform.position = pos;
+
+        // 초기화
+        EnemyTank enemy = enemyGo.GetComponent<EnemyTank>();
+        enemy.Initialize();
+
+        _enemies.Add(enemy); // 리스트에 추가
+        enemy.OnRemoved += HandleEnemyRemoved; // 제거 이벤트 구독
     }
 
 

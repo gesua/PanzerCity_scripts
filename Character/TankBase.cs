@@ -14,6 +14,8 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
 
+    [SerializeField] GameObject _testShell; // HACK:Pool 안 쓰고 직접 생성해서 써보기
+
     protected virtual bool ShowMuzzleEffect => true; // 포신 이펙트 보여줄지 여부(플레이어 저격 모드엔 안 보임)
 
     protected virtual void Awake()
@@ -23,7 +25,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         if (data != null) _model.Initialize(data);
 
         // Pool 생성
-        GameManager.Instance.PoolManager.GetPool(_shellPrefabPath);
+        //GameManager.Instance.PoolManager.GetPool(_shellPrefabPath);
     }
 
     public virtual void Attack()
@@ -36,12 +38,14 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         }
 
         // 포탄 생성
-        GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPrefabPath);
+        GameObject shellGo = Instantiate(_testShell);
+        //GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPrefabPath);
         shellGo.transform.position = _firePoint.position;
         shellGo.transform.rotation = _firePoint.rotation;
 
         // 포탄 초기화
         Shell shell = shellGo.GetComponent<Shell>();
-        shell.Initialize(_model.ShellDamage, _model.ShellSpeed, _model.ExplosionRadius, _model.HitLayer, gameObject.layer);
+        
+        shell.Initialize(_model, gameObject.layer);
     }
 }

@@ -31,14 +31,14 @@ public class Shell : MonoBehaviour
     /// <param name="speed">포탄 속도</param>
     /// <param name="hitLayer">충돌할 레이어</param>
     /// <param name="ownerLayer">포탄 주인 레이어</param>
-    public void Initialize(int damage, float speed, float explosionRadius, LayerMask hitLayer, int ownerLayer)
+    public void Initialize(TankModel model, int ownerLayer)
     {
-        _damage = damage;
-        _speed = speed;
-        _explosionRadius = explosionRadius;
-        _hitLayer = hitLayer;
+        _damage = model.ShellDamage;
+        _speed = model.ShellSpeed;
+        _explosionRadius = model.ExplosionRadius;
+        _hitLayer = model.HitLayer;
         gameObject.layer = ownerLayer; // 적 포탄끼리 충돌 안되게
-        _rigid.excludeLayers = ~hitLayer; // rigidbody도 hitlayer만 충돌되게
+        _rigid.excludeLayers = ~_hitLayer; // rigidbody도 hitlayer만 충돌되게
 
         _timer = 0; // 생존 시간 타이머 세팅
         _rigid.linearVelocity = transform.forward * _speed;
