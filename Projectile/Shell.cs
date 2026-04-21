@@ -72,8 +72,8 @@ public class Shell : MonoBehaviour
     /// </summary>
     public void Remove(GameObject obj)
     {
-        if (gameObject.layer == 8)
-            Debug.Log($"포탄 충돌로 회수 : {obj.name} : {gameObject.layer}", gameObject);
+        //if (gameObject.layer == 8)
+        //    Debug.Log($"포탄 충돌로 회수 : {obj.name} : {gameObject.layer}", gameObject);
 
         CancelInvoke(nameof(Remove)); // invoke 끄기
 
