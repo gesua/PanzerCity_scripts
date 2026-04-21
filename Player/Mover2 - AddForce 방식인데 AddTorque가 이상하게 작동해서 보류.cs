@@ -16,8 +16,8 @@ public class Mover2 : MonoBehaviour
     // 가속 관련
     Rigidbody _rigid;
     Vector3 _velocity;
-    float _currentSpeed;   // 로컬 전진 방향에 대한 현재 속도(음수면 후진)
-    float _targetSpeed;    // 목표 속도
+    // float _currentSpeed;   // 로컬 전진 방향에 대한 현재 속도(음수면 후진)
+    // float _targetSpeed;    // 목표 속도
     float _dirX;
 
     private void Awake()
@@ -39,7 +39,7 @@ public class Mover2 : MonoBehaviour
         if (dir.magnitude < Util.Epsilon)
         {
             // 입력이 완전히 없으면 회전 입력도 없다고 보고 목표 속도와 회전 입력을 제거
-            _targetSpeed = 0f;
+            // _targetSpeed = 0f;
             _dirX = 0f;
             return;
         }
@@ -71,7 +71,7 @@ public class Mover2 : MonoBehaviour
         // 회전은 유지한다. (감속 중에도 transform.forward 방향으로 속도가 정렬되도록 스칼라 속도 사용)
         if (Mathf.Abs(dir.z) < Util.Epsilon)
         {
-            _targetSpeed = 0f;
+            // _targetSpeed = 0f;
             return;
         }
 

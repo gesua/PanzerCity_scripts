@@ -48,7 +48,7 @@ public class DataManager : MonoBehaviour
     public TankData GetTankData(int tankID)
     {
         if (_tankDataDict.TryGetValue(tankID, out TankData data)) return data;
-        Debug.LogWarning($"TankData 없음: {tankID}");
+        Debug.LogWarning($"TankData 없음:{tankID}");
         return null;
     }
 
@@ -73,7 +73,7 @@ public class DataManager : MonoBehaviour
     public List<int> GetSpawnList(int stageID)
     {
         if (_spawnDataDict.TryGetValue(stageID, out List<int> list)) return list;
-        Debug.LogWarning($"SpawnData 없음: {stageID}");
+        Debug.LogWarning($"SpawnData 없음:{stageID}");
         return null;
     }
 

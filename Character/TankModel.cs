@@ -51,12 +51,19 @@ public class TankModel : MonoBehaviour, IDamageable
     public event Action<int, int> OnHpChanged;
     public event Action OnDead;
 
+    /// <summary>
+    /// TankData 안 들어가는 기본값들 초기화
+    /// </summary>
     public void Initialize()
     {
         _currentHp = _maxHp;
         OnHpChanged?.Invoke(_currentHp, _maxHp);
     }
 
+    /// <summary>
+    /// TankData 넣고 초기화
+    /// </summary>
+    /// <param name="data"></param>
     public void Initialize(TankData data)
     {
         _maxHp = data.MaxHP;
@@ -73,6 +80,7 @@ public class TankModel : MonoBehaviour, IDamageable
 
         OnHpChanged?.Invoke(_currentHp, _maxHp);
     }
+
 
     public void TakeDamage(int damage)
     {

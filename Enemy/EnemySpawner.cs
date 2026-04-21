@@ -25,11 +25,12 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] float _spawnSpan = 2f;     // 스폰 시간 간격
     [SerializeField] int _maxSpawnCount = 4;    // 최대 스폰 수
     [SerializeField] Transform[] _spawnPos;     // 스폰 위치
+    [SerializeField] EnemySpawnUI _enemyUI;     // 스폰현황 연동할 UI
 
     [Header("----- 적 리스트(읽기 전용) -----")]
     [SerializeField] List<EnemyTank> _enemies = new(); // 생성된 적 리스트
 
-    [SerializeField] int[] _spawnIndex;      // 스폰 순서
+    int[] _spawnPosIndex;      // 스폰 위치 순서
     int _spawnedCount = 0;  // 스폰된 수
 
     List<int> _spawnList; // TankID 순서 리스트
@@ -42,8 +43,11 @@ public class EnemySpawner : MonoBehaviour
         _spawnList = GameManager.Instance.DataManager.GetSpawnList(_stageID);
         _stageSpawnCount = _spawnList.Count;
 
-        // 스폰 순서 세팅
-        _spawnIndex = GenerateRandomArray(_stageSpawnCount, _spawnPos.Length);
+        // 스폰 위치 순서 세팅
+        _spawnPosIndex = GenerateRandomArray(_stageSpawnCount, _spawnPos.Length);
+
+        // 적 스폰 UI 세팅
+        _enemyUI.Initialize(_spawnList);
 
         // 적 생성 코루틴 실행
         _spawnEnemyRoutine = StartCoroutine(SpawnEnemyRoutine());
@@ -85,8 +89,7 @@ public class EnemySpawner : MonoBehaviour
         enemyGo.transform.SetParent(transform);
 
         // 위치 설정
-        enemyGo.transform.position = _spawnPos[_spawnIndex[_spawnedCount]].position;
-        _spawnedCount++;
+        enemyGo.transform.position = _spawnPos[_spawnPosIndex[_spawnedCount]].position;
 
         // 초기화
         EnemyTank enemy = enemyGo.GetComponent<EnemyTank>();
@@ -94,6 +97,12 @@ public class EnemySpawner : MonoBehaviour
 
         // 리스트에 추가
         _enemies.Add(enemy);
+
+        // 적 스폰 UI에서 아이콘 제거
+        _enemyUI.SetEnemySpawn(_spawnedCount);
+
+        // 카운트 증가
+        _spawnedCount++;
 
         // 제거 이벤트 구독
         enemy.OnRemoved += HandleEnemyRemoved;

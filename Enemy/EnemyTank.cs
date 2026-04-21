@@ -66,15 +66,14 @@ public class EnemyTank : TankBase
         _collider = GetComponent<BoxCollider>();
 
         _model.OnDead += HandleDead; // 사망 이벤트 구독
-    }
-
-    private void Start()
-    {
+        
         Initialize();
     }
 
     public void Initialize()
     {
+        _model.Initialize(); // 기본값들 초기화
+
         _collider.enabled = true;
 
         gameObject.SetActive(true); // HACK: 포탄 사라지는거 해결중
