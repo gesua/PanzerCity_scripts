@@ -48,9 +48,9 @@ public class PlayerTank : TankBase
     }
 
     /// <summary>
-    /// 좌클릭 누르고 있는지 확인
+    /// 좌클릭 누른 여부 세팅
     /// </summary>
-    public void IsAttack(bool isActive)
+    public void SetIsAttack(bool isActive)
     {
         _isAttack = isActive;
     }

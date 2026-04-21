@@ -1,3 +1,4 @@
+using System.Threading;
 using UnityEngine;
 
 /// <summary>
@@ -11,7 +12,10 @@ public class Shell : MonoBehaviour
     int _damage;            // 포탄 공격력
     float _speed;           // 포탄 속도
     float _explosionRadius; // 폭발 반경
-    float _lifeTime = 5f;   // 포탄 생존 시간
+
+    float _lifeTime = 10f;  // 포탄 생존 시간
+    float _timer;           // 생존시간 잴거
+
     Rigidbody _rigid;
     LayerMask _hitLayer; // 충돌할 레이어(적이 쏜 포탄은 적을 뚫고 감)
 
@@ -36,8 +40,22 @@ public class Shell : MonoBehaviour
         gameObject.layer = ownerLayer; // 적 포탄끼리 충돌 안되게
         _rigid.excludeLayers = ~hitLayer; // rigidbody도 hitlayer만 충돌되게
 
+        _timer = 0; // 생존 시간 타이머 세팅
         _rigid.linearVelocity = transform.forward * _speed;
-        //Invoke(nameof(Remove), _lifeTime); // 생존시간 후 회수 HACK: 포탄 사라지는거 해결중
+    }
+
+    private void Update()
+    {
+        // 포탄 생존 시간 체크
+        if (_timer < _lifeTime)
+        {
+            _timer += Time.deltaTime;
+        }
+        else // 포탄 사라지게
+        {
+            Debug.Log("포탄 시간되서 사라짐", gameObject);
+            Remove();
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -48,11 +66,11 @@ public class Shell : MonoBehaviour
         other.gameObject.GetComponent<IDamageable>()?.TakeDamage(_damage);
 
         Explode();
-        Remove(other.gameObject);
+        Remove();
     }
 
     /// <summary>
-    /// 폭발 계산 (HACK:현재 적이 쏜 포탄이 폭발하면 적 경전차가 그거에 맞고 죽을듯, TakeDamage에 누가 쏜건지 넣어놔야 할듯)
+    /// 폭발 계산
     /// </summary>
     private void Explode()
     {
@@ -70,13 +88,8 @@ public class Shell : MonoBehaviour
     /// <summary>
     /// 포탄 없앰
     /// </summary>
-    public void Remove(GameObject obj)
+    public void Remove()
     {
-        //if (gameObject.layer == 8)
-        //    Debug.Log($"포탄 충돌로 회수 : {obj.name} : {gameObject.layer}", gameObject);
-
-        CancelInvoke(nameof(Remove)); // invoke 끄기
-
         // rigidbody 초기화
         _rigid.linearVelocity = Vector3.zero;
         _rigid.angularVelocity = Vector3.zero;

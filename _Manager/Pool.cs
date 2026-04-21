@@ -67,24 +67,14 @@ public class Pool
     /// <returns></returns>
     public GameObject Pop()
     {
-        // Pool에 남은 게임오브젝트가 있는 경우
-        if (_pool.Count > 0)
+        if(_pool.Count == 0)
         {
-            GameObject go = _pool.Pop();
-            //go.SetActive(true); HACK:포탄 사라지는거 해결중
-            return go;
+            CreatePoolObj();
         }
 
-        // Pool에 남은 게임오브젝트가 없는 경우 새로 만들어서 반환
-        GameObject newGo = Object.Instantiate(_prefab);
-
-        Poolable poolable = newGo.GetComponent<Poolable>();
-        if (poolable == null)
-        {
-            poolable = newGo.AddComponent<Poolable>();
-        }
-        poolable.Initialize(this);
-        return newGo;
+        GameObject go = _pool.Pop();
+        go.SetActive(true);
+        return go;
     }
 
     /// <summary>

@@ -39,7 +39,7 @@ public class PlayScene : MonoBehaviour
     /// </summary>
     void HandleAttackInput(bool isAttack)
     {
-        _player.IsAttack(isAttack);
+        _player.SetIsAttack(isAttack);
     }
 
     void HandleCameraZoomInput(Vector2 inputVector)

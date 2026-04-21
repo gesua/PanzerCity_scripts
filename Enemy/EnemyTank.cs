@@ -76,8 +76,6 @@ public class EnemyTank : TankBase
 
         _collider.enabled = true;
 
-        gameObject.SetActive(true); // HACK: 포탄 사라지는거 해결중
-
         // 상태 객체들
         // 방치 상태 객체 생성
         _states[(int)EnemyStateType.Idle] = new IdleState(this, _roamSpan, _model.MinAttackTime, _model.MaxAttackTime);

@@ -40,17 +40,13 @@ public class EffectSpawner : MonoBehaviour
     /// </summary>
     /// <param name="effectType">이펙트 종류</param>
     /// <param name="pos">재생할 위치</param>
-    public void SpawnEffect(EffectType effectType, Vector3 pos, Transform parent = null)
+    public void SpawnEffect(EffectType effectType, Vector3 pos)
     {
         // Pool에서 이펙트 경로에 따라 게임 오브젝트 꺼내옴
         GameObject effectGo = _poolManager.GetFromPool(GetPrefabPath(effectType));
 
         // Pool에서 가져온 게임 오브젝트 설정
-        //if (parent == null) parent = transform;
-        //effectGo.transform.SetParent(parent);
         effectGo.transform.position = pos;
-
-        effectGo.SetActive(true); // HACK: 포탄 사라지는거 해결중
 
         // 이펙트 재생
         if (effectGo.TryGetComponent(out Effect effect) == true)
