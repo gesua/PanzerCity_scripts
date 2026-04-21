@@ -17,6 +17,7 @@ public class PlayerTank : TankBase
     float _reloadTimer; // 재장전 시간 잴거
 
     public Transform TurretTr => _turret.TurretTr;
+    public TankModel Model => _model;
 
     protected override bool ShowMuzzleEffect => !_isSniperMode;
 

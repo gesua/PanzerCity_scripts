@@ -1,9 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// 왼쪽 아래에 차체와 포탑 방향 보여주는 HUD
+/// 왼쪽 아래에 차체와 포탑 방향 보여주는 UI
 /// </summary>
-public class TankHUD : MonoBehaviour
+public class TankDirectionUI : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
     [SerializeField] RectTransform _hullDirection;   // 차체 방향
