@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Pool;
 
 /// <summary>
 /// 플레이어와 적이 사용할 TankBase
@@ -14,7 +15,9 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
 
-    [SerializeField] GameObject _testShell; // HACK:Pool 안 쓰고 직접 생성해서 써보기
+    // HACK:Unity Pool 테스트 중
+    [SerializeField] GameObject _testShell;
+    IObjectPool<Shell> _shellPool;
 
     protected virtual bool ShowMuzzleEffect => true; // 포신 이펙트 보여줄지 여부(플레이어 저격 모드엔 안 보임)
 
@@ -24,8 +27,23 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         TankData data = GameManager.Instance.DataManager.GetTankData(_tankID);
         if (data != null) _model.Initialize(data);
 
+        // HACK:Unity Pool 테스트 중
+        /*
+        _shellPool = new ObjectPool<Shell>(
+            createFunc: () => {
+                GameObject go = Instantiate(_testShell);
+                Shell shell = go.GetComponent<Shell>();
+                return shell;
+            },
+            actionOnGet: shell => shell.gameObject.SetActive(true),
+            actionOnRelease: shell => shell.gameObject.SetActive(false),
+            actionOnDestroy: shell => Destroy(shell.gameObject),
+            maxSize: 10
+        );
+        */
+
         // Pool 생성
-        //GameManager.Instance.PoolManager.GetPool(_shellPrefabPath);
+        GameManager.Instance.PoolManager.GetPool(_shellPrefabPath);
     }
 
     public virtual void Attack()
@@ -37,9 +55,15 @@ public abstract class TankBase : MonoBehaviour, IAttackable
             GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.TinyExplosion, _firePoint.position);
         }
 
+        // HACK:Unity Pool 테스트 중
+        //Shell shell = _shellPool.Get();
+        //shell.transform.position = _firePoint.position;
+        //shell.transform.rotation = _firePoint.rotation;
+        //shell.Initialize(_model, gameObject.layer, _shellPool); // 풀 반환용으로 넘김
+
+        
         // 포탄 생성
-        GameObject shellGo = Instantiate(_testShell);
-        //GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPrefabPath);
+        GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPrefabPath);
         shellGo.transform.position = _firePoint.position;
         shellGo.transform.rotation = _firePoint.rotation;
 

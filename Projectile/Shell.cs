@@ -1,5 +1,6 @@
 using System.Threading;
 using UnityEngine;
+using UnityEngine.Pool;
 
 /// <summary>
 /// 탱크 포탄
@@ -18,6 +19,10 @@ public class Shell : MonoBehaviour
 
     Rigidbody _rigid;
     LayerMask _hitLayer; // 충돌할 레이어(적이 쏜 포탄은 적을 뚫고 감)
+
+    // HACK:Unity Pool 테스트 중
+    IObjectPool<Shell> _pool;
+    bool _isReleased = false;
 
     private void Awake()
     {
@@ -39,6 +44,26 @@ public class Shell : MonoBehaviour
         _hitLayer = model.HitLayer;
         gameObject.layer = ownerLayer; // 적 포탄끼리 충돌 안되게
         _rigid.excludeLayers = ~_hitLayer; // rigidbody도 hitlayer만 충돌되게
+
+        _timer = 0; // 생존 시간 타이머 세팅
+        _rigid.linearVelocity = transform.forward * _speed;
+
+        _isReleased = false; // HACK:와?
+    }
+
+    // HACK:Unity Pool 테스트 중
+    public void Initialize(TankModel model, int ownerLayer, IObjectPool<Shell> pool)
+    {
+        _damage = model.ShellDamage;
+        _speed = model.ShellSpeed;
+        _explosionRadius = model.ExplosionRadius;
+        _hitLayer = model.HitLayer;
+        gameObject.layer = ownerLayer; // 적 포탄끼리 충돌 안되게
+        _rigid.excludeLayers = ~_hitLayer; // rigidbody도 hitlayer만 충돌되게
+
+        // HACK:Unity Pool 테스트 중
+        _pool = pool;
+        _isReleased = false;
 
         _timer = 0; // 생존 시간 타이머 세팅
         _rigid.linearVelocity = transform.forward * _speed;
@@ -90,10 +115,16 @@ public class Shell : MonoBehaviour
     /// </summary>
     public void Remove()
     {
+        // HACK:Unity Pool 테스트 중
+        if (_isReleased) return;
+        _isReleased = true;
+
         // rigidbody 초기화
         _rigid.linearVelocity = Vector3.zero;
         _rigid.angularVelocity = Vector3.zero;
 
+        // HACK:Unity Pool 테스트 중
+        //_pool.Release(this); // 풀 반환
         gameObject.DestroyOrReturnToPool();
     }
 }
