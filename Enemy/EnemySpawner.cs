@@ -21,7 +21,6 @@ public class EnemySpawner : MonoBehaviour
 {
     [SerializeField] int _stageID; // 현재 스테이지 ID
     [Header("----- 적 생성 -----")]
-    [SerializeField] string _enemyPrefabPath;   // Enemy 프리팹 리소스(에셋) 저장되어 있는 경로
     [SerializeField] float _spawnSpan = 2f;     // 스폰 시간 간격
     [SerializeField] int _maxSpawnCount = 4;    // 최대 스폰 수
     [SerializeField] Transform[] _spawnPos;     // 스폰 위치
@@ -49,11 +48,12 @@ public class EnemySpawner : MonoBehaviour
         // 적 스폰 UI 세팅
         _enemyUI.Initialize(_spawnList);
 
+        // Pool 생성
+        GameManager.Instance.PoolManager.GetPool("Tank/201Light");
+        GameManager.Instance.PoolManager.GetPool("Tank/202Medium");
+
         // 적 생성 코루틴 실행
         _spawnEnemyRoutine = StartCoroutine(SpawnEnemyRoutine());
-
-        // Pool 생성
-        //GameManager.Instance.PoolManager.GetPool(_enemyPrefabPath, _maxSpawnCount);
     }
 
     /// <summary>

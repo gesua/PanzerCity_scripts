@@ -5,7 +5,6 @@ using UnityEngine;
 /// </summary>
 public class LightTank : EnemyTank, IExplosionDamageable
 {
-
     /// <summary>
     /// 폭발 범위에 대미지 받음
     /// </summary>
