@@ -10,6 +10,7 @@ public class PlayScene : MonoBehaviour
     [SerializeField] PlayerTank _player;
     [SerializeField] CameraTarget _cameraTarget;
     [SerializeField] SniperModeController _sniperMode;
+    [SerializeField] RightPanelUI _rightPanelUI; // 오른쪽 메뉴 UI
 
     private void Start()
     {
@@ -20,6 +21,7 @@ public class PlayScene : MonoBehaviour
         _inputSystemHandler.OnMouseScrollInput += HandleCameraZoomInput;
         _inputSystemHandler.OnAttackInput += HandleAttackInput;
         _inputSystemHandler.OnSniperInput += HandleSniperInput;
+        _inputSystemHandler.OnToggleRightUIInput += HandleToggleRightUIInput;
     }
 
     void HandleMoveInput(Vector2 inputVector)
@@ -51,6 +53,9 @@ public class PlayScene : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 저격 모드(Shift) 토글
+    /// </summary>
     void HandleSniperInput()
     {
         _sniperMode.ToggleSniperMode();
@@ -67,5 +72,13 @@ public class PlayScene : MonoBehaviour
             //_cameraTarget.AlignToDirection(_player.BarrelForward);
             _cameraTarget.AlignToScreenPoint(0.25f);
         }
+    }
+
+    /// <summary>
+    /// 오른쪽 메뉴 UI 토글
+    /// </summary>
+    void HandleToggleRightUIInput()
+    {
+        _rightPanelUI.Toggle();
     }
 }

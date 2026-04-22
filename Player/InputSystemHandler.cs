@@ -12,6 +12,7 @@ public class InputSystemHandler : MonoBehaviour
     public event Action<Vector2> OnMouseScrollInput;
     public event Action<bool> OnAttackInput;
     public event Action OnSniperInput;
+    public event Action OnToggleRightUIInput;
 
     bool _onAttack = false;     // 좌클릭 상태 토글
     Vector2 _moveInput;         // 이동 입력
@@ -56,12 +57,21 @@ public class InputSystemHandler : MonoBehaviour
         }
     }
 
-    // Shift키
+    // Shift키(저격 모드)
     public void HandleSniperInput(InputAction.CallbackContext context)
     {
-        if (context.performed == true)
+        if (context.performed)
         {
             OnSniperInput?.Invoke();
+        }
+    }
+
+    // Tab키(오른쪽 UI)
+    public void HandleToggleRightUIInput(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            OnToggleRightUIInput?.Invoke();
         }
     }
 }
