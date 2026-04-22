@@ -41,9 +41,9 @@ public class RightPanelUI : MonoBehaviour
         while (elapsed < _slideDuration)
         {
             elapsed += Time.deltaTime;
-            float t = elapsed / _slideDuration;
-            t = t * t * (3f - 2f * t); // SmoothStep
-            _panel.anchoredPosition = new Vector2(Mathf.Lerp(startX, targetX, t), _panel.anchoredPosition.y);
+            float progress = elapsed / _slideDuration;
+            progress = Mathf.SmoothStep(0f, 1f, progress);
+            _panel.anchoredPosition = new Vector2(Mathf.Lerp(startX, targetX, progress), _panel.anchoredPosition.y);
             yield return null;
         }
 
