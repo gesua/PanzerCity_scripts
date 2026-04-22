@@ -28,16 +28,14 @@ public class EnemyTank : TankBase
     [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
     [Header("----- 감지 관련-----")]
     float _detectionRange = 1000f;                  // 감지 거리(걍 최대치로 할거임)
-    [SerializeField] float _detectionAngle = 30f;   // 감지 각도 (부채꼴 반각)
-    [SerializeField] LayerMask _playerLayer;        // 감지할 레이어
-    [SerializeField] LayerMask _visionObstacleLayer;// 시야 차단 레이어(맵)
-    [SerializeField] Transform _turret;             // 포탑
+    [SerializeField] float _detectionAngle = 30f;   // 감지 각도(부채꼴 반각)
+    [SerializeField] LayerMask _playerLayer = 1 << 8; // 감지할 레이어(플레이어)
+    [SerializeField] LayerMask _visionObstacleLayer = 1 << 6; // 시야 차단 레이어(맵)
+    [SerializeField] Transform _turret; // 포탑
     [Header("----- 이동 관련 -----")]
     [SerializeField] float _movementCheckDistance = 1.2f; // 이동 체크 거리
     [SerializeField] float _raycastSideOffset; // 좌우 사이드 한번 더 체크(0.6, 0.75)
-    [SerializeField] LayerMask _movementObstacleLayer;  // 이동 차단 레이어(플레이어, 적, 맵, 외곽벽)
-
-
+    [SerializeField] LayerMask _movementObstacleLayer = 1 << 6 | 1 << 7 | 1 << 8 | 1 << 9;  // 이동 차단 레이어(플레이어, 적, 맵, 외곽벽)
 
     Transform _target; // 플레이어
     Rigidbody _rigid;

@@ -77,4 +77,31 @@ public class CameraTarget : MonoBehaviour
         // 목표 거리 갱신
         _targetDistance = Mathf.Max(_minZoom, _targetDistance - scrollInput.y);
     }
+
+    /// <summary>
+    /// 저격 시점(Shift) 달라질 때마다 기존 조준점(+) 방향 유지
+    /// </summary>
+    public void AlignToScreenPoint(float screenY)
+    {
+        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width * 0.5f, Screen.height * screenY, 0f));
+
+        // 해당 방향의 pitch, yaw 추출
+        Vector3 dir = ray.direction;
+        _yaw = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
+        _pitch = -Mathf.Asin(dir.y) * Mathf.Rad2Deg;
+        //_pitch = Mathf.Clamp(_pitch, _minPitch, _maxPitch);
+
+        // 즉시 적용
+        transform.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+    }
+
+    // HACK:조준점 맞추는거 해결중
+    public void AlignToDirection(Vector3 worldDirection)
+    {
+        Vector3 dir = worldDirection.normalized;
+        _yaw = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
+        _pitch = -Mathf.Asin(dir.y) * Mathf.Rad2Deg;
+        _pitch = Mathf.Clamp(_pitch, _minPitch, _maxPitch);
+        transform.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+    }
 }

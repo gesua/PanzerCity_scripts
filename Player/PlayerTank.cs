@@ -18,6 +18,7 @@ public class PlayerTank : TankBase
 
     public Transform TurretTr => _turret.TurretTr;
     public TankModel Model => _model;
+    public Vector3 BarrelForward => _turret.BarrelForward; // HACK:조준점 맞추는거 해결중
 
     protected override bool ShowMuzzleEffect => !_isSniperMode;
 
@@ -49,7 +50,7 @@ public class PlayerTank : TankBase
     }
 
     /// <summary>
-    /// 좌클릭 누른 여부 세팅
+    /// 좌클릭 누른 여부
     /// </summary>
     public void SetIsAttack(bool isActive)
     {
@@ -70,8 +71,12 @@ public class PlayerTank : TankBase
         }
     }
 
-    public void SetSniperMode(bool active)
+    /// <summary>
+    /// 저격 모드 여부
+    /// </summary>
+    public void SetSniperMode(bool isSniper)
     {
-        _isSniperMode = active;
+        _isSniperMode = isSniper;
+        _turret.SetSniperMode(isSniper);
     }
 }

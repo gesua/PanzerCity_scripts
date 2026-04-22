@@ -55,5 +55,17 @@ public class PlayScene : MonoBehaviour
     {
         _sniperMode.ToggleSniperMode();
         _player.SetSniperMode(_sniperMode.IsSniper);
+
+        // 조준점(+) 방향으로 카메라 유지
+        if (_sniperMode.IsSniper)
+        {
+            //_cameraTarget.AlignToDirection(_player.BarrelForward); // HACK:조준점 맞추는거 해결중
+            _cameraTarget.AlignToScreenPoint(0.75f);
+        }
+        else
+        {
+            //_cameraTarget.AlignToDirection(_player.BarrelForward);
+            _cameraTarget.AlignToScreenPoint(0.25f);
+        }
     }
 }
