@@ -13,6 +13,7 @@ public class InputSystemHandler : MonoBehaviour
     public event Action<bool> OnAttackInput;
     public event Action OnSniperInput;
     public event Action OnToggleRightUIInput;
+    public event Action OnMapInput;
 
     bool _onAttack = false;     // 좌클릭 상태 토글
     Vector2 _moveInput;         // 이동 입력
@@ -72,6 +73,15 @@ public class InputSystemHandler : MonoBehaviour
         if (context.performed)
         {
             OnToggleRightUIInput?.Invoke();
+        }
+    }
+
+    // M키(미니맵)
+    public void HandleMapInput(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            OnMapInput?.Invoke();
         }
     }
 }

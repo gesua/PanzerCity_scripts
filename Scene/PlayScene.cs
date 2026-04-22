@@ -11,7 +11,7 @@ public class PlayScene : MonoBehaviour
     [SerializeField] CameraTarget _cameraTarget;
     [SerializeField] SniperModeController _sniperMode;
     [SerializeField] RightPanelUI _rightPanelUI; // 오른쪽 메뉴 UI
-
+    [SerializeField] MiniMapUI _miniMapUI; // 미니맵 UI
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -22,6 +22,7 @@ public class PlayScene : MonoBehaviour
         _inputSystemHandler.OnAttackInput += HandleAttackInput;
         _inputSystemHandler.OnSniperInput += HandleSniperInput;
         _inputSystemHandler.OnToggleRightUIInput += HandleToggleRightUIInput;
+        _inputSystemHandler.OnMapInput += HandleMapInput;
     }
 
     void HandleMoveInput(Vector2 inputVector)
@@ -54,7 +55,7 @@ public class PlayScene : MonoBehaviour
     }
 
     /// <summary>
-    /// 저격 모드(Shift) 토글
+    /// 저격 모드 토글
     /// </summary>
     void HandleSniperInput()
     {
@@ -80,5 +81,13 @@ public class PlayScene : MonoBehaviour
     void HandleToggleRightUIInput()
     {
         _rightPanelUI.Toggle();
+    }
+
+    /// <summary>
+    /// 맵 토글
+    /// </summary>
+    void HandleMapInput()
+    {
+        _miniMapUI.Toggle();
     }
 }

@@ -20,6 +20,9 @@ public class RightPanelUI : MonoBehaviour
         _hiddenX = _shownX + _panel.rect.width; // 패널 너비만큼 오른쪽으로
     }
 
+    /// <summary>
+    /// UI 표시 토글
+    /// </summary>
     public void Toggle()
     {
         _isHidden = !_isHidden;
@@ -27,6 +30,9 @@ public class RightPanelUI : MonoBehaviour
         _slideRoutine = StartCoroutine(SlideRoutine(_isHidden ? _hiddenX : _shownX));
     }
 
+    /// <summary>
+    /// UI 슬라이드
+    /// </summary>
     IEnumerator SlideRoutine(float targetX)
     {
         float startX = _panel.anchoredPosition.x;
