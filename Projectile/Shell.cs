@@ -16,13 +16,14 @@ public class Shell : MonoBehaviour
 
     float _lifeTime = 10f;  // 포탄 생존 시간
     float _timer;           // 생존시간 잴거
+    
+    bool _isReleased = false; // Pool에 2번 반환되지 않게 하기(Enter에 여러번 들어올 때 있음)
 
     Rigidbody _rigid;
-    LayerMask _hitLayer; // 충돌할 레이어(적이 쏜 포탄은 적을 뚫고 감)
+    LayerMask _hitLayer;    // 충돌할 레이어(적이 쏜 포탄은 적을 뚫고 감)
 
     // HACK:Unity Pool 테스트 중
-    IObjectPool<Shell> _pool;
-    bool _isReleased = false;
+    //IObjectPool<Shell> _pool;
 
     private void Awake()
     {
@@ -48,9 +49,10 @@ public class Shell : MonoBehaviour
         _timer = 0; // 생존 시간 타이머 세팅
         _rigid.linearVelocity = transform.forward * _speed;
 
-        _isReleased = false; // HACK:와?
+        _isReleased = false;
     }
 
+    /*
     // HACK:Unity Pool 테스트 중
     public void Initialize(TankModel model, int ownerLayer, IObjectPool<Shell> pool)
     {
@@ -67,7 +69,7 @@ public class Shell : MonoBehaviour
 
         _timer = 0; // 생존 시간 타이머 세팅
         _rigid.linearVelocity = transform.forward * _speed;
-    }
+    }*/
 
     private void Update()
     {
@@ -115,7 +117,6 @@ public class Shell : MonoBehaviour
     /// </summary>
     public void Remove()
     {
-        // HACK:Unity Pool 테스트 중
         if (_isReleased) return;
         _isReleased = true;
 

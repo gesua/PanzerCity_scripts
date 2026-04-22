@@ -58,7 +58,7 @@ public class Turret : MonoBehaviour
     void RotateBarrel()
     {
         // 화면 중앙에서 레이캐스트
-        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f));
+        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width * 0.5f, Screen.height * 0.75f, 0f)); // 화면 위쪽을 조준하게 함
         Vector3 targetPoint;
 
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f, _aimLayerMask))

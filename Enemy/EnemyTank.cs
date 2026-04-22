@@ -23,16 +23,21 @@ public enum Direction
 [RequireComponent(typeof(EnemyTankDestructionEffect))]
 public class EnemyTank : TankBase
 {
-
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _roamSpan = 3f;      // 최대 배회 간격
     [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
-    // 감지 관련
+    [Header("----- 감지 관련-----")]
     float _detectionRange = 1000f;                  // 감지 거리(걍 최대치로 할거임)
     [SerializeField] float _detectionAngle = 30f;   // 감지 각도 (부채꼴 반각)
     [SerializeField] LayerMask _playerLayer;        // 감지할 레이어
-    [SerializeField] LayerMask _obstacleLayer;      // 시야 차단 레이어
+    [SerializeField] LayerMask _visionObstacleLayer;// 시야 차단 레이어(맵)
     [SerializeField] Transform _turret;             // 포탑
+    [Header("----- 이동 관련 -----")]
+    [SerializeField] float _movementCheckDistance = 1.2f; // 이동 체크 거리
+    [SerializeField] float _raycastSideOffset; // 좌우 사이드 한번 더 체크(0.6, 0.75)
+    [SerializeField] LayerMask _movementObstacleLayer;  // 이동 차단 레이어(플레이어, 적, 맵, 외곽벽)
+
+
 
     Transform _target; // 플레이어
     Rigidbody _rigid;
@@ -66,7 +71,7 @@ public class EnemyTank : TankBase
         _collider = GetComponent<BoxCollider>();
 
         _model.OnDead += HandleDead; // 사망 이벤트 구독
-        
+
         Initialize();
     }
 
@@ -138,9 +143,26 @@ public class EnemyTank : TankBase
         }
         else // 전진
         {
+            // 전진을 막는 장애물이 있으면 전진 안 함
+            if (IsPathBlocked()) return;
+
             Vector3 move = transform.forward * _model.ForwardSpeed * Time.fixedDeltaTime;
             _rigid.MovePosition(_rigid.position + move);
         }
+    }
+
+    /// <summary>
+    /// 전진을 막는 장애물이 있는지 체크
+    /// </summary>
+    bool IsPathBlocked()
+    {
+        Vector3 startCenter = _turret.position;
+        Vector3 startLeft = startCenter - transform.right * _raycastSideOffset;
+        Vector3 startRight = startCenter + transform.right * _raycastSideOffset;
+
+        return Physics.Raycast(startCenter, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startLeft, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startRight, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore);
     }
 
     /// <summary>
@@ -173,7 +195,7 @@ public class EnemyTank : TankBase
 
             // 시야 차단 체크 (벽 등에 가려져 있으면 감지 안 됨)
             float distance = Vector3.Distance(_turret.position, playerPos);
-            if (Physics.Raycast(_turret.position, dirToPlayer, distance, _obstacleLayer)) continue;
+            if (Physics.Raycast(_turret.position, dirToPlayer, distance, _visionObstacleLayer)) continue;
 
             _target = col.transform; // 타겟 설정
             return true;
@@ -216,9 +238,58 @@ public class EnemyTank : TankBase
         gameObject.DestroyOrReturnToPool();
     }
 
-    /* 감지범위 시각화
     void OnDrawGizmos()
     {
+        //* 이동 체크 시각화
+        if (_turret == null) return;
+
+        Gizmos.color = Color.green;
+        Vector3 startCenter = _turret.position;
+        Vector3 startLeft = startCenter - transform.right * _raycastSideOffset;
+        Vector3 startRight = startCenter + transform.right * _raycastSideOffset;
+        Vector3 dir = transform.forward;
+
+        // 중앙 Ray
+        Gizmos.color = Color.green;
+        if (Physics.Raycast(startCenter, dir, out RaycastHit hitCenter, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore))
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(startCenter, hitCenter.point);
+            Gizmos.DrawSphere(hitCenter.point, 0.05f);
+        }
+        else
+        {
+            Gizmos.DrawLine(startCenter, startCenter + dir * _movementCheckDistance);
+        }
+
+        // 좌측 Ray
+        Gizmos.color = Color.green;
+        if (Physics.Raycast(startLeft, dir, out RaycastHit hitLeft, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore))
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(startLeft, hitLeft.point);
+            Gizmos.DrawSphere(hitLeft.point, 0.05f);
+        }
+        else
+        {
+            Gizmos.DrawLine(startLeft, startLeft + dir * _movementCheckDistance);
+        }
+
+        // 우측 Ray
+        Gizmos.color = Color.green;
+        if (Physics.Raycast(startRight, dir, out RaycastHit hitRight, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore))
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(startRight, hitRight.point);
+            Gizmos.DrawSphere(hitRight.point, 0.05f);
+        }
+        else
+        {
+            Gizmos.DrawLine(startRight, startRight + dir * _movementCheckDistance);
+        }
+        // 이동 체크 시각화 */
+
+        /* 감지범위 시각화
         if (_turret == null) return;
 
         // 부채꼴 (포탑 전방 기준)
@@ -243,6 +314,6 @@ public class EnemyTank : TankBase
             Gizmos.DrawLine(prevPoint, nextPoint);
             prevPoint = nextPoint;
         }
+        // 감지범위 시각화 */
     }
-    */
 }

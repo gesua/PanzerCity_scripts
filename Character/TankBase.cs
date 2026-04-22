@@ -16,8 +16,8 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
 
     // HACK:Unity Pool 테스트 중
-    [SerializeField] GameObject _testShell;
-    IObjectPool<Shell> _shellPool;
+    //[SerializeField] GameObject _testShell;
+    //IObjectPool<Shell> _shellPool;
 
     protected virtual bool ShowMuzzleEffect => true; // 포신 이펙트 보여줄지 여부(플레이어 저격 모드엔 안 보임)
 
@@ -60,7 +60,6 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         //shell.transform.position = _firePoint.position;
         //shell.transform.rotation = _firePoint.rotation;
         //shell.Initialize(_model, gameObject.layer, _shellPool); // 풀 반환용으로 넘김
-
         
         // 포탄 생성
         GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPrefabPath);
