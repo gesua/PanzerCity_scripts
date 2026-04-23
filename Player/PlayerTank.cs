@@ -11,6 +11,11 @@ public class PlayerTank : TankBase
     [SerializeField] Mover _mover;
     [SerializeField] Turret _turret;
     [SerializeField] ReloadIndicator _reloadIndicator; // 재장전 표시 UI
+    [SerializeField] GameObject _normalVisual; // 플레이 모델
+    [SerializeField] GameObject _destroyedVisual; // 파괴된 모델
+    [SerializeField] GameObject _destroyedTurret; // 파괴된 포탑
+    [Header("----- 런타임 데이터 -----")]
+    [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
 
     bool _isAttack; // 좌클릭 누르는 중인지
     bool _isSniperMode; // 저격 모드인지(Shift)
@@ -22,8 +27,12 @@ public class PlayerTank : TankBase
 
     protected override bool ShowMuzzleEffect => !_isSniperMode;
 
-    private void Start()
+    protected override void Awake()
     {
+        base.Awake();
+
+        _model.OnDead += HandleDead; // 사망 이벤트 구독
+
         Initialize();
     }
 
@@ -78,5 +87,21 @@ public class PlayerTank : TankBase
     {
         _isSniperMode = isSniper;
         _turret.SetSniperMode(isSniper);
+    }
+
+    /// <summary>
+    /// 사망 처리
+    /// </summary>
+    void HandleDead()
+    {
+        // 모델 교체
+        _normalVisual.SetActive(false);
+        _destroyedVisual.SetActive(true);
+
+        // 포탑 위치 맞춰줌
+        _destroyedTurret.transform.localRotation = TurretTr.localRotation;
+
+        // 폭발 이펙트 재생
+        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.SmallExplosion, TurretTr.position);
     }
 }

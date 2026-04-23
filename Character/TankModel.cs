@@ -7,6 +7,9 @@ using UnityEngine;
 /// </summary>
 public class TankModel : MonoBehaviour, IDamageable
 {
+    [Header("----- 치트 -----")]
+    [SerializeField] bool NeverDie = false;
+
     [Header("----- 이동 -----")]
     [SerializeField] float _forwardSpeed = 5f;  // 전진 속력
     [SerializeField] float _backwardSpeed = 2f; // 후진 속력
@@ -93,6 +96,8 @@ public class TankModel : MonoBehaviour, IDamageable
         // 사망
         if (IsAlive == false)
         {
+            if (NeverDie) return; // 무적 치트
+
             OnDead?.Invoke();
         }
     }

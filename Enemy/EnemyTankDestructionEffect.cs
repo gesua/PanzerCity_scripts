@@ -32,10 +32,8 @@ public class EnemyTankDestructionEffect : MonoBehaviour
     /// </summary>
     public void Play()
     {
-        // 원래 모델 비활성화
-        _model.SetActive(false);
-        // 파괴된 모델 활성화
-        _destroyedModel.SetActive(true);
+        _model.SetActive(false); // 원래 모델 비활성화
+        _destroyedModel.SetActive(true); // 파괴된 모델 활성화
 
         // 자식 rigidbody 전부 날리기
         Rigidbody[] parts = _destroyedModel.GetComponentsInChildren<Rigidbody>();
