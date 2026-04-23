@@ -18,7 +18,6 @@ public class EnemySpawnData
 /// </summary>
 public class EnemySpawner : MonoBehaviour
 {
-    [SerializeField] int _stageID; // 현재 스테이지 ID
     [Header("----- 적 생성 -----")]
     [SerializeField] float _spawnSpan = 2f;     // 스폰 시간 간격
     [SerializeField] int _maxSpawnCount = 4;    // 최대 스폰 수
@@ -35,13 +34,11 @@ public class EnemySpawner : MonoBehaviour
     List<int> _spawnList; // TankID 순서 리스트
     int _stageSpawnCount; // 스테이지당 스폰할 횟수
 
-    public int StageID => _stageID;
-
     Coroutine _spawnEnemyRoutine;
 
-    private void Start()
+    public void Initialize(int stageID)
     {
-        _spawnList = GameManager.Instance.DataManager.GetSpawnList(_stageID);
+        _spawnList = GameManager.Instance.DataManager.GetSpawnList(stageID);
         _stageSpawnCount = _spawnList.Count;
 
         // 스폰 위치 순서 세팅

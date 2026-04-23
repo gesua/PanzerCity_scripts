@@ -135,4 +135,13 @@ public class Turret : MonoBehaviour
         Vector2 screenPos = Camera.main.WorldToScreenPoint(targetPoint);
         _turretCrosshair.position = screenPos;
     }
+
+    /// <summary>
+    /// 포탑/주포 회전값 초기화
+    /// </summary>
+    public void ResetRotation()
+    {
+        _turret.localRotation = Quaternion.identity;
+        _barrel.localRotation = Quaternion.identity;
+    }
 }

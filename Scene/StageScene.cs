@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 씬 관리
 /// </summary>
-public class PlayScene : MonoBehaviour
+public class StageScene : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
     [SerializeField] InputSystemHandler _inputSystemHandler;
@@ -13,8 +13,10 @@ public class PlayScene : MonoBehaviour
     [SerializeField] RightPanelUI _rightPanelUI; // 오른쪽 메뉴 UI
     [SerializeField] MiniMapUI _miniMapUI; // 미니맵 UI
     [SerializeField] GameInfoUI _gameInfoUI; // 게임 정보 UI
-    [SerializeField] EnemySpawner _enemySpawner; // 스테이지 보는 용도
+    [SerializeField] EnemySpawner _enemySpawner;
+    [SerializeField] Transform _playerSpawnPoint; // 플레이어 시작 지점
     [Header("----- 런타임 데이터 -----")]
+    [SerializeField] int _stageID; // 현재 스테이지 ID
     [SerializeField] int _playerLife = 3;
 
     private void Start()
@@ -28,11 +30,14 @@ public class PlayScene : MonoBehaviour
         _inputSystemHandler.OnSniperInput += HandleSniperInput;
         _inputSystemHandler.OnToggleRightUIInput += HandleToggleRightUIInput;
         _inputSystemHandler.OnMapInput += HandleMapInput;
-        _player.Model.OnDead += HandlePlayerDead;
+        _player.OnPlayerDead += HandlePlayerDead;
 
-        // 게임 정보 갱신(스테이지, 목숨)
-        _gameInfoUI.UpdateStage(_enemySpawner.StageID - 7100); // 고유 ID값 빼줌(7100)
+        // 게임 정보 UI 갱신(스테이지, 목숨)
+        _gameInfoUI.UpdateStage(_stageID - 7100); // 고유 ID값 빼줌(7100)
         _gameInfoUI.UpdateLife(_playerLife);
+
+        // 적 스포너 초기화
+        _enemySpawner.Initialize(_stageID);
     }
 
     void HandleMoveInput(Vector2 inputVector)
@@ -106,16 +111,19 @@ public class PlayScene : MonoBehaviour
     /// </summary>
     void HandlePlayerDead()
     {
-        _playerLife--;
-        _gameInfoUI.UpdateLife(_playerLife);
-
-        if (_playerLife <= 0)
+        if (_playerLife <= 0) 
         {
             // 게임 오버
         }
         else
         {
-            // 플레이어 리스폰
+            // 목숨 UI 갱신
+            _playerLife--;
+            _gameInfoUI.UpdateLife(_playerLife);
+
+            // 리스폰
+            _player.Respawn(_playerSpawnPoint.position);
+            _cameraTarget.ResetRotation();
         }
     }
 }

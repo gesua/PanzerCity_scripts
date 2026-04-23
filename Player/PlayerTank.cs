@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -24,8 +25,9 @@ public class PlayerTank : TankBase
     public Transform TurretTr => _turret.TurretTr;
     public TankModel Model => _model;
     public Vector3 BarrelForward => _turret.BarrelForward; // HACK:조준점 맞추는거 해결중
-
     protected override bool ShowMuzzleEffect => !_isSniperMode;
+
+    public event Action OnPlayerDead; // 사망 이벤트
 
     protected override void Awake()
     {
@@ -103,5 +105,29 @@ public class PlayerTank : TankBase
 
         // 폭발 이펙트 재생
         GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.SmallExplosion, TurretTr.position);
+
+        // 사망 지속시간 뒤에 Invoke
+        StartCoroutine(DeadRoutine());
+    }
+
+    /// <summary>
+    /// 사망 지속시간 뒤에 이벤트 발급
+    /// </summary>
+    IEnumerator DeadRoutine()
+    {
+        yield return new WaitForSeconds(_deadDuration);
+        OnPlayerDead?.Invoke();
+    }
+
+    /// <summary>
+    /// 리스폰
+    /// </summary>
+    public void Respawn(Vector3 spawnPos)
+    {
+        _mover.Teleport(spawnPos, Quaternion.identity);
+        _turret.ResetRotation();
+        _normalVisual.SetActive(true);
+        _destroyedVisual.SetActive(false);
+        _model.Initialize(); // HP 초기화
     }
 }

@@ -104,4 +104,14 @@ public class CameraTarget : MonoBehaviour
         _pitch = Mathf.Clamp(_pitch, _minPitch, _maxPitch);
         transform.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
     }
+
+    /// <summary>
+    /// 카메라 시점 초기화
+    /// </summary>
+    public void ResetRotation()
+    {
+        _pitch = 0f;
+        _yaw = 0f;
+        transform.rotation = Quaternion.identity;
+    }
 }

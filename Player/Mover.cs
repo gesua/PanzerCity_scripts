@@ -125,4 +125,17 @@ public class Mover : MonoBehaviour
             _targetSpeed = 0f;
         }
     }
+
+    /// <summary>
+    /// 순간이동
+    /// </summary>
+    public void Teleport(Vector3 pos, Quaternion rotation)
+    {
+        _rigid.position = pos;
+        _rigid.rotation = rotation;
+        _rigid.linearVelocity = Vector3.zero;
+        _rigid.angularVelocity = Vector3.zero;
+        _currentSpeed = 0f;
+        _targetSpeed = 0f;
+    }
 }
