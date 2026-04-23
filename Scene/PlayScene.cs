@@ -12,6 +12,11 @@ public class PlayScene : MonoBehaviour
     [SerializeField] SniperModeController _sniperMode;
     [SerializeField] RightPanelUI _rightPanelUI; // 오른쪽 메뉴 UI
     [SerializeField] MiniMapUI _miniMapUI; // 미니맵 UI
+    [SerializeField] GameInfoUI _gameInfoUI; // 게임 정보 UI
+    [SerializeField] EnemySpawner _enemySpawner; // 스테이지 보는 용도
+    [Header("----- 런타임 데이터 -----")]
+    [SerializeField] int _playerLife = 3;
+
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -23,6 +28,11 @@ public class PlayScene : MonoBehaviour
         _inputSystemHandler.OnSniperInput += HandleSniperInput;
         _inputSystemHandler.OnToggleRightUIInput += HandleToggleRightUIInput;
         _inputSystemHandler.OnMapInput += HandleMapInput;
+        _player.Model.OnDead += HandlePlayerDead;
+
+        // 게임 정보 갱신(스테이지, 목숨)
+        _gameInfoUI.UpdateStage(_enemySpawner.StageID - 7100); // 고유 ID값 빼줌(7100)
+        _gameInfoUI.UpdateLife(_playerLife);
     }
 
     void HandleMoveInput(Vector2 inputVector)
@@ -89,5 +99,23 @@ public class PlayScene : MonoBehaviour
     void HandleMapInput()
     {
         _miniMapUI.Toggle();
+    }
+
+    /// <summary>
+    /// 플레이어 사망
+    /// </summary>
+    void HandlePlayerDead()
+    {
+        _playerLife--;
+        _gameInfoUI.UpdateLife(_playerLife);
+
+        if (_playerLife <= 0)
+        {
+            // 게임 오버
+        }
+        else
+        {
+            // 플레이어 리스폰
+        }
     }
 }

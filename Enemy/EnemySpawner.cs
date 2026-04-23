@@ -35,6 +35,8 @@ public class EnemySpawner : MonoBehaviour
     List<int> _spawnList; // TankID 순서 리스트
     int _stageSpawnCount; // 스테이지당 스폰할 횟수
 
+    public int StageID => _stageID;
+
     Coroutine _spawnEnemyRoutine;
 
     private void Start()
