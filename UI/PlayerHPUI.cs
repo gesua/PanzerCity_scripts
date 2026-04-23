@@ -5,10 +5,10 @@ using UnityEngine;
 /// </summary>
 public class PlayerHPUI : MonoBehaviour
 {
-    [SerializeField] GameObject[] _hpIcons;
+    [SerializeField] HeartSlot[] _hpSlots;
     [SerializeField] PlayerTank _player;
 
-    void Start()
+    private void Awake()
     {
         _player.Model.OnHpChanged += UpdateHP;
     }
@@ -18,9 +18,9 @@ public class PlayerHPUI : MonoBehaviour
     /// </summary>
     void UpdateHP(int current, int max)
     {
-        for (int i = 0; i < _hpIcons.Length; i++)
+        for (int i = 0; i < _hpSlots.Length; i++)
         {
-            _hpIcons[i].SetActive(i < current);
+            _hpSlots[i].SetState(i < current);
         }
     }
 }
