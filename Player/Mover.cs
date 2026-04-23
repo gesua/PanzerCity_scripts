@@ -127,6 +127,14 @@ public class Mover : MonoBehaviour
     }
 
     /// <summary>
+    /// 멈춤
+    /// </summary>
+    public void Stop()
+    {
+        _targetSpeed = 0f;
+    }
+
+    /// <summary>
     /// 순간이동
     /// </summary>
     public void Teleport(Vector3 pos, Quaternion rotation)

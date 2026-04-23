@@ -31,6 +31,7 @@ public class StageScene : MonoBehaviour
         _inputSystemHandler.OnToggleRightUIInput += HandleToggleRightUIInput;
         _inputSystemHandler.OnMapInput += HandleMapInput;
         _player.OnPlayerDead += HandlePlayerDead;
+        _player.OnPlayerRespawn += HandlePlayerRespawn;
 
         // 게임 정보 UI 갱신(스테이지, 목숨)
         _gameInfoUI.UpdateStage(_stageID - 7100); // 고유 ID값 빼줌(7100)
@@ -111,19 +112,27 @@ public class StageScene : MonoBehaviour
     /// </summary>
     void HandlePlayerDead()
     {
-        if (_playerLife <= 0) 
+        // 저격 모드 중이면 해제
+        if (_sniperMode.IsSniper)
         {
-            // 게임 오버
+            _sniperMode.SetSniperMode(false);
+            _player.SetSniperMode(false);
         }
-        else
-        {
-            // 목숨 UI 갱신
-            _playerLife--;
-            _gameInfoUI.UpdateLife(_playerLife);
+    }
 
-            // 리스폰
-            _player.Respawn(_playerSpawnPoint.position);
-            _cameraTarget.ResetRotation();
-        }
+    /// <summary>
+    /// 플레이어 리스폰
+    /// </summary>
+    void HandlePlayerRespawn()
+    {
+        if (_playerLife <= 0) return;
+
+        // 목숨 UI 갱신
+        _playerLife--;
+        _gameInfoUI.UpdateLife(_playerLife);
+
+        // 리스폰
+        _player.Respawn(_playerSpawnPoint.position);
+        _cameraTarget.ResetRotation();
     }
 }

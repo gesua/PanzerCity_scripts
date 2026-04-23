@@ -21,6 +21,7 @@ public class Turret : MonoBehaviour
     bool _isSniping = false; // 저격 모드 중엔 조준점 위치 달라짐
 
     public Transform TurretTr => _turret;
+    public Transform BarrelTr => _barrel;
     public Vector3 BarrelForward => _barrel.forward; // HACK:조준점 맞추는거 해결중
 
     /// <summary>
@@ -143,5 +144,14 @@ public class Turret : MonoBehaviour
     {
         _turret.localRotation = Quaternion.identity;
         _barrel.localRotation = Quaternion.identity;
+    }
+
+    /// <summary>
+    /// 조준점 보이는 여부
+    /// </summary>
+    public void SetCrosshairVisible(bool visible)
+    {
+        _centerCrosshair.gameObject.SetActive(visible);
+        _turretCrosshair.gameObject.SetActive(visible);
     }
 }
