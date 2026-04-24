@@ -13,6 +13,7 @@ public class StageScene : MonoBehaviour
     [SerializeField] RightPanelUI _rightPanelUI; // 오른쪽 메뉴 UI
     [SerializeField] MiniMapUI _miniMapUI; // 미니맵 UI
     [SerializeField] GameInfoUI _gameInfoUI; // 게임 정보 UI
+    [SerializeField] GameOverUI _gameOverUI; // 게임오버 UI
     [SerializeField] EnemySpawner _enemySpawner;
     [SerializeField] Transform _playerSpawnPoint; // 플레이어 시작 지점
     [Header("----- 런타임 데이터 -----")]
@@ -125,14 +126,20 @@ public class StageScene : MonoBehaviour
     /// </summary>
     void HandlePlayerRespawn()
     {
-        if (_playerLife <= 0) return;
+        if (_playerLife > 0)
+        {
+            // 목숨 UI 갱신
+            _playerLife--;
+            _gameInfoUI.UpdateLife(_playerLife);
 
-        // 목숨 UI 갱신
-        _playerLife--;
-        _gameInfoUI.UpdateLife(_playerLife);
-
-        // 리스폰
-        _player.Respawn(_playerSpawnPoint.position);
-        _cameraTarget.ResetRotation();
+            // 리스폰
+            _player.Respawn(_playerSpawnPoint.position);
+            _cameraTarget.ResetRotation();
+        }
+        else
+        {
+            // 게임오버
+            _gameOverUI.Show();
+        }
     }
 }

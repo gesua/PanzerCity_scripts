@@ -14,7 +14,7 @@ public class CameraTarget : MonoBehaviour
     // x축 회전:Pitch
     // y축 회전:Yaw
     // z축 회전:Roll
-    [Header("----- 설정 데이터 -----")]
+    [Header("----- 런타임 데이터 -----")]
     [Tooltip("x축 회전 감도")]
     [SerializeField] float _pitchSense = 0.1f;
     [Tooltip("y축 회전 감도")]
