@@ -221,6 +221,9 @@ public class EnemyTank : TankBase
         // 폭발 이펙트 재생
         GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.SmallExplosion, _turret.position); // transform 위치로 하면 바닥에서 폭발함
 
+        // 바닥에 잔불 이펙트 생성
+        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.TinyFlames, transform.position);
+
         // 사망 상태로 변경
         _collider.enabled = false; // 콜라이더 비활성화
         _currentState = _states[(int)EnemyStateType.Dead];
