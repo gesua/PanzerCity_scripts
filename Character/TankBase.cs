@@ -18,7 +18,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
     bool _isEffectPlaying; // 엔진 이펙트 재생 여부
 
-    protected virtual bool ShowMuzzleEffect => true; // 포신 이펙트 보여줄지 여부(플레이어 저격 모드엔 안 보임)
+    protected virtual bool ShowEffects => true; // 이펙트 보여줄지 여부(플레이어 저격 모드엔 안 보임)
 
     protected virtual void Awake()
     {
@@ -33,7 +33,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     public virtual void Attack()
     {
         // 저격 모드엔 포신 이펙트 안 보이게 함
-        if (ShowMuzzleEffect)
+        if (ShowEffects)
         {
             // 포신 이펙트 생성
             GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.TinyExplosion, _firePoint.position);
@@ -53,6 +53,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     protected void SetEngineEffect(bool isMoving)
     {
         if (_engineEffect == null) return;
+        if (ShowEffects == false) return;
 
         if (isMoving && _isEffectPlaying == false)
         {

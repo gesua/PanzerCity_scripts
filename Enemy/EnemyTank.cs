@@ -162,10 +162,14 @@ public class EnemyTank : TankBase
         Vector3 startCenter = _turret.position;
         Vector3 startLeft = startCenter - transform.right * _raycastSideOffset;
         Vector3 startRight = startCenter + transform.right * _raycastSideOffset;
+        Vector3 startMidLeft = startCenter - transform.right * (_raycastSideOffset * 0.5f);
+        Vector3 startMidRight = startCenter + transform.right * (_raycastSideOffset * 0.5f);
 
         return Physics.Raycast(startCenter, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore)
             || Physics.Raycast(startLeft, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore)
-            || Physics.Raycast(startRight, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore);
+            || Physics.Raycast(startRight, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startMidLeft, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startMidRight, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore);
     }
 
     /// <summary>
@@ -253,45 +257,29 @@ public class EnemyTank : TankBase
         Vector3 startCenter = _turret.position;
         Vector3 startLeft = startCenter - transform.right * _raycastSideOffset;
         Vector3 startRight = startCenter + transform.right * _raycastSideOffset;
+        Vector3 startMidLeft = startCenter - transform.right * (_raycastSideOffset * 0.5f);
+        Vector3 startMidRight = startCenter + transform.right * (_raycastSideOffset * 0.5f);
         Vector3 dir = transform.forward;
 
-        // 중앙 Ray
-        Gizmos.color = Color.green;
-        if (Physics.Raycast(startCenter, dir, out RaycastHit hitCenter, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore))
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(startCenter, hitCenter.point);
-            Gizmos.DrawSphere(hitCenter.point, 0.05f);
-        }
-        else
-        {
-            Gizmos.DrawLine(startCenter, startCenter + dir * _movementCheckDistance);
-        }
+        DrawRaycastGizmo(startCenter, dir);
+        DrawRaycastGizmo(startLeft, dir);
+        DrawRaycastGizmo(startRight, dir);
+        DrawRaycastGizmo(startMidLeft, dir);
+        DrawRaycastGizmo(startMidRight, dir);
 
-        // 좌측 Ray
-        Gizmos.color = Color.green;
-        if (Physics.Raycast(startLeft, dir, out RaycastHit hitLeft, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore))
+        void DrawRaycastGizmo(Vector3 origin, Vector3 dir)
         {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(startLeft, hitLeft.point);
-            Gizmos.DrawSphere(hitLeft.point, 0.05f);
-        }
-        else
-        {
-            Gizmos.DrawLine(startLeft, startLeft + dir * _movementCheckDistance);
-        }
-
-        // 우측 Ray
-        Gizmos.color = Color.green;
-        if (Physics.Raycast(startRight, dir, out RaycastHit hitRight, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore))
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(startRight, hitRight.point);
-            Gizmos.DrawSphere(hitRight.point, 0.05f);
-        }
-        else
-        {
-            Gizmos.DrawLine(startRight, startRight + dir * _movementCheckDistance);
+            Gizmos.color = Color.green;
+            if (Physics.Raycast(origin, dir, out RaycastHit hit, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore))
+            {
+                Gizmos.color = Color.red;
+                Gizmos.DrawLine(origin, hit.point);
+                Gizmos.DrawSphere(hit.point, 0.05f);
+            }
+            else
+            {
+                Gizmos.DrawLine(origin, origin + dir * _movementCheckDistance);
+            }
         }
         // 이동 체크 시각화 */
 
