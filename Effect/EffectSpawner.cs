@@ -9,6 +9,9 @@ public enum EffectType // 파일 이름과 동일하게 해야함
     TinyExplosion,          // 포신 폭발용
     SmallExplosion,         // 탱크 폭발용
     Twinkle,                // 반짝(적 스폰용)
+    PressurisedSteam,       // 탱크 엔진 흰 연기
+    TinyFlames,             // 탱크 파괴 후 엔진 잔불
+    SmokeEffect,            // 탱크 잔해 검은 연기
 }
 
 /// <summary>
@@ -27,6 +30,9 @@ public class EffectSpawner : MonoBehaviour
         _poolManager.GetPool(GetPrefabPath(EffectType.TinyExplosion));
         _poolManager.GetPool(GetPrefabPath(EffectType.SmallExplosion));
         _poolManager.GetPool(GetPrefabPath(EffectType.Twinkle));
+        _poolManager.GetPool(GetPrefabPath(EffectType.PressurisedSteam));
+        _poolManager.GetPool(GetPrefabPath(EffectType.TinyFlames));
+        _poolManager.GetPool(GetPrefabPath(EffectType.SmokeEffect));
     }
 
     /// <summary>

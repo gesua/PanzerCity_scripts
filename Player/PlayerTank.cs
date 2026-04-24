@@ -58,6 +58,9 @@ public class PlayerTank : TankBase
     {
         if (_isDead) return;
         _mover.Move(dir);
+
+        // 버튼 누를 때만 엔진 연기 나옴
+        SetEngineEffect(dir != Vector3.zero);
     }
 
     /// <summary>

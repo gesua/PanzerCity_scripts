@@ -14,12 +14,14 @@ public class Effect : MonoBehaviour
         _ps = GetComponent<ParticleSystem>();
     }
 
-    /// <summary>
-    /// 이펙트 재생
-    /// </summary>
     public void Play()
     {
         _ps.Play(true);
+    }
+
+    public void Stop()
+    {
+        _ps.Stop();
     }
 
     private void OnParticleSystemStopped()
