@@ -2,6 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 경전차
+/// Rigidbody Mass:0.8
 /// </summary>
 public class LightTank : EnemyTank, IExplosionDamageable
 {
