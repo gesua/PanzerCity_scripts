@@ -4,14 +4,14 @@ public enum EffectType // 파일 이름과 동일하게 해야함
 {
     // _Tanks 이펙트
     CompleteShellExplosion, // 연기 일어남(포탄용)
-    TankExplosion,          // 빛나는 바늘이 퍼져나감
+    TankExplosion,          // 빛나는 바늘이 퍼져나감 [미사용]
     // UnityTechnologies 이펙트
     TinyExplosion,          // 포신 폭발용
     SmallExplosion,         // 탱크 폭발용
     Twinkle,                // 반짝(적 스폰용)
-    PressurisedSteam,       // 탱크 엔진 흰 연기
-    TinyFlames,             // 탱크 파괴 후 엔진 잔불
-    SmokeEffect,            // 탱크 잔해 검은 연기
+    PressurisedSteam,       // 탱크 엔진 흰 연기 [직접 붙여서 사용중]
+    TinyFlames,             // 탱크 파괴 후 엔진 잔불 [미사용]
+    SmokeEffect,            // 탱크 잔해 검은 연기 [미사용]
 }
 
 /// <summary>

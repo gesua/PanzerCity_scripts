@@ -69,8 +69,6 @@ public class EnemyTank : TankBase
         _collider = GetComponent<BoxCollider>();
 
         _model.OnDead += HandleDead; // 사망 이벤트 구독
-
-        Initialize();
     }
 
     public void Initialize()
@@ -142,11 +140,18 @@ public class EnemyTank : TankBase
         else // 전진
         {
             // 전진을 막는 장애물이 있으면 전진 안 함
-            if (IsPathBlocked()) return;
+            if (IsPathBlocked())
+            {
+                SetEngineEffect(false); // 장애물에 막히면 엔진 끔
+                return;
+            }
 
             Vector3 move = transform.forward * _model.ForwardSpeed * Time.fixedDeltaTime;
             _rigid.MovePosition(_rigid.position + move);
         }
+
+        // 엔진 켬
+        SetEngineEffect(true);
     }
 
     /// <summary>
@@ -206,6 +211,9 @@ public class EnemyTank : TankBase
     /// </summary>
     protected virtual void HandleDead()
     {
+        // 엔진 이펙트 끔
+        SetEngineEffect(false);
+
         // 폭발 이펙트 재생
         GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.SmallExplosion, _turret.position); // transform 위치로 하면 바닥에서 폭발함
 

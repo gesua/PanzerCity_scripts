@@ -52,6 +52,8 @@ public abstract class TankBase : MonoBehaviour, IAttackable
 
     protected void SetEngineEffect(bool isMoving)
     {
+        if (_engineEffect == null) return;
+
         if (isMoving && _isEffectPlaying == false)
         {
             _isEffectPlaying = true;
