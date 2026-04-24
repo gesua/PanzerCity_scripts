@@ -29,4 +29,9 @@ public class TankDirectionUI : MonoBehaviour
         float turretY = _player.TurretTr.eulerAngles.y - cameraY;
         _turretDirection.localEulerAngles = new Vector3(0f, 0f, -turretY);
     }
+
+    public void SetActive(bool active)
+    {
+        enabled = active;
+    }
 }

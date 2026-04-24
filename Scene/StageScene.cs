@@ -10,12 +10,14 @@ public class StageScene : MonoBehaviour
     [SerializeField] PlayerTank _player;
     [SerializeField] CameraTarget _cameraTarget;
     [SerializeField] SniperModeController _sniperMode;
-    [SerializeField] RightPanelUI _rightPanelUI; // 오른쪽 메뉴 UI
-    [SerializeField] MiniMapUI _miniMapUI; // 미니맵 UI
-    [SerializeField] GameInfoUI _gameInfoUI; // 게임 정보 UI
-    [SerializeField] GameOverUI _gameOverUI; // 게임오버 UI
-    [SerializeField] EnemySpawner _enemySpawner;
+    [SerializeField] EnemySpawner _enemySpawner; // 스테이지 ID값 넘겨줄거
     [SerializeField] Transform _playerSpawnPoint; // 플레이어 시작 지점
+    // UI
+    [SerializeField] RightPanelUI _rightPanelUI;        // 오른쪽 메뉴 UI
+    [SerializeField] MiniMapUI _miniMapUI;              // 미니맵 UI
+    [SerializeField] GameInfoUI _gameInfoUI;            // 게임 정보 UI
+    [SerializeField] GameOverUI _gameOverUI;            // 게임오버 UI
+    [SerializeField] TankDirectionUI _tankDirectionUI;  // 탱크 방향 UI
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] int _stageID; // 현재 스테이지 ID
     [SerializeField] int _playerLife = 3;
@@ -59,6 +61,8 @@ public class StageScene : MonoBehaviour
     /// </summary>
     void HandleAttackInput(bool isAttack)
     {
+        if (_player.IsDead) return;
+
         _player.SetIsAttack(isAttack);
     }
 
@@ -76,6 +80,8 @@ public class StageScene : MonoBehaviour
     /// </summary>
     void HandleSniperInput()
     {
+        if (_player.IsDead) return;
+
         _sniperMode.ToggleSniperMode();
         _player.SetSniperMode(_sniperMode.IsSniper);
 
@@ -113,6 +119,9 @@ public class StageScene : MonoBehaviour
     /// </summary>
     void HandlePlayerDead()
     {
+        // 방향 UI 멈춤
+        _tankDirectionUI.SetActive(false);
+
         // 저격 모드 중이면 해제
         if (_sniperMode.IsSniper)
         {
@@ -131,6 +140,9 @@ public class StageScene : MonoBehaviour
             // 목숨 UI 갱신
             _playerLife--;
             _gameInfoUI.UpdateLife(_playerLife);
+
+            // 방향 UI 켬
+            _tankDirectionUI.SetActive(true);
 
             // 리스폰
             _player.Respawn(_playerSpawnPoint.position);

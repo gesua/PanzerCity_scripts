@@ -57,7 +57,6 @@ public class Shell : MonoBehaviour
         }
         else // 포탄 사라지게
         {
-            Debug.Log("포탄 시간되서 사라짐", gameObject);
             Remove();
         }
     }
