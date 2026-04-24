@@ -2,7 +2,8 @@ using UnityEngine;
 
 /// <summary>
 /// VFX(비주얼 이펙트)를 담당
-/// 이펙트에 붙여놓으면 됨
+/// 단발성 이펙트에 붙여놓으면 됨
+/// Pool을 사용하는 이펙트들
 /// </summary>
 [RequireComponent(typeof(ParticleSystem))]
 public class Effect : MonoBehaviour

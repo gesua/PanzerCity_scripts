@@ -12,11 +12,10 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     [SerializeField] int _tankID; // TankData에서 데이터 가져올 ID
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
-    [SerializeField] Effect _engineEffect; // 엔진 이펙트
+    [SerializeField] LoopEffect _engineEffect; // 엔진 이펙트
 
     protected TankModel _model;
     string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
-    bool _isEffectPlaying; // 엔진 이펙트 재생 여부
 
     protected virtual bool ShowEffects => true; // 이펙트 보여줄지 여부(플레이어 저격 모드엔 안 보임)
 
@@ -55,14 +54,12 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         if (_engineEffect == null) return;
         if (ShowEffects == false) return;
 
-        if (isMoving && _isEffectPlaying == false)
+        if (isMoving)
         {
-            _isEffectPlaying = true;
             _engineEffect.Play();
         }
-        else if (isMoving == false && _isEffectPlaying)
+        else if (isMoving == false)
         {
-            _isEffectPlaying = false;
             _engineEffect.Stop();
         }
     }
