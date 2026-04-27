@@ -14,7 +14,7 @@ public class GameOverUI : MonoBehaviour
     [SerializeField] Canvas _canvas;                // GameObject 대신 켜고 끌거
     [SerializeField] Image _backgroundImage;        // 게임오버 배경 이미지
     [SerializeField] Image _darkOverlay;            // 어둡게 깔거
-    [SerializeField] CanvasGroup _buttonsGroup;     // 버튼들 (CanvasGroup으로 묶기)
+    [SerializeField] CanvasGroup _buttonsGroup;     // 그룹(글자, 버튼)
 
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _bgFadeDuration = 2f;

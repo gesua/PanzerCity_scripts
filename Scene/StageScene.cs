@@ -12,6 +12,7 @@ public class StageScene : MonoBehaviour
     [SerializeField] SniperModeController _sniperMode;
     [SerializeField] EnemySpawner _enemySpawner; // 스테이지 ID값 넘겨줄거
     [SerializeField] Transform _playerSpawnPoint; // 플레이어 시작 지점
+    [SerializeField] HQ _hq;
     // UI
     [SerializeField] RightPanelUI _rightPanelUI;        // 오른쪽 메뉴 UI
     [SerializeField] MiniMapUI _miniMapUI;              // 미니맵 UI
@@ -35,6 +36,7 @@ public class StageScene : MonoBehaviour
         _inputSystemHandler.OnMapInput += HandleMapInput;
         _player.OnPlayerDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
+        _hq.OnDestroyed += HandleHQDestroyed;
 
         // 게임 정보 UI 갱신(스테이지, 목숨)
         _gameInfoUI.UpdateStage(_stageID - 7100); // 고유 ID값 빼줌(7100)
@@ -84,18 +86,6 @@ public class StageScene : MonoBehaviour
 
         _sniperMode.ToggleSniperMode();
         _player.SetSniperMode(_sniperMode.IsSniper);
-
-        // 조준점(+) 방향으로 카메라 유지
-        if (_sniperMode.IsSniper)
-        {
-            //_cameraTarget.AlignToDirection(_player.BarrelForward); // HACK:조준점 맞추는거 해결중
-            _cameraTarget.AlignToScreenPoint(0.75f);
-        }
-        else
-        {
-            //_cameraTarget.AlignToDirection(_player.BarrelForward);
-            _cameraTarget.AlignToScreenPoint(0.25f);
-        }
     }
 
     /// <summary>
@@ -153,5 +143,13 @@ public class StageScene : MonoBehaviour
             // 게임오버
             _gameOverUI.Show();
         }
+    }
+
+    /// <summary>
+    /// HQ 파괴되서 게임오버
+    /// </summary>
+    void HandleHQDestroyed()
+    {
+        _gameOverUI.Show();
     }
 }
