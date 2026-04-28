@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,11 +17,11 @@ public class GameScene : MonoBehaviour
     [SerializeField] RightPanelUI _rightPanelUI;        // 오른쪽 메뉴 UI
     [SerializeField] MiniMapUI _miniMapUI;              // 미니맵 UI
     [SerializeField] GameInfoUI _gameInfoUI;            // 게임 정보 UI
-    [SerializeField] TankDirectionUI _tankDirectionUI;  // 탱크 방향 UI
     [SerializeField] EnemySpawnUI _enemySpawnUI;        // 적 스폰 UI
     [SerializeField] GameOverUI _gameOverUI;            // 게임오버 UI
     [Header("----- 런타임 데이터 -----")]
-    [SerializeField] int _playerLife = 3;
+    [SerializeField] int _playerLife = 3;       // 목숨
+    [SerializeField] float _gameOverDelay = 5f; // 게임오버 딜레이
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
@@ -148,9 +149,6 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandlePlayerDead()
     {
-        // 방향 UI 멈춤
-        _tankDirectionUI.SetActive(false);
-
         // 저격 모드 중이면 해제
         if (_sniperMode.IsSniper)
         {
@@ -170,9 +168,6 @@ public class GameScene : MonoBehaviour
             _playerLife--;
             _gameInfoUI.UpdateLife(_playerLife);
 
-            // 방향 UI 켬
-            _tankDirectionUI.SetActive(true);
-
             // 리스폰
             _player.Respawn(_playerSpawnPoint);
             _cameraTarget.ResetRotation();
@@ -190,6 +185,12 @@ public class GameScene : MonoBehaviour
     void HandleHQDestroyed()
     {
         _player.DisablePlayerAndUI(); // 플레이어 움직임 막고, UI 없앰
+        StartCoroutine(GameOverRoutine());
+    }
+
+    IEnumerator GameOverRoutine()
+    {
+        yield return new WaitForSeconds(_gameOverDelay);
         _gameOverUI.Show(true);
     }
 }

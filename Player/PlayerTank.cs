@@ -116,6 +116,9 @@ public class PlayerTank : TankBase
         _isDead = true; // 죽었음
         OnPlayerDead?.Invoke();
 
+        // 포탑 끄기
+        _turret.enabled = false;
+
         // 조준점 숨기기
         _turret.SetCrosshairVisible(false);
 
@@ -152,6 +155,7 @@ public class PlayerTank : TankBase
     public void Respawn(Vector3 spawnPos)
     {
         _isDead = false; // 살았음
+        _turret.enabled = true; // 포탑 켜기
         _turret.SetCrosshairVisible(true); // 조준점 보이기
         _mover.Teleport(spawnPos, Quaternion.identity); // 시작 위치로
         _turret.ResetRotation();
@@ -172,5 +176,8 @@ public class PlayerTank : TankBase
 
         // 서서히 멈추기
         _mover.Stop();
+
+        // 포탑 끄기
+        _turret.enabled = false;
     }
 }
