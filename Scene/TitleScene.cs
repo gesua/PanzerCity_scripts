@@ -9,6 +9,7 @@ public class TitleScene : MonoBehaviour
 {
     [SerializeField] AudioListener _audioListener;
     [SerializeField] UnityEngine.EventSystems.EventSystem _eventSystem;
+    //[SerializeField] GameObject _loadingImage; // 로딩 이미지
 
     AsyncOperation _gameSceneLoad; // Game씬 동기화용
     bool _isStart;
@@ -32,15 +33,19 @@ public class TitleScene : MonoBehaviour
 
     IEnumerator StartRoutine()
     {
+        //_loadingImage.SetActive(true); // 로딩 이미지 표시
+
         // 씬 전환될 때 그대로 두면 2개라고 에러 뜸
         _audioListener.enabled = false;
         _eventSystem.gameObject.SetActive(false);
 
         _gameSceneLoad.allowSceneActivation = true; // 시작 버튼 누를 때 활성화
-        // Game씬 로드 완료까지 대기
-        yield return _gameSceneLoad;
+        yield return _gameSceneLoad; // Game씬 로드 완료까지 대기
+
+        // Stage01 로드 대기
+        AsyncOperation stageLoad = SceneManager.LoadSceneAsync("Stage01", LoadSceneMode.Additive);
+        yield return stageLoad;
 
         SceneManager.UnloadSceneAsync("Title");
-        SceneManager.LoadSceneAsync("Stage01", LoadSceneMode.Additive);
     }
 }
