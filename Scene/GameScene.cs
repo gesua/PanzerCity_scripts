@@ -39,7 +39,7 @@ public class GameScene : MonoBehaviour
         _player.OnPlayerDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
 
-        // 게임 정보 UI 갱신(스테이지, 목숨)
+        // 목숨 UI 갱신
         _gameInfoUI.UpdateLife(_playerLife);
     }
 
