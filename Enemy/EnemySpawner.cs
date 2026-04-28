@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,7 +23,6 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] float _spawnSpan = 2f;     // 스폰 시간 간격
     [SerializeField] int _maxSpawnCount = 4;    // 최대 스폰 수
     [SerializeField] Transform[] _spawnPos;     // 스폰 위치
-    [SerializeField] EnemySpawnUI _enemyUI;     // 스폰현황 연동할 UI
 
     [Header("----- 적 리스트(읽기 전용) -----")]
     [SerializeField] List<EnemyTank> _enemies = new(); // 생성된 적 리스트
@@ -33,6 +33,10 @@ public class EnemySpawner : MonoBehaviour
 
     List<int> _spawnList; // TankID 순서 리스트
     int _stageSpawnCount; // 스테이지당 스폰할 횟수
+
+    // UI 연동용 event
+    public event Action<List<int>> OnSpawnListReady; // 스폰 리스트 준비됨
+    public event Action<int> OnEnemySpawned;         // 적 스폰됨
 
     Coroutine _spawnEnemyRoutine;
 
@@ -45,7 +49,7 @@ public class EnemySpawner : MonoBehaviour
         _spawnPosIndex = GenerateRandomArray(_stageSpawnCount, _spawnPos.Length);
 
         // 적 스폰 UI 세팅
-        _enemyUI.Initialize(_spawnList);
+        OnSpawnListReady?.Invoke(_spawnList);
 
         // Pool 생성
         GameManager.Instance.PoolManager.GetPool("Tank/201Light");
@@ -91,7 +95,7 @@ public class EnemySpawner : MonoBehaviour
         StartCoroutine(SpawnAfterEffect(prefabPath, spawnPos));
 
         // 적 스폰 UI에서 아이콘 제거
-        _enemyUI.SetEnemySpawn(_spawnedCount);
+        OnEnemySpawned?.Invoke(_spawnedCount);
 
         // 카운트 증가
         _spawnedCount++;

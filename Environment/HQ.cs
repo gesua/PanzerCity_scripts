@@ -7,14 +7,10 @@ using UnityEngine;
 /// </summary>
 public class HQ : MonoBehaviour, IDamageable
 {
-    [Header("----- 치트 -----")]
-    [SerializeField] bool DontDestroy; // 무적
-
     public event Action OnDestroyed;
 
     public void TakeDamage(int damage)
     {
-        if (DontDestroy) return;
         OnDestroyed?.Invoke();
     }
 }
