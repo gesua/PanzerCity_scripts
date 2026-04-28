@@ -159,4 +159,18 @@ public class PlayerTank : TankBase
         _destroyedVisual.SetActive(false);
         _model.Initialize(); // HP 초기화
     }
+
+    /// <summary>
+    /// 플레이어의 움직임과 UI를 없앰(HQ 파괴로 패배)
+    /// </summary>
+    public void DisablePlayerAndUI()
+    {
+        _isDead = true;
+
+        // 조준점 숨기기
+        _turret.SetCrosshairVisible(false);
+
+        // 서서히 멈추기
+        _mover.Stop();
+    }
 }

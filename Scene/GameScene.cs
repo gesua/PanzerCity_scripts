@@ -180,7 +180,7 @@ public class GameScene : MonoBehaviour
         else
         {
             // 게임오버
-            _gameOverUI.Show();
+            _gameOverUI.Show(false);
         }
     }
 
@@ -189,6 +189,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleHQDestroyed()
     {
-        _gameOverUI.Show();
+        _player.DisablePlayerAndUI(); // 플레이어 움직임 막고, UI 없앰
+        _gameOverUI.Show(true);
     }
 }
