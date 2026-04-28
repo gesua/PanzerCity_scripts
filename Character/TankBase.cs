@@ -10,7 +10,7 @@ using UnityEngine.Pool;
 public abstract class TankBase : MonoBehaviour, IAttackable
 {
     [SerializeField] int _tankID; // TankData에서 데이터 가져올 ID
-    [Header("----- 컴포넌트 -----")]
+    [Header("----- 컴포넌트(TankBase) -----")]
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
     [SerializeField] LoopEffect _engineEffect; // 엔진 이펙트
 

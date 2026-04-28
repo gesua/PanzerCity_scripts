@@ -8,7 +8,7 @@ using UnityEngine;
 /// </summary>
 public class PlayerTank : TankBase
 {
-    [Header("----- 컴포넌트 -----")]
+    [Header("----- 컴포넌트(PlayerTank) -----")]
     [SerializeField] Mover _mover;
     [SerializeField] Turret _turret;
     [SerializeField] ReloadIndicator _reloadIndicator; // 재장전 표시 UI

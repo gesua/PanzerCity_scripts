@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Cinemachine;
 using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,6 +14,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] PlayerTank _player;
     [SerializeField] CameraTarget _cameraTarget;
     [SerializeField] SniperModeController _sniperMode;
+    [SerializeField] CinemachineBrain _cinemachineBrain; // 블렌드 방식 변경용
     // UI
     [SerializeField] RightPanelUI _rightPanelUI;        // 오른쪽 메뉴 UI
     [SerializeField] MiniMapUI _miniMapUI;              // 미니맵 UI
@@ -185,11 +187,18 @@ public class GameScene : MonoBehaviour
     void HandleHQDestroyed()
     {
         _player.DisablePlayerAndUI(); // 플레이어 움직임 막고, UI 없앰
+
+        // 시네머신 블렌드 방식 변경(저격은 cut)
+        _cinemachineBrain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.EaseInOut, 1f);
+
         StartCoroutine(GameOverRoutine());
     }
 
     IEnumerator GameOverRoutine()
     {
+        yield return new WaitForSecondsRealtime(2f); // 카메라 전환 시간보다 1초 더 기다리기
+        Time.timeScale = 1f; // 시간 재생
+
         yield return new WaitForSeconds(_gameOverDelay);
         _gameOverUI.Show(true);
     }
