@@ -23,6 +23,7 @@ public class PlayerTank : TankBase
     bool _isAttack; // 좌클릭 누르는 중인지
     bool _isSniperMode; // 저격 모드인지(Shift)
     float _reloadTimer; // 재장전 시간 잴거
+    int _prevHp; // 이전 체력(피격 확인용)
     bool _isDead; // 죽었는지
 
     public Transform TurretTr => _turret.TurretTr;
@@ -31,14 +32,17 @@ public class PlayerTank : TankBase
     protected override bool ShowEffects => !_isSniperMode;
     public bool IsDead => _isDead;
 
-    public event Action OnPlayerDead;    // 사망
+    public event Action OnDamaged;       // 피격
     public event Action OnPlayerRespawn; // 리스폰
+
 
     protected override void Awake()
     {
         base.Awake();
 
-        _model.OnDead += HandleDead; // 사망 이벤트 구독
+        // 이벤트 구독
+        _model.OnHpChanged += HandleHpChanged; // HP 변경
+        _model.OnDead += HandleDead; // 사망
 
         Initialize();
 
@@ -49,6 +53,8 @@ public class PlayerTank : TankBase
     public void Initialize()
     {
         _mover.Initialize(_model);
+        _prevHp = _model.CurrentHp;
+
         _turret.SetRotSpeed(_model.TurretRotSpeed);
 
         // 초기화
@@ -113,12 +119,20 @@ public class PlayerTank : TankBase
     }
 
     /// <summary>
+    /// 피격됨
+    /// </summary>
+    void HandleHpChanged(int current, int max)
+    {
+        if (current < _prevHp) OnDamaged?.Invoke();
+        _prevHp = current;
+    }
+
+    /// <summary>
     /// 사망 처리
     /// </summary>
     void HandleDead()
     {
         _isDead = true; // 죽었음
-        OnPlayerDead?.Invoke();
 
         // 포탑 끄기
         _turret.enabled = false;
