@@ -18,11 +18,11 @@ public class GameScene : MonoBehaviour
     [SerializeField] SceneEffect _sceneEffect;
     [SerializeField] HitDirectionIndicator _hitDirectionIndicator; // 피격 방향 표시기
     // UI
-    [SerializeField] RightPanelUI _rightPanelUI;        // 오른쪽 메뉴 UI
-    [SerializeField] MiniMapUI _miniMapUI;              // 미니맵 UI
-    [SerializeField] GameInfoUI _gameInfoUI;            // 게임 정보 UI
-    [SerializeField] EnemySpawnUI _enemySpawnUI;        // 적 스폰 UI
-    [SerializeField] GameOverUI _gameOverUI;            // 게임오버 UI
+    [SerializeField] RightPanelUI _rightPanelUI; // 오른쪽 메뉴 UI
+    [SerializeField] MiniMapUI _miniMapUI;       // 미니맵 UI
+    [SerializeField] GameInfoUI _gameInfoUI;     // 게임 정보 UI
+    [SerializeField] EnemySpawnUI _enemySpawnUI; // 적 스폰 UI
+    [SerializeField] GameOverUI _gameOverUI;     // 게임오버 UI
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] int _playerLife = 3;       // 목숨
     [SerializeField] float _gameOverDelay = 5f; // 게임오버 딜레이

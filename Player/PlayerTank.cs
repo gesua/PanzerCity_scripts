@@ -28,7 +28,6 @@ public class PlayerTank : TankBase
 
     public Transform TurretTr => _turret.TurretTr;
     public TankModel Model => _model;
-    public Vector3 BarrelForward => _turret.BarrelForward; // HACK:조준점 맞추는거 해결중
     protected override bool ShowEffects => !_isSniperMode;
     public bool IsDead => _isDead;
 
