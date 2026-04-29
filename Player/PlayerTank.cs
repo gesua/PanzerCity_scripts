@@ -32,7 +32,7 @@ public class PlayerTank : TankBase
     protected override bool ShowEffects => !_isSniperMode;
     public bool IsDead => _isDead;
 
-    public event Action<int> OnDamaged;       // 피격
+    public event Action<int, Vector3> OnDamaged;  // 피격<현재 HP, 공격 위치>
     public event Action OnPlayerRespawn; // 리스폰
 
 
@@ -123,7 +123,7 @@ public class PlayerTank : TankBase
     /// </summary>
     void HandleHpChanged(int current, int max)
     {
-        if (current < _prevHp) OnDamaged?.Invoke(current);
+        if (current < _prevHp) OnDamaged?.Invoke(current, Vector3.zero); // HACK:피격 위치 표시중
         _prevHp = current;
     }
 

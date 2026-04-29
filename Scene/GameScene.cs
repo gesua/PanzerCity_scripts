@@ -16,6 +16,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] SniperModeController _sniperMode;
     [SerializeField] CinemachineBrain _cinemachineBrain; // 블렌드 방식 변경용
     [SerializeField] SceneEffect _sceneEffect;
+    [SerializeField] HitDirectionIndicator _hitDirectionIndicator; // 피격 방향 표시기
     // UI
     [SerializeField] RightPanelUI _rightPanelUI;        // 오른쪽 메뉴 UI
     [SerializeField] MiniMapUI _miniMapUI;              // 미니맵 UI
@@ -40,7 +41,7 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnSniperInput += HandleSniperInput;
         _inputSystemHandler.OnToggleRightUIInput += HandleToggleRightUIInput;
         _inputSystemHandler.OnMapInput += HandleMapInput;
-        _player.OnDamaged += _sceneEffect.ShowDamageEffect;
+        _player.OnDamaged += HandleDamage;
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
 
@@ -146,6 +147,14 @@ public class GameScene : MonoBehaviour
     void HandleMapInput()
     {
         _miniMapUI.Toggle();
+    }
+
+    /// <summary>
+    /// 플레이어 피격
+    /// </summary>
+    void HandleDamage(int curHP, Vector3 pos)
+    {
+        _sceneEffect.ShowDamageEffect(curHP);
     }
 
     /// <summary>
