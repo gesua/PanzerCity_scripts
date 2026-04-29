@@ -181,7 +181,8 @@ public class EnemyTank : TankBase
         Collider[] colliders = Physics.OverlapSphere(transform.position, _detectionRange, _playerLayer);
         if (colliders.Length == 0) return false;
 
-        // 감지된 콜라이더들 중에서 플레이어 감지 (TODO:멀티 기능 추가시 가장 가까운 플레이어 감지하도록 고치기)
+        // 감지된 콜라이더들 중에서 플레이어 감지
+        // TODO:멀티 기능 추가시 가장 가까운 플레이어 감지하도록 고치기)
         foreach (Collider col in colliders)
         {
             // 포탄이면 무시

@@ -180,9 +180,9 @@ public class Turret : MonoBehaviour
         _turretCrosshair.position = Camera.main.WorldToScreenPoint(targetPoint);
 
         // z 보정
-        //Vector3 pos = _turretCrosshair.position;
-        //pos.z = 0;
-        //_turretCrosshair.position = pos;
+        Vector3 pos = _turretCrosshair.position;
+        pos.z = 0;
+        _turretCrosshair.position = pos;
     }
 
     public void ResetRotation()
