@@ -3,12 +3,28 @@ using UnityEngine;
 
 /// <summary>
 /// 미니맵 아이콘 관리
-/// 현재는 포탑만 연동해서 돌리고 있음
+/// 포탑 연동해서 돌리고 있음
 /// </summary>
 public class MiniMapTankIcon : MonoBehaviour
 {
     [SerializeField] Transform _turretIcon; // 포탑 아이콘
     [SerializeField] PlayerTank _player;    // 플레이어
+
+    /// <summary>
+    /// 아이콘 보이기
+    /// </summary>
+    public void Show()
+    {
+        gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// 아이콘 숨기기
+    /// </summary>
+    public void Hide()
+    {
+        gameObject.SetActive(false);
+    }
 
     void Update()
     {

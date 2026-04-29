@@ -12,6 +12,7 @@ public class PlayerTank : TankBase
     [SerializeField] Mover _mover;
     [SerializeField] Turret _turret;
     [SerializeField] ReloadIndicator _reloadIndicator; // 재장전 표시 UI
+    [SerializeField] MiniMapTankIcon _miniMapTankIcon; // 미니맵 아이콘 UI
     [SerializeField] GameObject _normalVisual; // 플레이 모델
     [SerializeField] GameObject _destroyedVisual; // 파괴된 모델
     [SerializeField] GameObject _destroyedTurret; // 파괴된 포탑
@@ -40,6 +41,9 @@ public class PlayerTank : TankBase
         _model.OnDead += HandleDead; // 사망 이벤트 구독
 
         Initialize();
+
+        // 게임 시작 전까지 멈춰놓기
+        DisablePlayerAndUI();
     }
 
     public void Initialize()
@@ -154,13 +158,30 @@ public class PlayerTank : TankBase
     /// </summary>
     public void Respawn(Vector3 spawnPos)
     {
+        StartCoroutine(RespawnRoutine(spawnPos));
+    }
+
+    IEnumerator RespawnRoutine(Vector3 spawnPos)
+    {
+        // 카메라 이동
+        _mover.Teleport(spawnPos, Quaternion.identity); // 시작 위치로
+        _turret.ResetRotation(); // 포탑 초기화
+        _destroyedVisual.SetActive(false); // 파괴된 모델 비활성화
+        _miniMapTankIcon.Hide(); // 미니맵 아이콘 숨기기
+        _isAttack = false; // 공격 버튼 끄기
+
+        // 반짝 이펙트
+        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.Twinkle, spawnPos + Vector3.up);
+
+        // 이펙트 지속시간 대기
+        yield return new WaitForSeconds(1f);
+
+        // 탱크 생성
         _isDead = false; // 살았음
         _turret.enabled = true; // 포탑 켜기
         _turret.SetCrosshairVisible(true); // 조준점 보이기
-        _mover.Teleport(spawnPos, Quaternion.identity); // 시작 위치로
-        _turret.ResetRotation();
-        _normalVisual.SetActive(true);
-        _destroyedVisual.SetActive(false);
+        _normalVisual.SetActive(true); // 모델 활성화
+        _miniMapTankIcon.Show(); // 미니맵 아이콘 보이기
         _model.Initialize(); // HP 초기화
     }
 

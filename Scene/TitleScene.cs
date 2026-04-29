@@ -37,23 +37,27 @@ public class TitleScene : MonoBehaviour
     {
         _loading.SetActive(true); // 로딩 표시
 
+        // Stage01 로드 대기
+        AsyncOperation stageLoad = SceneManager.LoadSceneAsync("Stage01", LoadSceneMode.Additive);
+        stageLoad.allowSceneActivation = false;
+
+        // 로드 완료까지 진행도 업데이트
+        while (_gameSceneLoad.progress < 0.9f || stageLoad.progress < 0.9f)
+        {
+            float progress = (_gameSceneLoad.progress + stageLoad.progress) / 2f;
+            _loadingBar.fillAmount = progress; // 0.9까지만 올라감(이미지로도 0.9까지가 좋음)
+            yield return null;
+        }
+
         // 씬 전환될 때 그대로 두면 2개라고 에러 뜸
         _audioListener.enabled = false;
         _eventSystem.gameObject.SetActive(false);
 
-        // Game씬 로드 대기
-        _gameSceneLoad.allowSceneActivation = true; // 시작 버튼 누를 때 활성화
-        yield return _gameSceneLoad;
+        // 동시에 활성화
+        _gameSceneLoad.allowSceneActivation = true;
+        stageLoad.allowSceneActivation = true;
 
-        // Stage01 로드 대기
-        AsyncOperation stageLoad = SceneManager.LoadSceneAsync("Stage01", LoadSceneMode.Additive);
-
-        // 로드 완료까지 진행도 업데이트
-        while (!stageLoad.isDone)
-        {
-            _loadingBar.fillAmount = stageLoad.progress; // 0.9까지만 올라감(이미지로도 0.9까지가 좋음)
-            yield return null;
-        }
+        yield return stageLoad;
 
         SceneManager.UnloadSceneAsync("Title");
     }
