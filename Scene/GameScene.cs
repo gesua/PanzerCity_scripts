@@ -41,9 +41,12 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnSniperInput += HandleSniperInput;
         _inputSystemHandler.OnToggleRightUIInput += HandleToggleRightUIInput;
         _inputSystemHandler.OnMapInput += HandleMapInput;
-        _player.OnDamaged += HandleDamage;
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
+
+        // 이어줌
+        _player.OnDamaged += _sceneEffect.ShowDamageEffect;
+        _player.OnHit += _hitDirectionIndicator.Show;
 
         // 목숨 UI 갱신
         _gameInfoUI.UpdateLife(_playerLife);
@@ -147,14 +150,6 @@ public class GameScene : MonoBehaviour
     void HandleMapInput()
     {
         _miniMapUI.Toggle();
-    }
-
-    /// <summary>
-    /// 플레이어 피격
-    /// </summary>
-    void HandleDamage(int curHP, Vector3 pos)
-    {
-        _sceneEffect.ShowDamageEffect(curHP);
     }
 
     /// <summary>

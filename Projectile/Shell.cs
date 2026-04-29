@@ -16,26 +16,28 @@ public class Shell : MonoBehaviour
 
     float _lifeTime = 10f;  // 포탄 생존 시간
     float _timer;           // 생존시간 잴거
-    
+
     bool _isReleased = false; // Pool에 2번 반환되지 않게 하기(Enter에 여러번 들어올 때 있음)
 
     Rigidbody _rigid;
     LayerMask _hitLayer;    // 충돌할 레이어(적이 쏜 포탄은 적을 뚫고 감)
+    TankBase _ownerTank;    // 포탄 주인
 
     private void Awake()
     {
         _rigid = GetComponent<Rigidbody>();
     }
 
+
     /// <summary>
     /// 포탄 초기화
     /// </summary>
-    /// <param name="damage">포탄 공격력</param>
-    /// <param name="speed">포탄 속도</param>
-    /// <param name="hitLayer">충돌할 레이어</param>
     /// <param name="ownerLayer">포탄 주인 레이어</param>
-    public void Initialize(TankModel model, int ownerLayer)
+    /// <param name="ownerTank">포탄 주인</param>
+    public void Initialize(TankModel model, int ownerLayer, TankBase ownerTank)
     {
+        _ownerTank = ownerTank;
+
         _damage = model.ShellDamage;
         _speed = model.ShellSpeed;
         _explosionRadius = model.ExplosionRadius;
@@ -65,17 +67,25 @@ public class Shell : MonoBehaviour
     {
         if (!_hitLayer.Contains(other.gameObject.layer)) return;
 
-        // 충돌한 대상이 탱크면 피해 입히기
-        other.gameObject.GetComponent<IDamageable>()?.TakeDamage(_damage);
+        // HitData 넣음
+        HitData hitData = new HitData
+        {
+            Damage = _damage,
+            HitPoint = transform.position,
+            AtkTank = _ownerTank
+        };
 
-        Explode();
+        // 충돌한 대상이 탱크면 피해 입히기
+        other.GetComponent<IDamageable>()?.TakeHit(hitData);
+
+        Explode(hitData);
         Remove();
     }
 
     /// <summary>
     /// 폭발 계산
     /// </summary>
-    private void Explode()
+    private void Explode(HitData hitData)
     {
         // 이펙트 재생
         GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.CompleteShellExplosion, transform.position);
@@ -84,7 +94,7 @@ public class Shell : MonoBehaviour
         Collider[] colliders = Physics.OverlapSphere(transform.position, _explosionRadius, _hitLayer);
         foreach (Collider col in colliders)
         {
-            col.GetComponent<IExplosionDamageable>()?.TakeDamage(_damage, _explosionRadius, transform.position);
+            col.GetComponent<IExplosionDamageable>()?.TakeHit(hitData, _explosionRadius, transform.position);
         }
     }
 

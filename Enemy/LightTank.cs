@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEngine.Analytics.IAnalytic;
 
 /// <summary>
 /// 경전차
@@ -9,10 +10,10 @@ public class LightTank : EnemyTank, IExplosionDamageable
     /// <summary>
     /// 폭발 범위에 대미지 받음
     /// </summary>
-    public void TakeDamage(int damage, float explosionForce, Vector3 pos)
+    public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
         Debug.Log("폭발 대미지 들어옴");
 
-        _model.TakeDamage(damage);
+        _model.TakeHit(hitData);
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEngine.Analytics.IAnalytic;
 
 /// <summary>
 /// 벽
@@ -20,7 +21,7 @@ public class Wall : MonoBehaviour, IExplosionDamageable
         _collider = GetComponent<Collider>();
     }
 
-    public void TakeDamage(int damage, float explosionForce, Vector3 pos)
+    public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
         _collider.enabled = false; // 충돌 비활성화
 

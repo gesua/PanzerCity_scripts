@@ -15,7 +15,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     [SerializeField] LoopEffect _engineEffect; // 엔진 이펙트
 
     protected TankModel _model;
-    string _shellPrefabPath = "Shell"; // 포탄 프리팹 위치
+    string _shellPath = "Shell"; // 포탄 프리팹 위치
 
     protected virtual bool ShowEffects => true; // 이펙트 보여줄지 여부(플레이어 저격 모드엔 안 보임)
 
@@ -26,7 +26,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         if (data != null) _model.Initialize(data);
 
         // Pool 생성
-        GameManager.Instance.PoolManager.GetPool(_shellPrefabPath);
+        GameManager.Instance.PoolManager.GetPool(_shellPath);
     }
 
     public virtual void Attack()
@@ -39,14 +39,14 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         }
 
         // 포탄 생성
-        GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPrefabPath);
+        GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPath);
         shellGo.transform.position = _firePoint.position;
         shellGo.transform.rotation = _firePoint.rotation;
 
         // 포탄 초기화
         Shell shell = shellGo.GetComponent<Shell>();
 
-        shell.Initialize(_model, gameObject.layer);
+        shell.Initialize(_model, gameObject.layer, this);
     }
 
     protected void SetEngineEffect(bool isMoving)

@@ -8,7 +8,8 @@ using UnityEngine;
 public class TankModel : MonoBehaviour, IDamageable
 {
     [Header("----- 치트 -----")]
-    [SerializeField] bool NeverDie = false;
+    [SerializeField] bool InfiniteHP; // HP 무한
+    [SerializeField] bool NeverDie;   // 안 죽음
 
     [Header("----- 이동 -----")]
     [SerializeField] float _forwardSpeed = 5f;  // 전진 속력
@@ -52,6 +53,7 @@ public class TankModel : MonoBehaviour, IDamageable
     /// 체력 변경 이벤트(현재 체력, 최대 체력)
     /// </summary>
     public event Action<int, int> OnHpChanged;
+    public event Action<HitData> OnHit;
     public event Action OnDead;
 
     /// <summary>
@@ -85,13 +87,16 @@ public class TankModel : MonoBehaviour, IDamageable
     }
 
 
-    public void TakeDamage(int damage)
+    public void TakeHit(HitData hitData)
     {
         if (IsAlive == false) return;
 
-        _currentHp = Mathf.Clamp(_currentHp - damage, 0, _maxHp);
+        _currentHp = Mathf.Clamp(_currentHp - hitData.Damage, 0, _maxHp);
+
+        if (InfiniteHP) _currentHp = _maxHp; // HP무한 치트
 
         OnHpChanged?.Invoke(_currentHp, _maxHp);
+        OnHit?.Invoke(hitData);
 
         // 사망
         if (IsAlive == false)

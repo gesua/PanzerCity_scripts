@@ -1,6 +1,7 @@
 using System;
 using Unity.Cinemachine;
 using UnityEngine;
+using static UnityEngine.Analytics.IAnalytic;
 
 /// <summary>
 /// 아군 HQ
@@ -15,7 +16,7 @@ public class HQ : MonoBehaviour, IDamageable
 
     bool _isDestroy;
 
-    public void TakeDamage(int damage)
+    public void TakeHit(HitData hitData)
     {
         if (_isDestroy) return;
         _isDestroy = true;

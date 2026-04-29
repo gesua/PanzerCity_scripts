@@ -31,8 +31,9 @@ public class PlayerTank : TankBase
     protected override bool ShowEffects => !_isSniperMode;
     public bool IsDead => _isDead;
 
-    public event Action<int, Vector3> OnDamaged;  // 피격<현재 HP, 공격 위치>
-    public event Action OnPlayerRespawn; // 리스폰
+    public event Action<int> OnDamaged;   // 대미지 받음<현재 HP>
+    public event Action<HitData> OnHit;   // 피격
+    public event Action OnPlayerRespawn;  // 리스폰
 
 
     protected override void Awake()
@@ -41,6 +42,7 @@ public class PlayerTank : TankBase
 
         // 이벤트 구독
         _model.OnHpChanged += HandleHpChanged; // HP 변경
+        _model.OnHit += HandleHit;   // 피격
         _model.OnDead += HandleDead; // 사망
 
         Initialize();
@@ -118,12 +120,20 @@ public class PlayerTank : TankBase
     }
 
     /// <summary>
-    /// 피격됨
+    /// 대미지 받음
     /// </summary>
     void HandleHpChanged(int current, int max)
     {
-        if (current < _prevHp) OnDamaged?.Invoke(current, Vector3.zero); // HACK:피격 위치 표시중
+        if (current < _prevHp) OnDamaged?.Invoke(current);
         _prevHp = current;
+    }
+
+    /// <summary>
+    /// 피격됨
+    /// </summary>
+    void HandleHit(HitData hitData)
+    {
+        OnHit?.Invoke(hitData);
     }
 
     /// <summary>

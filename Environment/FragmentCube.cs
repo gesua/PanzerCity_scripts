@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using static UnityEngine.Analytics.IAnalytic;
 
 /// <summary>
 /// 벽에 들어있는 큐브 조각
@@ -51,10 +52,8 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
         gameObject.layer = 0; // 레이어를 Default로 변경하여 충돌 감지 방지
     }
 
-    public void TakeDamage(int damage, float explosionForce, Vector3 pos)
+    public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
-        //_rigid.AddForce(transform.position * explosionForce, ForceMode.Impulse);
-        //_rigid.AddExplosionForce(explosionForce, transform.position, explosionForce);
         _rigid.AddExplosionForce(explosionForce, pos, 1000f, 0f, ForceMode.Impulse);
     }
 }
