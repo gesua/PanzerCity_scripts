@@ -30,6 +30,8 @@ public class GameScene : MonoBehaviour
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
 
+    bool _isGameOver;
+
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -170,6 +172,8 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandlePlayerRespawn()
     {
+        if (_isGameOver) return; // HQ 파괴되면 리스폰 막기
+
         if (_playerLife > 0)
         {
             // 목숨 UI 갱신
@@ -192,6 +196,8 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleHQDestroyed()
     {
+        _isGameOver = true;
+
         _player.DisablePlayerAndUI(); // 플레이어 움직임 막고, UI 없앰
 
         // 시네머신 블렌드 방식 변경(저격은 cut)
