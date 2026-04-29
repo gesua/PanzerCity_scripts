@@ -93,10 +93,10 @@ public class TankModel : MonoBehaviour, IDamageable
 
         _currentHp = Mathf.Clamp(_currentHp - hitData.Damage, 0, _maxHp);
 
-        if (InfiniteHP) _currentHp = _maxHp; // HP무한 치트
-
         OnHpChanged?.Invoke(_currentHp, _maxHp);
         OnHit?.Invoke(hitData);
+
+        if (InfiniteHP && _currentHp < 1) _currentHp = _maxHp; // HP무한 치트
 
         // 사망
         if (IsAlive == false)
