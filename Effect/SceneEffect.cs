@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -11,8 +12,9 @@ public class SceneEffect : MonoBehaviour
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Volume _volume;
     [Header("----- 런타임 데이터 -----")]
-    [SerializeField] float _duration = 1f;
-    [SerializeField] float _maxIntensity = 0.5f;
+    [SerializeField] float _duration = 1.5f; // 지속 시간
+
+    float _maxIntensity; // 화면 강도
 
     Vignette _vignette;
     Coroutine _routine;
@@ -27,8 +29,26 @@ public class SceneEffect : MonoBehaviour
     /// <summary>
     /// 피격시 화면 붉어지는 이펙트
     /// </summary>
-    public void ShowDamageEffect()
+    /// <param name="curHP">남은 체력</param>
+    public void ShowDamageEffect(int curHP)
     {
+        // 남은 체력에 따라 강도를 다르게 함
+        switch (curHP)
+        {
+            case 0: // 사망
+                _maxIntensity = 5f;
+                break;
+            case 1:
+                _maxIntensity = 1f;
+                break;
+            case 2:
+                _maxIntensity = 0.5f;
+                break;
+            default:
+                _maxIntensity = 0.5f;
+                break;
+        }
+
         if (_routine != null) StopCoroutine(_routine);
         _routine = StartCoroutine(ShowRoutine());
     }
