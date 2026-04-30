@@ -9,7 +9,9 @@ public class CameraTarget : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Transform _target;
-    [SerializeField] CinemachineThirdPersonFollow _cinema;
+    [SerializeField] CinemachineThirdPersonFollow _thirdPersonFollow; // 3인칭
+    [SerializeField] CinemachineThirdPersonFollow _sniperFollow; // 1인칭
+    [SerializeField] CinemachineCamera _sniperCam; // FOV값 가져오는 용도
 
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _pitchSense = 0.1f;
@@ -19,25 +21,44 @@ public class CameraTarget : MonoBehaviour
     [SerializeField] float _rotDamp = 10f;
     [SerializeField] float _minZoom = 2f;
     [SerializeField] float _zoomSmooth = 10f;
+    [Header("----- 저격 카메라 관련 -----")]
+    [SerializeField] float _sniperMinFov = 10f;
+    [SerializeField] float _sniperMaxFov = 30f;
+    [SerializeField] float _sniperZoomSpeed = 10f;
 
-    float _targetDistance;
+    float _thirdTargetDistance;
+    float _sniperTargetFov;
     float _pitch;
     float _yaw;
 
+    bool _isSniperMode;
+
     private void Awake()
     {
-        _targetDistance = _cinema.CameraDistance;
+        _thirdTargetDistance = _thirdPersonFollow.CameraDistance;
+        _sniperTargetFov = _sniperCam.Lens.FieldOfView;
     }
 
     private void LateUpdate()
     {
         transform.position = _target.position;
 
-        _cinema.CameraDistance = Mathf.Lerp(
-            _cinema.CameraDistance,
-            _targetDistance,
-            _zoomSmooth * Time.deltaTime
-        );
+        if (_isSniperMode) // 저격모드
+        {
+            _sniperCam.Lens.FieldOfView = Mathf.Lerp(_sniperCam.Lens.FieldOfView, _sniperTargetFov, _zoomSmooth * Time.deltaTime);
+        }
+        else // 3인칭
+        {
+            _thirdPersonFollow.CameraDistance = Mathf.Lerp(_thirdPersonFollow.CameraDistance, _thirdTargetDistance, _zoomSmooth * Time.deltaTime);
+        }
+    }
+
+    /// <summary>
+    /// 저격모드 설정
+    /// </summary>
+    public void SetSniperMode(bool active)
+    {
+        _isSniperMode = active;
     }
 
     public void Rotate(Vector2 rotInput)
@@ -52,16 +73,19 @@ public class CameraTarget : MonoBehaviour
 
         Quaternion targetRotation = Quaternion.Euler(_pitch, _yaw, 0f);
 
-        transform.rotation = Quaternion.Slerp(
-            transform.rotation,
-            targetRotation,
-            _rotDamp * Time.deltaTime
-        );
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _rotDamp * Time.deltaTime);
     }
 
     public void Zoom(Vector2 scrollInput)
     {
-        _targetDistance = Mathf.Max(_minZoom, _targetDistance - scrollInput.y);
+        if (_isSniperMode)
+        {
+            _sniperTargetFov = Mathf.Clamp(_sniperTargetFov - scrollInput.y * _sniperZoomSpeed, _sniperMinFov, _sniperMaxFov);
+        }
+        else
+        {
+            _thirdTargetDistance = Mathf.Max(_minZoom, _thirdTargetDistance - scrollInput.y);
+        }
     }
 
     /// <summary>

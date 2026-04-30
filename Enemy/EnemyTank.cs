@@ -91,7 +91,7 @@ public class EnemyTank : TankBase
         _collider.enabled = true;
 
         // 성격 랜덤 설정
-        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, (int)System.Enum.GetValues(typeof(EnemyPersonality)).Length);
+        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
         //_personality = EnemyPersonality.Ignore;

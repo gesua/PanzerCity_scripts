@@ -120,11 +120,7 @@ public class GameScene : MonoBehaviour
 
     void HandleCameraZoomInput(Vector2 inputVector)
     {
-        // 저격 모드가 아닐 때만 줌 조절
-        if (_sniperMode.IsSniper == false)
-        {
-            _cameraTarget.Zoom(inputVector);
-        }
+        _cameraTarget.Zoom(inputVector);
     }
 
     /// <summary>
@@ -136,6 +132,7 @@ public class GameScene : MonoBehaviour
 
         _sniperMode.ToggleSniperMode();
         _player.SetSniperMode(_sniperMode.IsSniper);
+        _cameraTarget.SetSniperMode(_sniperMode.IsSniper);
     }
 
     /// <summary>
