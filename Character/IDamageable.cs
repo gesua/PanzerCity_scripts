@@ -5,9 +5,20 @@ using UnityEngine;
 /// </summary>
 public struct HitData
 {
-    public int Damage;       // 대미지 값
-    public Vector3 HitPoint; // 피격 위치
-    public TankBase AtkTank; // 공격한 탱크
+    private int _damage;       // 대미지 값
+    private Vector3 _hitPoint; // 피격 위치
+    private TankBase _atkTank; // 공격한 탱크
+
+    public int Damage => _damage;
+    public Vector3 HitPoint => _hitPoint;
+    public TankBase AtkTank => _atkTank;
+
+    public HitData(int damage, Vector3 hitPoint, TankBase atkTank)
+    {
+        _damage = damage;
+        _hitPoint = hitPoint;
+        _atkTank = atkTank;
+    }
 }
 
 /// <summary>

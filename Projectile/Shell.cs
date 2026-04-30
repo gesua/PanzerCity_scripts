@@ -68,12 +68,7 @@ public class Shell : MonoBehaviour
         if (!_hitLayer.Contains(other.gameObject.layer)) return;
 
         // HitData 넣음
-        HitData hitData = new HitData
-        {
-            Damage = _damage,
-            HitPoint = transform.position,
-            AtkTank = _ownerTank
-        };
+        HitData hitData = new HitData(_damage, transform.position, _ownerTank);
 
         // 충돌한 대상이 탱크면 피해 입히기
         other.GetComponent<IDamageable>()?.TakeHit(hitData);
