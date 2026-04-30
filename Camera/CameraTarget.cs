@@ -23,7 +23,7 @@ public class CameraTarget : MonoBehaviour
     [SerializeField] float _zoomSmooth = 10f;
     [Header("----- 저격 카메라 관련 -----")]
     [SerializeField] float _sniperMinFov = 10f;
-    [SerializeField] float _sniperMaxFov = 30f;
+    [SerializeField] float _sniperMaxFov = 60f;
     [SerializeField] float _sniperZoomSpeed = 10f;
 
     float _thirdTargetDistance;
