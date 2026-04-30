@@ -178,6 +178,7 @@ public class EnemyTank : TankBase
             }
             else
             {
+                transform.rotation = targetRotation;
                 isRot = false; // 회전 끝
             }
         }

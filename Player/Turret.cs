@@ -117,11 +117,11 @@ public class Turret : MonoBehaviour
 
         if (angle > Util.Epsilon)
         {
-            _turret.rotation = Quaternion.RotateTowards(
-                _turret.rotation,
-                targetRotation,
-                _rotSpeed * Time.deltaTime
-            );
+            _turret.rotation = Quaternion.RotateTowards(_turret.rotation, targetRotation, _rotSpeed * Time.deltaTime);
+        }
+        else
+        {
+            _turret.rotation = targetRotation;
         }
     }
 
@@ -155,11 +155,14 @@ public class Turret : MonoBehaviour
         float clampedAngle = Mathf.Clamp(angle, _minAngle, _maxAngle);
         Quaternion target = Quaternion.Euler(clampedAngle, 0f, 0f);
 
-        _barrel.localRotation = Quaternion.RotateTowards(
-            _barrel.localRotation,
-            target,
-            _rotSpeed * Time.deltaTime
-        );
+        if (Quaternion.Angle(_barrel.localRotation, target) > Util.Epsilon)
+        {
+            _barrel.localRotation = Quaternion.RotateTowards(_barrel.localRotation, target, _rotSpeed * Time.deltaTime);
+        }
+        else
+        {
+            _barrel.localRotation = target;
+        }
     }
 
     void TurretCrosshair()
