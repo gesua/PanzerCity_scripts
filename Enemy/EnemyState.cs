@@ -42,11 +42,11 @@ public class IdleState : EnemyState
 {
     float _roamSpan; // 최대 배회할 시간
     float _roamTimer; // 배회 시간 잴거
-    
-    float _minAttackTime; // 최소 공격 시간
-    float _maxAttackTime; // 최대 공격 시간
+
+    float _minAttackTime;  // 최소 공격 시간
+    float _maxAttackTime;  // 최대 공격 시간
     float _attackInterval; // 공격 간격
-    float _attackTimer; // 공격 시간 잴거
+    float _attackTimer;    // 공격 시간 잴거
 
     float _playerDetectInterval = 0.2f; // 플레이어 체크 간격
     float _playerDetectTimer; // 플레이어 감지 시간 잴거
@@ -73,6 +73,9 @@ public class IdleState : EnemyState
 
     public override void Update()
     {
+        // 포탑 원위치
+        _enemy.AimAtTarget();
+
         // 배회 관련
         _roamTimer += Time.deltaTime;
         if (_roamTimer > _roamSpan)
@@ -93,17 +96,91 @@ public class IdleState : EnemyState
 
         // 플레이어 감지 관련
         _playerDetectTimer += Time.deltaTime;
-        if(_playerDetectTimer > _playerDetectInterval)
+        if (_playerDetectTimer > _playerDetectInterval)
         {
             _playerDetectTimer = 0f;
             if (_enemy.CanSeePlayer())
             {
-                // Debug.Log("플레이어 감지!"); // 디버그용
-                //_enemy.ChangeState(EnemyStateType.Trace); // 상태 전환
+                _enemy.ChangeState(EnemyStateType.Combat); // 상태 전환
             }
         }
     }
 }
+
+/// <summary>
+/// 교전 상태
+/// 성격에 따라 다르게 교전
+/// </summary>
+public class CombatState : EnemyState
+{
+    float _minAttackTime;  // 최소 공격 시간
+    float _maxAttackTime;  // 최대 공격 시간
+    float _attackInterval; // 공격 간격
+    float _attackTimer;    // 공격 시간 잴거
+
+    float _playerDetectInterval = 0.2f; // 플레이어 체크 간격
+    float _playerDetectTimer; // 플레이어 감지 시간 잴거
+
+    public override EnemyStateType StateType => EnemyStateType.Combat;
+
+    public CombatState(EnemyTank enemy, float minAttackTime, float maxAttackTime) : base(enemy)
+    {
+        _minAttackTime = minAttackTime;
+        _maxAttackTime = maxAttackTime;
+    }
+
+    public override void Enter()
+    {
+        _attackInterval = Random.Range(_minAttackTime, _maxAttackTime);
+    }
+
+    public override void Exit()
+    {
+    }
+
+    public override void Update()
+    {
+        // 플레이어 감지 체크 - 놓치면 Idle로 복귀
+        _playerDetectTimer += Time.deltaTime;
+        if (_playerDetectTimer > _playerDetectInterval)
+        {
+            _playerDetectTimer = 0f;
+            if (!_enemy.CanSeePlayer())
+            {
+                _enemy.ChangeState(EnemyStateType.Idle);
+                return;
+            }
+        }
+
+        // 성격에 따라 행동
+        switch (_enemy.Personality)
+        {
+            case EnemyPersonality.Stationary:
+                UpdateStationary();
+                break;
+                // 나머지 성격은 나중에 추가
+        }
+
+        // 공격
+        _attackTimer += Time.deltaTime;
+        if (_attackTimer > _attackInterval)
+        {
+            _attackTimer = 0f;
+            _attackInterval = Random.Range(_minAttackTime, _maxAttackTime);
+            _enemy.Attack();
+        }
+    }
+
+    /// <summary>
+    /// 고정형:그 자리에 멈추고 포탑만 플레이어 방향으로 조준
+    /// </summary>
+    public void UpdateStationary()
+    {
+        _enemy.SetEngineEffect(false);
+        _enemy.AimAtTarget();
+    }
+}
+
 
 /// <summary>
 /// 사망 상태

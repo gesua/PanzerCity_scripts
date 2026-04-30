@@ -1,6 +1,17 @@
 using System;
 using UnityEngine;
-using static UnityEngine.UI.Image;
+
+/// <summary>
+/// 적 성격
+/// </summary>
+public enum EnemyPersonality
+{
+    Stationary, // 고정형:그 자리에서 공격
+    //Intercept,  // 요격형:포탄 요격 우선
+    //Aggressive, // 공격형:플레이어에게 다가감
+    //Coward,     // 도주형:플레이어에게서 멀어짐
+    //Ignore,     // 무시형:배회처럼 움직임
+}
 
 /// <summary>
 /// 배회할 방향
@@ -24,8 +35,9 @@ public enum Direction
 public class EnemyTank : TankBase
 {
     [Header("----- 런타임 데이터 -----")]
-    [SerializeField] float _roamSpan = 3f;      // 최대 배회 간격
-    [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
+    [SerializeField] float _roamSpan = 3f; // 최대 배회 간격
+    [SerializeField] float _deadDuration = 5f; // 사망 상태 지속 시간
+    [SerializeField] EnemyPersonality _personality; // AI 성격
     [Header("----- 감지 관련 -----")]
     float _detectionRange = 1000f;                  // 감지 거리(걍 최대치로 할거임)
     [SerializeField] float _detectionAngle = 30f;   // 감지 각도(부채꼴 반각)
@@ -44,6 +56,8 @@ public class EnemyTank : TankBase
 
     EnemyTankDestructionEffect _destructionEffect; // 파괴 연출
     BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
+
+    public EnemyPersonality Personality => _personality;
 
     /// <summary>
     /// 적 제거 이벤트
@@ -74,12 +88,16 @@ public class EnemyTank : TankBase
     public void Initialize()
     {
         _model.Initialize(); // 기본값들 초기화
-
         _collider.enabled = true;
+
+        // 성격 랜덤 설정
+        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, (int)System.Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // 상태 객체들
         // 방치 상태 객체 생성
         _states[(int)EnemyStateType.Idle] = new IdleState(this, _roamSpan, _model.MinAttackTime, _model.MaxAttackTime);
+        // 교전 상태 객체 생성
+        _states[(int)EnemyStateType.Combat] = new CombatState(this, _model.MinAttackTime, _model.MaxAttackTime);
         // 사망 상태 객체 생성
         _states[(int)EnemyStateType.Dead] = new DeadState(this, _deadDuration);
 
@@ -92,6 +110,32 @@ public class EnemyTank : TankBase
     {
         // 현재 상태 갱신
         _currentState.Update();
+    }
+
+    /// <summary>
+    /// 상태 변경
+    /// </summary>
+    /// <param name="stateType">변경할 상태</param>
+    public void ChangeState(EnemyStateType stateType)
+    {
+        // 현재 상태가 새로 바꾸려는 상태와 동일하면 종료
+        if (_currentState.StateType == stateType) return;
+
+        // 현재 상태가 사망 상태면 종료
+        if (_currentState.StateType == EnemyStateType.Dead) return;
+
+        // 존재하지 않는 상태로 바꾸려는 경우 종료
+        int stateIndex = (int)stateType;
+        if (stateIndex < 0 || stateIndex >= _states.Length) return;
+
+        // 기존 상태 종료
+        _currentState.Exit();
+
+        // 새 상태 적용
+        _currentState = _states[stateIndex];
+
+        // 새 상태 실행
+        _currentState.Enter();
     }
 
     /// <summary>
@@ -178,8 +222,12 @@ public class EnemyTank : TankBase
     public bool CanSeePlayer()
     {
         // 원형 범위 체크
-        Collider[] colliders = Physics.OverlapSphere(transform.position, _detectionRange, _playerLayer);
-        if (colliders.Length == 0) return false;
+        Collider[] colliders = Physics.OverlapSphere(_turret.position, _detectionRange, _playerLayer);
+        if (colliders.Length == 0)
+        {
+            if (_target != null) _target = null;
+            return false;
+        }
 
         // 감지된 콜라이더들 중에서 플레이어 감지
         // TODO:멀티 기능 추가시 가장 가까운 플레이어 감지하도록 고치기)
@@ -189,12 +237,8 @@ public class EnemyTank : TankBase
             if (col.TryGetComponent(out Shell shell)) continue;
 
             // TODO:4군데 모서리로 한다면 이렇게 가져오면 안됨
-            if (_target == null)
-            {
-                if (col.TryGetComponent(out Turret turret) == false) continue;
-                _target = turret.TurretTr;
-            }
-            Vector3 playerPos = _target.position;
+            if (col.TryGetComponent(out Turret turret) == false) continue;
+            Vector3 playerPos = turret.TurretTr.position;
 
             // 부채꼴 체크 (포탑 전방 기준)
             Vector3 dirToPlayer = (playerPos - _turret.position).normalized;
@@ -208,7 +252,46 @@ public class EnemyTank : TankBase
             _target = col.transform; // 타겟 설정
             return true;
         }
+
+        if (_target != null) _target = null;
         return false;
+    }
+
+    /// <summary>
+    /// 포탑을 타겟 방향으로 회전
+    /// </summary>
+    public void AimAtTarget()
+    {
+        Quaternion targetRotation;
+
+        if (_target == null) // 타겟 없으면 정면 보기
+        {
+            targetRotation = Quaternion.identity;
+            if (Quaternion.Angle(_turret.localRotation, targetRotation) > Util.Epsilon)
+            {
+                _turret.localRotation = Quaternion.RotateTowards(_turret.localRotation, targetRotation, _model.TurretRotSpeed * Time.deltaTime);
+            }
+            else
+            {
+                _turret.localRotation = targetRotation;
+            }
+        }
+        else // 타겟 보기
+        {
+            Vector3 dir = (_target.position - _turret.position);
+            dir.y = 0f;
+            if (dir.sqrMagnitude < Mathf.Epsilon) return;
+            targetRotation = Quaternion.LookRotation(dir);
+
+            if (Quaternion.Angle(_turret.rotation, targetRotation) > Util.Epsilon)
+            {
+                _turret.rotation = Quaternion.RotateTowards(_turret.rotation, targetRotation, _model.TurretRotSpeed * Time.deltaTime);
+            }
+            else
+            {
+                _turret.rotation = targetRotation;
+            }
+        }
     }
 
     /// <summary>
@@ -216,7 +299,7 @@ public class EnemyTank : TankBase
     /// </summary>
     protected virtual void HandleDead()
     {
-        // 엔진 이펙트 끔
+        // 엔진 끄기
         SetEngineEffect(false);
 
         // 폭발 이펙트 재생
@@ -227,8 +310,7 @@ public class EnemyTank : TankBase
 
         // 사망 상태로 변경
         _collider.enabled = false; // 콜라이더 비활성화
-        _currentState = _states[(int)EnemyStateType.Dead];
-        _currentState.Enter();
+        ChangeState(EnemyStateType.Dead);
 
         // 사망 효과 재생
         _destructionEffect.Play();
@@ -291,7 +373,7 @@ public class EnemyTank : TankBase
         if (_turret == null) return;
 
         // 부채꼴 (포탑 전방 기준)
-        Vector3 origin = transform.position;
+        Vector3 origin = _turret.position;
         Gizmos.color = Color.yellow;
         Vector3 forward = _turret.forward;
         Vector3 leftDir = Quaternion.Euler(0f, -_detectionAngle, 0f) * forward;
@@ -307,8 +389,8 @@ public class EnemyTank : TankBase
         Vector3 prevPoint = origin + leftDir * _detectionRange;
         for (int i = 1; i <= segments; i++)
         {
-            Vector3 dir = Quaternion.Euler(0f, -_detectionAngle + angleStep * i, 0f) * forward;
-            Vector3 nextPoint = origin + dir * _detectionRange;
+            Vector3 detectDir = Quaternion.Euler(0f, -_detectionAngle + angleStep * i, 0f) * forward;
+            Vector3 nextPoint = origin + detectDir * _detectionRange;
             Gizmos.DrawLine(prevPoint, nextPoint);
             prevPoint = nextPoint;
         }

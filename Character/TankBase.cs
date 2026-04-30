@@ -49,7 +49,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         shell.Initialize(_model, gameObject.layer, this);
     }
 
-    protected void SetEngineEffect(bool isMoving)
+    public void SetEngineEffect(bool isMoving)
     {
         if (_engineEffect == null) return;
 
