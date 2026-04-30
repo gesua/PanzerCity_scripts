@@ -25,7 +25,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] GameOverUI _gameOverUI;     // 게임오버 UI
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] int _playerLife = 3;       // 목숨
-    [SerializeField] float _gameOverDelay = 5f; // 게임오버 딜레이
+    //[SerializeField] float _gameOverDelay = 5f; // 게임오버 딜레이
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
@@ -211,7 +211,7 @@ public class GameScene : MonoBehaviour
         yield return new WaitForSecondsRealtime(2f); // 카메라 전환 시간보다 1초 더 기다리기
         Time.timeScale = 1f; // 시간 재생
 
-        yield return new WaitForSeconds(_gameOverDelay);
+        //yield return new WaitForSeconds(_gameOverDelay);
         _gameOverUI.Show(true);
     }
 }
