@@ -155,8 +155,11 @@ public class CombatState : EnemyState
         // 성격에 따라 행동
         switch (_enemy.Personality)
         {
-            case EnemyPersonality.Stationary:
+            case EnemyPersonality.Stationary: // 고정형
                 UpdateStationary();
+                break;
+            case EnemyPersonality.Ignore: // 무시형
+                UpdateIgnore();
                 break;
                 // 나머지 성격은 나중에 추가
         }
@@ -177,6 +180,15 @@ public class CombatState : EnemyState
     public void UpdateStationary()
     {
         _enemy.SetEngineEffect(false);
+        _enemy.AimAtTarget();
+    }
+
+    /// <summary>
+    /// 무시형:차체는 배회, 포탑만 플레이어 조준
+    /// </summary>
+    void UpdateIgnore()
+    {
+        _enemy.Roam();
         _enemy.AimAtTarget();
     }
 }

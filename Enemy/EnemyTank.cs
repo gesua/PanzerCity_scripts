@@ -10,7 +10,7 @@ public enum EnemyPersonality
     //Intercept,  // 요격형:포탄 요격 우선
     //Aggressive, // 공격형:플레이어에게 다가감
     //Coward,     // 도주형:플레이어에게서 멀어짐
-    //Ignore,     // 무시형:배회처럼 움직임
+    Ignore,     // 무시형:배회처럼 움직임
 }
 
 /// <summary>
@@ -92,6 +92,9 @@ public class EnemyTank : TankBase
 
         // 성격 랜덤 설정
         _personality = (EnemyPersonality)UnityEngine.Random.Range(0, (int)System.Enum.GetValues(typeof(EnemyPersonality)).Length);
+
+        // HACK:성격 테스트
+        //_personality = EnemyPersonality.Ignore;
 
         // 상태 객체들
         // 방치 상태 객체 생성

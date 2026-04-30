@@ -33,11 +33,10 @@ public class EnemySpawnUI : MonoBehaviour
 
     /// <summary>
     /// tankID에 맞게 스프라이트 가져옴
-    /// TODO:보스는 301부터 시작이니까 바꿔야함
     /// </summary>
     Sprite GetSprite(int tankID)
     {
-        int id = tankID - 201;
+        int id = tankID - 201; // TODO:보스는 301부터 시작이니까 바꿔야함
 
         if (id < 0 || id >= _tankSprites.Length)
         {
