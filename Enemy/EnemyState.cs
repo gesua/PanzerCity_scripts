@@ -217,8 +217,9 @@ public class CombatState : EnemyState
     /// </summary>
     void UpdateAggressive()
     {
-        _enemy.AimAtTarget(); 
-        
+        _enemy.AimAtTarget();
+        if (!HandleAgentMovement()) return;
+
         _pathUpdateTimer += Time.deltaTime;
         if (_pathUpdateTimer >= _pathUpdateInterval)
         {
@@ -232,8 +233,28 @@ public class CombatState : EnemyState
     /// </summary>
     void UpdateCoward()
     {
-        _enemy.AimAtTarget();    // 포탑은 플레이어 조준 유지
+        _enemy.AimAtTarget(); // 포탑은 플레이어 조준 유지
+        if (!HandleAgentMovement()) return;
+
         _enemy.FleeFromTarget(); // 차체는 반대 방향으로 도망
+    }
+
+    /// <summary>
+    /// 에이전트로 이동 가능 여부 체크 및 처리
+    /// </summary>
+    bool HandleAgentMovement()
+    {
+        // 탱크가 막고 있는지 체크(맵 제외)
+        if (_enemy.IsBlocked(true))
+        {
+            _enemy.SetEngineEffect(false);
+            _enemy.AgentStop();
+            return false;
+        }
+
+        _enemy.AgentStart();
+        _enemy.SetEngineEffect(true);
+        return true;
     }
 }
 

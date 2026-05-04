@@ -53,12 +53,13 @@ public class EnemyTank : TankBase
     [Header("----- 이동 관련 -----")]
     [SerializeField] float _movementCheckDistance = 1.2f; // 이동 체크 거리
     [SerializeField] float _raycastSideOffset; // 좌우 사이드 한번 더 체크(0.6, 0.75)
-    [SerializeField] LayerMask _movementObstacleLayer = 1 << 6 | 1 << 7 | 1 << 8 | 1 << 9;  // 이동 차단 레이어(플레이어, 적, 맵, 외곽벽)
+    [SerializeField] LayerMask _movementObstacleLayer = 1 << 6 | 1 << 7 | 1 << 8 | 1 << 9;  // 이동 차단 레이어(맵, 외곽벽, 플레이어, 적)
+    [SerializeField] LayerMask _agentObstacleLayer = 1 << 8 | 1 << 9; // 네브메시에이전트끼리 미는거 방지 레이어
 
     Transform _target; // 플레이어
     Vector3 _lookDir; // 이동할 방향
     bool _isRot; // 회전해야 하는지 체크
-    float _stoppingDistance = 4f;  // 플레이어와 겹쳐져서 미세조절중
+    float _stoppingDistance = 2.5f;  // 플레이어와 겹쳐져서 미세조절중
 
     // 시야에서 사라져도 일정시간 타겟 유지
     float _lostTargetTimer;
@@ -103,10 +104,10 @@ public class EnemyTank : TankBase
         _collider.enabled = true;
 
         // 성격 랜덤 설정
-        //_personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
+        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        _personality = EnemyPersonality.Aggressive;
+        //_personality = EnemyPersonality.Aggressive;
 
         // 상태 객체들
         // 방치 상태 객체 생성
@@ -201,7 +202,7 @@ public class EnemyTank : TankBase
         else // 전진
         {
             // 전진을 막는 장애물이 있으면 전진 안 함
-            if (IsPathBlocked())
+            if (IsBlocked())
             {
                 SetEngineEffect(false); // 장애물에 막히면 엔진 끔
                 return;
@@ -215,22 +216,27 @@ public class EnemyTank : TankBase
         SetEngineEffect(true);
     }
 
+
     /// <summary>
-    /// 전진을 막는 장애물이 있는지 체크
+    /// 가로막는게 있는지 체크
     /// </summary>
-    bool IsPathBlocked()
+    /// <param name="checkAgentsOnly">탱크만 체크되게 할건지(맵 제외)</param>
+    /// <returns></returns>
+    public bool IsBlocked(bool checkAgentsOnly = false)
     {
+        LayerMask mask = checkAgentsOnly ? _agentObstacleLayer : _movementObstacleLayer;
+
         Vector3 startCenter = _turret.position;
         Vector3 startLeft = startCenter - transform.right * _raycastSideOffset;
         Vector3 startRight = startCenter + transform.right * _raycastSideOffset;
         Vector3 startMidLeft = startCenter - transform.right * (_raycastSideOffset * 0.5f);
         Vector3 startMidRight = startCenter + transform.right * (_raycastSideOffset * 0.5f);
 
-        return Physics.Raycast(startCenter, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore)
-            || Physics.Raycast(startLeft, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore)
-            || Physics.Raycast(startRight, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore)
-            || Physics.Raycast(startMidLeft, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore)
-            || Physics.Raycast(startMidRight, transform.forward, _movementCheckDistance, _movementObstacleLayer, QueryTriggerInteraction.Ignore);
+        return Physics.Raycast(startCenter, transform.forward, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startLeft, transform.forward, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startRight, transform.forward, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startMidLeft, transform.forward, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startMidRight, transform.forward, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore);
     }
 
     /// <summary>
@@ -351,10 +357,10 @@ public class EnemyTank : TankBase
         if (_target == null) return;
 
         // 엔진 켜기/끄기
-        if (_agent.velocity.sqrMagnitude > Mathf.Epsilon)
-            SetEngineEffect(true);
-        else
-            SetEngineEffect(false);
+        //if (_agent.velocity.sqrMagnitude > Mathf.Epsilon)
+        //    SetEngineEffect(true);
+        //else
+        //    SetEngineEffect(false);
 
         _agent.SetDestination(_target.position);
     }
@@ -397,6 +403,22 @@ public class EnemyTank : TankBase
         }
 
         _agent.SetDestination(bestPoint);
+    }
+
+    /// <summary>
+    /// 에이전트 잠시 멈춤
+    /// </summary>
+    public void AgentStop()
+    {
+        _agent.isStopped = true;
+    }
+
+    /// <summary>
+    /// 에이전트 다시 움직이게
+    /// </summary>
+    public void AgentStart()
+    {
+        _agent.isStopped = false;
     }
 
     /// <summary>
