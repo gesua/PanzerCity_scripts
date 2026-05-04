@@ -134,7 +134,8 @@ public class CombatState : EnemyState
         _attackInterval = Random.Range(_minAttackTime, _maxAttackTime);
 
         // 네브메시 쓰는 성격은 켜기
-        if (_enemy.Personality == EnemyPersonality.Aggressive)
+        if (_enemy.Personality == EnemyPersonality.Aggressive ||
+            _enemy.Personality==EnemyPersonality.Coward)
             _enemy.EnableAgent(true);
     }
 
@@ -170,7 +171,9 @@ public class CombatState : EnemyState
             case EnemyPersonality.Aggressive: // 공격형
                 UpdateAggressive();
                 break;
-                // 나머지 성격은 나중에 추가
+            case EnemyPersonality.Coward:
+                UpdateCoward();
+                break;
         }
 
         // 공격
@@ -202,12 +205,21 @@ public class CombatState : EnemyState
     }
 
     /// <summary>
-    /// 공격형:플레이어에게 최대한 다가감
+    /// 공격형:플레이어에게 다가감
     /// </summary>
     void UpdateAggressive()
     {
         _enemy.AimAtTarget();
         _enemy.MoveToTarget();
+    }
+
+    /// <summary>
+    /// 도주형:플레이어에게서 멀어짐
+    /// </summary>
+    void UpdateCoward()
+    {
+        _enemy.AimAtTarget();    // 포탑은 플레이어 조준 유지
+        _enemy.FleeFromTarget(); // 차체는 반대 방향으로 도망
     }
 }
 

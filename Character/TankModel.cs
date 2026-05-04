@@ -9,7 +9,7 @@ public class TankModel : MonoBehaviour, IDamageable
 {
     [Header("----- 치트 -----")]
     [SerializeField] bool InfiniteHP; // HP 무한
-    [SerializeField] bool NeverDie;   // 안 죽음
+    [SerializeField] bool NoDamage;   // 안 죽음
 
     [Header("----- 이동 -----")]
     [SerializeField] float _forwardSpeed = 5f;  // 전진 속력
@@ -90,6 +90,7 @@ public class TankModel : MonoBehaviour, IDamageable
     public void TakeHit(HitData hitData)
     {
         if (IsAlive == false) return;
+        if (NoDamage) return; // 무적 치트
 
         _currentHp = Mathf.Clamp(_currentHp - hitData.Damage, 0, _maxHp);
 
@@ -101,8 +102,6 @@ public class TankModel : MonoBehaviour, IDamageable
         // 사망
         if (IsAlive == false)
         {
-            if (NeverDie) return; // 무적 치트
-
             OnDead?.Invoke();
         }
     }

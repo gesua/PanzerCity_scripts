@@ -11,7 +11,7 @@ public enum EnemyPersonality
     //Intercept,  // 요격형:포탄 요격 우선
     Ignore,     // 무시형:배회처럼 움직임
     Aggressive, // 공격형:플레이어에게 다가감
-    //Coward,     // 도주형:플레이어에게서 멀어짐
+    Coward,     // 도주형:플레이어에게서 멀어짐
 }
 
 /// <summary>
@@ -62,7 +62,7 @@ public class EnemyTank : TankBase
 
     // 시야에서 사라져도 일정시간 타겟 유지
     float _lostTargetTimer = 0f;
-    float _lostTargetDuration = 2f; // 시야에서 벗어난 후 타겟 유지 시간
+    float _lostTargetDuration = 3f; // 시야에서 벗어난 후 타겟 유지 시간
 
     public EnemyPersonality Personality => _personality;
 
@@ -106,7 +106,7 @@ public class EnemyTank : TankBase
         _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        //_personality = EnemyPersonality.Stationary;
+        //_personality = EnemyPersonality.Coward;
 
         // 상태 객체들
         // 방치 상태 객체 생성
@@ -340,7 +340,7 @@ public class EnemyTank : TankBase
     public void EnableAgent(bool enable)
     {
         _agent.enabled = enable;
-        _rigid.isKinematic = enable;
+        //_rigid.isKinematic = enable;
     }
 
     /// <summary>
@@ -357,6 +357,46 @@ public class EnemyTank : TankBase
             SetEngineEffect(false);
 
         _agent.SetDestination(_target.position);
+    }
+
+    /// <summary>
+    /// 타겟에게서 멀어짐
+    /// </summary>
+    public void FleeFromTarget()
+    {
+        if (_target == null) return;
+
+        // 목적지에 도달했을 때만 새로 계산
+        if (_agent.remainingDistance > _stoppingDistance) return;
+
+        Vector3 bestPoint = transform.position;
+        float bestDistance = 0f;
+        float fleeDistance = 10f;
+
+        // 플레이어 반대 방향 기준으로 5방향 체크 (-90, -45, 0, 45, 90)
+        Vector3 awayDir = (transform.position - _target.position).normalized;
+        awayDir.y = 0f;
+
+        int[] angles = { -90, -45, 0, 45, 90 };
+        foreach (int angle in angles)
+        {
+            // 도주 지점 계산
+            Vector3 dir = Quaternion.Euler(0f, angle, 0f) * awayDir;
+            Vector3 candidatePoint = transform.position + dir * fleeDistance;
+
+            // NavMesh 위의 유효한 지점인지 체크
+            if (!NavMesh.SamplePosition(candidatePoint, out NavMeshHit hit, 3f, NavMesh.AllAreas)) continue;
+
+            // 플레이어와 거리가 가장 먼 지점 선택
+            float distToPlayer = Vector3.Distance(hit.position, _target.position);
+            if (distToPlayer > bestDistance)
+            {
+                bestDistance = distToPlayer;
+                bestPoint = hit.position;
+            }
+        }
+
+        _agent.SetDestination(bestPoint);
     }
 
     /// <summary>
