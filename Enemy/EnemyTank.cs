@@ -61,7 +61,7 @@ public class EnemyTank : TankBase
     float _stoppingDistance = 4f;  // 플레이어와 겹쳐져서 미세조절중
 
     // 시야에서 사라져도 일정시간 타겟 유지
-    float _lostTargetTimer = 0f;
+    float _lostTargetTimer;
     float _lostTargetDuration = 3f; // 시야에서 벗어난 후 타겟 유지 시간
 
     public EnemyPersonality Personality => _personality;
@@ -103,10 +103,10 @@ public class EnemyTank : TankBase
         _collider.enabled = true;
 
         // 성격 랜덤 설정
-        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
+        //_personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        //_personality = EnemyPersonality.Coward;
+        _personality = EnemyPersonality.Aggressive;
 
         // 상태 객체들
         // 방치 상태 객체 생성

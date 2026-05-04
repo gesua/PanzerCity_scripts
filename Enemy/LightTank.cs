@@ -12,8 +12,6 @@ public class LightTank : EnemyTank, IExplosionDamageable
     /// </summary>
     public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
-        Debug.Log("폭발 대미지 들어옴");
-
         _model.TakeHit(hitData);
     }
 }

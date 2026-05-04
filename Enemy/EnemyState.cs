@@ -121,6 +121,10 @@ public class CombatState : EnemyState
     float _playerDetectInterval = 0.2f; // 플레이어 체크 간격
     float _playerDetectTimer; // 플레이어 감지 시간 잴거
 
+    // 공격형 성격이 플레이어 위치 갱신하는 시간
+    float _pathUpdateTimer;
+    float _pathUpdateInterval = 0.5f;
+
     public override EnemyStateType StateType => EnemyStateType.Combat;
 
     public CombatState(EnemyTank enemy, float minAttackTime, float maxAttackTime) : base(enemy)
@@ -133,10 +137,14 @@ public class CombatState : EnemyState
     {
         _attackInterval = Random.Range(_minAttackTime, _maxAttackTime);
 
+
         // 네브메시 쓰는 성격은 켜기
         if (_enemy.Personality == EnemyPersonality.Aggressive ||
-            _enemy.Personality==EnemyPersonality.Coward)
+            _enemy.Personality == EnemyPersonality.Coward)
+        {
+            _pathUpdateTimer = _pathUpdateInterval; // 공격형만 사용함
             _enemy.EnableAgent(true);
+        }
     }
 
     public override void Exit()
@@ -171,7 +179,7 @@ public class CombatState : EnemyState
             case EnemyPersonality.Aggressive: // 공격형
                 UpdateAggressive();
                 break;
-            case EnemyPersonality.Coward:
+            case EnemyPersonality.Coward: // 도주형
                 UpdateCoward();
                 break;
         }
@@ -209,8 +217,14 @@ public class CombatState : EnemyState
     /// </summary>
     void UpdateAggressive()
     {
-        _enemy.AimAtTarget();
-        _enemy.MoveToTarget();
+        _enemy.AimAtTarget(); 
+        
+        _pathUpdateTimer += Time.deltaTime;
+        if (_pathUpdateTimer >= _pathUpdateInterval)
+        {
+            _pathUpdateTimer = 0f;
+            _enemy.MoveToTarget();
+        }
     }
 
     /// <summary>
