@@ -56,8 +56,13 @@ public class EnemyTank : TankBase
     [SerializeField] LayerMask _movementObstacleLayer = 1 << 6 | 1 << 7 | 1 << 8 | 1 << 9;  // 이동 차단 레이어(플레이어, 적, 맵, 외곽벽)
 
     Transform _target; // 플레이어
-    Vector3 lookDir; // 이동할 방향
-    bool isRot; // 회전해야 하는지 체크
+    Vector3 _lookDir; // 이동할 방향
+    bool _isRot; // 회전해야 하는지 체크
+    float _stoppingDistance = 4f;  // 플레이어와 겹쳐져서 미세조절중
+
+    // 시야에서 사라져도 일정시간 타겟 유지
+    float _lostTargetTimer = 0f;
+    float _lostTargetDuration = 2f; // 시야에서 벗어난 후 타겟 유지 시간
 
     public EnemyPersonality Personality => _personality;
 
@@ -76,20 +81,18 @@ public class EnemyTank : TankBase
     /// </summary>
     EnemyState _currentState;
 
+    public Transform Target => _target;
+
     protected override void Awake()
     {
         base.Awake();
-
-        //_rigid = GetComponent<Rigidbody>();
-        //_destructionEffect = GetComponent<EnemyTankDestructionEffect>();
-        //_collider = GetComponent<BoxCollider>();
 
         // _agent 설정
         _agent.enabled = false;
         _agent.speed = _model.ForwardSpeed;
         _agent.angularSpeed = _model.RotSpeed;
         _agent.acceleration = _model.Acceleration;
-        _agent.stoppingDistance = 4f; // 플레이어와 겹쳐져서 미세조절중
+        _agent.stoppingDistance = _stoppingDistance;
 
         _model.OnDead += HandleDead; // 사망 이벤트 구독
     }
@@ -100,10 +103,10 @@ public class EnemyTank : TankBase
         _collider.enabled = true;
 
         // 성격 랜덤 설정
-        //_personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
+        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        _personality = EnemyPersonality.Aggressive;
+        //_personality = EnemyPersonality.Stationary;
 
         // 상태 객체들
         // 방치 상태 객체 생성
@@ -122,6 +125,7 @@ public class EnemyTank : TankBase
     {
         // 현재 상태 갱신
         _currentState.Update();
+        UpdateLostTarget();
     }
 
     /// <summary>
@@ -157,7 +161,7 @@ public class EnemyTank : TankBase
     {
         Direction dir = (Direction)UnityEngine.Random.Range(0, 4);
 
-        lookDir = dir switch
+        _lookDir = dir switch
         {
             Direction.Up => Vector3.forward,
             Direction.Down => Vector3.back,
@@ -166,7 +170,7 @@ public class EnemyTank : TankBase
             _ => Vector3.forward
         };
 
-        isRot = true; // 방향 맞춰야함
+        _isRot = true; // 방향 맞춰야함
     }
 
     /// <summary>
@@ -175,12 +179,12 @@ public class EnemyTank : TankBase
     public void Roam()
     {
         // 0벡터 체크
-        if (lookDir.sqrMagnitude < Mathf.Epsilon) return;
+        if (_lookDir.sqrMagnitude < Mathf.Epsilon) return;
 
         // 방향 맞춰야 할 상황
-        if (isRot)
+        if (_isRot)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(lookDir);
+            Quaternion targetRotation = Quaternion.LookRotation(_lookDir);
             float angle = Quaternion.Angle(transform.rotation, targetRotation);
 
             // 목표 방향으로 회전
@@ -191,7 +195,7 @@ public class EnemyTank : TankBase
             else
             {
                 transform.rotation = targetRotation;
-                isRot = false; // 회전 끝
+                _isRot = false; // 회전 끝
             }
         }
         else // 전진
@@ -238,7 +242,6 @@ public class EnemyTank : TankBase
         Collider[] colliders = Physics.OverlapSphere(_turret.position, _detectionRange, _playerLayer);
         if (colliders.Length == 0)
         {
-            if (_target != null) _target = null;
             return false;
         }
 
@@ -262,11 +265,11 @@ public class EnemyTank : TankBase
             float distance = Vector3.Distance(_turret.position, playerPos);
             if (Physics.Raycast(_turret.position, dirToPlayer, distance, _visionObstacleLayer)) continue;
 
+            _lostTargetTimer = 0f; // 타이머 초기화
             _target = col.transform; // 타겟 설정
             return true;
         }
 
-        if (_target != null) _target = null;
         return false;
     }
 
@@ -308,11 +311,26 @@ public class EnemyTank : TankBase
     }
 
     /// <summary>
-    /// _target 비우기
+    /// 일정시간 뒤 타겟 비우기
+    /// </summary>
+    void UpdateLostTarget()
+    {
+        if (_target == null) return;
+
+        _lostTargetTimer += Time.deltaTime;
+        if (_lostTargetTimer >= _lostTargetDuration)
+        {
+            _lostTargetTimer = 0f;
+            ClearTarget();
+        }
+    }
+
+    /// <summary>
+    /// 타겟 비우기
     /// </summary>
     public void ClearTarget()
     {
-        _target = null;
+        if (_target != null) _target = null;
     }
 
     /// <summary>
@@ -326,7 +344,7 @@ public class EnemyTank : TankBase
     }
 
     /// <summary>
-    /// _target에게 다가감
+    /// 타겟에게 다가감
     /// </summary>
     public void MoveToTarget()
     {

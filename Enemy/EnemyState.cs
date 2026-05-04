@@ -151,7 +151,7 @@ public class CombatState : EnemyState
         if (_playerDetectTimer > _playerDetectInterval)
         {
             _playerDetectTimer = 0f;
-            if (!_enemy.CanSeePlayer())
+            if (!_enemy.CanSeePlayer() && _enemy.Target == null)
             {
                 _enemy.ChangeState(EnemyStateType.Idle);
                 return;
