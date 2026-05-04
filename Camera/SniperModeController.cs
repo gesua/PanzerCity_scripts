@@ -11,6 +11,7 @@ public class SniperModeController : MonoBehaviour
     [SerializeField] CinemachineCamera _normalCam;  // 평소 카메라
     [SerializeField] CinemachineCamera _sniperCam;  // 저격 모드 카메라
     [SerializeField] Renderer[] _tankRenderers;     // 탱크 렌더러들 (저격 모드에서 비활성화)
+    [SerializeField] GameObject _human; // 사람 캐릭터 (저격 모드에서 비활성화)
 
     bool _isSniper;
 
@@ -40,5 +41,8 @@ public class SniperModeController : MonoBehaviour
         {
             renderer.enabled = !active;
         }
+
+        // 사람 캐릭터
+        _human.SetActive(!active);
     }
 }
