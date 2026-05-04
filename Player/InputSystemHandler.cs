@@ -14,6 +14,7 @@ public class InputSystemHandler : MonoBehaviour
     public event Action OnSniperInput;
     public event Action OnToggleRightUIInput;
     public event Action OnMapInput;
+    public event Action<bool> OnFreeLookInput;
 
     bool _onAttack = false;     // 좌클릭 상태 토글
     Vector2 _moveInput;         // 이동 입력
@@ -83,5 +84,12 @@ public class InputSystemHandler : MonoBehaviour
         {
             OnMapInput?.Invoke();
         }
+    }
+
+    // Alt키(조준점 고정, 카메라)
+    public void HandleFreeLookInput(InputAction.CallbackContext context)
+    {
+        if (context.started) OnFreeLookInput?.Invoke(true);
+        if (context.canceled) OnFreeLookInput?.Invoke(false);
     }
 }

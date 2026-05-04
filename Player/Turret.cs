@@ -35,6 +35,14 @@ public class Turret : MonoBehaviour
     }
 
     /// <summary>
+    /// 에임 고정
+    /// </summary>
+    public void SetAimLocked(bool locked)
+    {
+        _aimLocked = locked;
+    }
+
+    /// <summary>
     /// 저격 모드 여부
     /// </summary>
     public void SetSniperMode(bool isSniper)

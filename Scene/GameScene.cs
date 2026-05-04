@@ -43,6 +43,7 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnSniperInput += HandleSniperInput;
         _inputSystemHandler.OnToggleRightUIInput += HandleToggleRightUIInput;
         _inputSystemHandler.OnMapInput += HandleMapInput;
+        _inputSystemHandler.OnFreeLookInput += HandleFreeLookInput;
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
 
@@ -149,6 +150,14 @@ public class GameScene : MonoBehaviour
     void HandleMapInput()
     {
         _miniMapUI.Toggle();
+    }
+
+    /// <summary>
+    /// 자유 시점
+    /// </summary>
+    void HandleFreeLookInput(bool isFreeLook)
+    {
+        _player.SetAimLocked(isFreeLook);
     }
 
     /// <summary>

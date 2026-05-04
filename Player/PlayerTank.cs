@@ -120,6 +120,14 @@ public class PlayerTank : TankBase
     }
 
     /// <summary>
+    /// 에임 고정(turret에 있는거 그대로)
+    /// </summary>
+    public void SetAimLocked(bool locked)
+    {
+        _turret.SetAimLocked(locked);
+    }
+
+    /// <summary>
     /// 대미지 받음
     /// </summary>
     void HandleHpChanged(int current, int max)
