@@ -317,6 +317,14 @@ public class EnemyTank : TankBase
     }
 
     /// <summary>
+    /// 타겟 설정
+    /// </summary>
+    public void SetTarget(Transform target)
+    {
+        _target = target;
+    }
+
+    /// <summary>
     /// 일정시간 뒤 타겟 비우기
     /// </summary>
     void UpdateLostTarget()

@@ -12,16 +12,17 @@ public class HeavyTank : EnemyTank
     // 바뀔 색
     Color[] _hpColors =
     {
-        Color.green,    // 4/4 초록
-        Color.yellow,   // 3/4 노랑
-        new Color(1f, 0.5f, 0f), // 2/4 주황
-        Color.red       // 1/4 빨강
+        new Color(0f, 0.5f, 0f),    // 4/4 초록
+        Color.yellow,               // 3/4 노랑
+        new Color(1f, 0.5f, 0f),    // 2/4 주황
+        Color.red                   // 1/4 빨강
     };
 
     protected override void Awake()
     {
         base.Awake();
         _model.OnHpChanged += HandleHpChanged;
+        _model.OnHit += HandleHit;
     }
 
     void HandleHpChanged(int current, int max)
@@ -30,9 +31,17 @@ public class HeavyTank : EnemyTank
         int colorIndex = max - current;
         colorIndex = Mathf.Clamp(colorIndex, 0, _hpColors.Length - 1);
 
+        // 색 변경
         foreach (Renderer renderer in _renderers)
         {
             renderer.material.color = _hpColors[colorIndex];
         }
+    }
+
+    void HandleHit(HitData hitData)
+    {
+        // 공격한 탱크를 바로 타겟으로 설정
+        SetTarget(hitData.AtkTank.transform);
+        ChangeState(EnemyStateType.Combat);
     }
 }
