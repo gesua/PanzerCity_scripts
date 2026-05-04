@@ -27,7 +27,7 @@ public class Wall : MonoBehaviour, IExplosionDamageable
     public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
         _collider.enabled = false; // 충돌 비활성화
-        _navMeshObstacle.enabled = false;
+        _navMeshObstacle.enabled = false; // 네브메시 장애물 비활성화
 
         foreach (Rigidbody rigid in _cubeRigids)
         {

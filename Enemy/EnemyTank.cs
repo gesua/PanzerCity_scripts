@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.AI;
 
 /// <summary>
 /// 적 성격
@@ -8,9 +9,9 @@ public enum EnemyPersonality
 {
     Stationary, // 고정형:그 자리에서 공격
     //Intercept,  // 요격형:포탄 요격 우선
-    //Aggressive, // 공격형:플레이어에게 다가감
-    //Coward,     // 도주형:플레이어에게서 멀어짐
     Ignore,     // 무시형:배회처럼 움직임
+    Aggressive, // 공격형:플레이어에게 다가감
+    //Coward,     // 도주형:플레이어에게서 멀어짐
 }
 
 /// <summary>
@@ -34,6 +35,11 @@ public enum Direction
 [RequireComponent(typeof(EnemyTankDestructionEffect))]
 public class EnemyTank : TankBase
 {
+    [Header("----- 컴포넌트 -----")]
+    [SerializeField] NavMeshAgent _agent;
+    [SerializeField] Rigidbody _rigid;
+    [SerializeField] EnemyTankDestructionEffect _destructionEffect; // 파괴 연출
+    [SerializeField] BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _roamSpan = 3f; // 최대 배회 간격
     [SerializeField] float _deadDuration = 5f; // 사망 상태 지속 시간
@@ -50,12 +56,8 @@ public class EnemyTank : TankBase
     [SerializeField] LayerMask _movementObstacleLayer = 1 << 6 | 1 << 7 | 1 << 8 | 1 << 9;  // 이동 차단 레이어(플레이어, 적, 맵, 외곽벽)
 
     Transform _target; // 플레이어
-    Rigidbody _rigid;
     Vector3 lookDir; // 이동할 방향
     bool isRot; // 회전해야 하는지 체크
-
-    EnemyTankDestructionEffect _destructionEffect; // 파괴 연출
-    BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
 
     public EnemyPersonality Personality => _personality;
 
@@ -78,9 +80,16 @@ public class EnemyTank : TankBase
     {
         base.Awake();
 
-        _rigid = GetComponent<Rigidbody>();
-        _destructionEffect = GetComponent<EnemyTankDestructionEffect>();
-        _collider = GetComponent<BoxCollider>();
+        //_rigid = GetComponent<Rigidbody>();
+        //_destructionEffect = GetComponent<EnemyTankDestructionEffect>();
+        //_collider = GetComponent<BoxCollider>();
+
+        // _agent 설정
+        _agent.enabled = false;
+        _agent.speed = _model.ForwardSpeed;
+        _agent.angularSpeed = _model.RotSpeed;
+        _agent.acceleration = _model.Acceleration;
+        _agent.stoppingDistance = 4f; // 플레이어와 겹쳐져서 미세조절중
 
         _model.OnDead += HandleDead; // 사망 이벤트 구독
     }
@@ -91,10 +100,10 @@ public class EnemyTank : TankBase
         _collider.enabled = true;
 
         // 성격 랜덤 설정
-        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
+        //_personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        //_personality = EnemyPersonality.Ignore;
+        _personality = EnemyPersonality.Aggressive;
 
         // 상태 객체들
         // 방치 상태 객체 생성
@@ -296,6 +305,40 @@ public class EnemyTank : TankBase
                 _turret.rotation = targetRotation;
             }
         }
+    }
+
+    /// <summary>
+    /// _target 비우기
+    /// </summary>
+    public void ClearTarget()
+    {
+        _target = null;
+    }
+
+    /// <summary>
+    /// NavMeshAgent와 isKinematic 변경
+    /// </summary>
+    /// <param name="enable"></param>
+    public void EnableAgent(bool enable)
+    {
+        _agent.enabled = enable;
+        _rigid.isKinematic = enable;
+    }
+
+    /// <summary>
+    /// _target에게 다가감
+    /// </summary>
+    public void MoveToTarget()
+    {
+        if (_target == null) return;
+
+        // 엔진 켜기/끄기
+        if (_agent.velocity.sqrMagnitude > Mathf.Epsilon)
+            SetEngineEffect(true);
+        else
+            SetEngineEffect(false);
+
+        _agent.SetDestination(_target.position);
     }
 
     /// <summary>

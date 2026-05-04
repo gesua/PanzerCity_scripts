@@ -132,10 +132,16 @@ public class CombatState : EnemyState
     public override void Enter()
     {
         _attackInterval = Random.Range(_minAttackTime, _maxAttackTime);
+
+        // 네브메시 쓰는 성격은 켜기
+        if (_enemy.Personality == EnemyPersonality.Aggressive)
+            _enemy.EnableAgent(true);
     }
 
     public override void Exit()
     {
+        _enemy.ClearTarget();
+        _enemy.EnableAgent(false);
     }
 
     public override void Update()
@@ -160,6 +166,9 @@ public class CombatState : EnemyState
                 break;
             case EnemyPersonality.Ignore: // 무시형
                 UpdateIgnore();
+                break;
+            case EnemyPersonality.Aggressive: // 공격형
+                UpdateAggressive();
                 break;
                 // 나머지 성격은 나중에 추가
         }
@@ -190,6 +199,15 @@ public class CombatState : EnemyState
     {
         _enemy.Roam();
         _enemy.AimAtTarget();
+    }
+
+    /// <summary>
+    /// 공격형:플레이어에게 최대한 다가감
+    /// </summary>
+    void UpdateAggressive()
+    {
+        _enemy.AimAtTarget();
+        _enemy.MoveToTarget();
     }
 }
 
