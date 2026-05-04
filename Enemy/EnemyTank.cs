@@ -35,7 +35,7 @@ public enum Direction
 [RequireComponent(typeof(EnemyTankDestructionEffect))]
 public class EnemyTank : TankBase
 {
-    [Header("----- 컴포넌트 -----")]
+    [Header("----- 컴포넌트(EnemyTank) -----")]
     [SerializeField] NavMeshAgent _agent;
     [SerializeField] Rigidbody _rigid;
     [SerializeField] EnemyTankDestructionEffect _destructionEffect; // 파괴 연출
