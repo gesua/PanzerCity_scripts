@@ -23,6 +23,8 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] float _spawnSpan = 2f;     // 스폰 시간 간격
     [SerializeField] int _maxSpawnCount = 4;    // 최대 스폰 수
     [SerializeField] Transform[] _spawnPos;     // 스폰 위치
+    [SerializeField] float _spawnCheckRadius = 2f; // 스폰 위치 체크 반경
+    [SerializeField] LayerMask _spawnCheckLayer = 1 << 8 | 1 << 9; // 탱크 레이어(플레이어, 적)
 
     [Header("----- 적 리스트(읽기 전용) -----")]
     [SerializeField] List<EnemyTank> _enemies = new(); // 생성된 적 리스트
@@ -39,6 +41,7 @@ public class EnemySpawner : MonoBehaviour
     public event Action<int> OnEnemySpawned;         // 적 스폰됨
 
     Coroutine _spawnEnemyRoutine;
+    Coroutine _retryRoutine;
 
     public void Initialize(int stageID)
     {
@@ -62,7 +65,6 @@ public class EnemySpawner : MonoBehaviour
     /// <summary>
     /// 주기적으로 적을 생성하는 코루틴
     /// </summary>
-    /// <returns></returns>
     IEnumerator SpawnEnemyRoutine()
     {
         while (true)
@@ -70,6 +72,36 @@ public class EnemySpawner : MonoBehaviour
             SpawnEnemy();
             yield return new WaitForSeconds(_spawnSpan);
         }
+    }
+
+    /// <summary>
+    /// 비어있는 스폰 위치 탐색
+    /// </summary>
+    /// <returns></returns>
+    Vector3? GetAvailableSpawnPos()
+    {
+        // 현재 스폰 인덱스부터 순서대로 탐색
+        for (int i = 0; i < _spawnPos.Length; i++)
+        {
+            int index = (_spawnPosIndex[_spawnedCount] + i) % _spawnPos.Length;
+            Vector3 pos = _spawnPos[index].position;
+
+            if (Physics.OverlapSphere(pos, _spawnCheckRadius, _spawnCheckLayer).Length == 0)
+            {
+                return pos;
+            }
+        }
+        return null; // 모든 위치가 막혀있음
+    }
+
+    /// <summary>
+    /// 일정시간 후 스폰 재시도
+    /// </summary>
+    IEnumerator RetrySpawn()
+    {
+        yield return new WaitForSeconds(0.1f);
+        _retryRoutine = null;
+        SpawnEnemy();
     }
 
     /// <summary>
@@ -82,17 +114,35 @@ public class EnemySpawner : MonoBehaviour
         // 스테이지 스폰 수만큼 생성했으면 종료
         if (_spawnedCount >= _spawnList.Count) return;
 
+        // 스폰 위치 비어있는지 확인
+        Vector3? spawnPos = GetAvailableSpawnPos();
+
+        // 모든 위치가 막혀있으면 잠시 후 재시도
+        if (spawnPos == null)
+        {
+            // 이미 재시도 중이면 새로 시작하지 않음
+            if (_retryRoutine == null)
+                _retryRoutine = StartCoroutine(RetrySpawn());
+            return;
+        }
+
+        // 재시도 코루틴 종료
+        if (_retryRoutine != null)
+        {
+            StopCoroutine(_retryRoutine);
+            _retryRoutine = null;
+        }
+
         // Order 순서대로 TankID로 프리팹 경로 가져오기
         int tankID = _spawnList[_spawnedCount];
         TankData tankData = GameManager.Instance.DataManager.GetTankData(tankID);
         string prefabPath = $"Tank/{tankData.TankID}{tankData.TankType}";
-        Vector3 spawnPos = _spawnPos[_spawnPosIndex[_spawnedCount]].position; // 코루틴에서 _spawnedCount값 바뀔 수 있으니 미리 처리
 
         // 스폰 이펙트 먼저 재생
-        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.Twinkle, spawnPos + Vector3.up); // 바닥에서 1만큼 띄움
+        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.Twinkle, spawnPos.Value + Vector3.up); // 바닥에서 1만큼 띄움
 
         // 이펙트 후 탱크 생성
-        StartCoroutine(SpawnAfterEffect(prefabPath, spawnPos));
+        StartCoroutine(SpawnAfterEffect(prefabPath, spawnPos.Value));
 
         // 적 스폰 UI에서 아이콘 제거
         OnEnemySpawned?.Invoke(_spawnedCount);

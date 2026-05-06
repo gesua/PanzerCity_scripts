@@ -226,6 +226,8 @@ public class CombatState : EnemyState
             _pathUpdateTimer = 0f;
             _enemy.MoveToTarget();
         }
+
+        _enemy.AgentMove();
     }
 
     /// <summary>
@@ -248,11 +250,9 @@ public class CombatState : EnemyState
         if (_enemy.IsBlocked(true))
         {
             _enemy.SetEngineEffect(false);
-            _enemy.AgentStop();
             return false;
         }
 
-        _enemy.AgentStart();
         _enemy.SetEngineEffect(true);
         return true;
     }

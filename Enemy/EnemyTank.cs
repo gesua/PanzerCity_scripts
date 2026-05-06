@@ -90,10 +90,14 @@ public class EnemyTank : TankBase
 
         // _agent 설정
         _agent.enabled = false;
-        _agent.speed = _model.ForwardSpeed;
-        _agent.angularSpeed = _model.RotSpeed;
-        _agent.acceleration = _model.Acceleration;
+        _agent.speed = 0; // _model.ForwardSpeed;
+        //_agent.angularSpeed = _model.RotSpeed;
+        //_agent.acceleration = _model.Acceleration;
         _agent.stoppingDistance = _stoppingDistance;
+
+        // 전진/회전 못하게 막아놓기
+        _agent.updatePosition = false; // 전진X
+        _agent.updateRotation = false; // 회전X
 
         _model.OnDead += HandleDead; // 사망 이벤트 구독
     }
@@ -107,7 +111,7 @@ public class EnemyTank : TankBase
         _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        //_personality = EnemyPersonality.Aggressive;
+        _personality = EnemyPersonality.Aggressive;
 
         // 상태 객체들
         // 방치 상태 객체 생성
@@ -191,7 +195,7 @@ public class EnemyTank : TankBase
             // 목표 방향으로 회전
             if (angle > Util.Epsilon)
             {
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _model.RotSpeed * Time.deltaTime);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _model.RotSpeed * Time.fixedDeltaTime);
             }
             else
             {
@@ -363,13 +367,7 @@ public class EnemyTank : TankBase
     public void MoveToTarget()
     {
         if (_target == null) return;
-
-        // 엔진 켜기/끄기
-        //if (_agent.velocity.sqrMagnitude > Mathf.Epsilon)
-        //    SetEngineEffect(true);
-        //else
-        //    SetEngineEffect(false);
-
+        _agent.Warp(transform.position); // 위치 동기화
         _agent.SetDestination(_target.position);
     }
 
@@ -410,23 +408,39 @@ public class EnemyTank : TankBase
             }
         }
 
+        _agent.Warp(transform.position); // 위치 동기화
         _agent.SetDestination(bestPoint);
+        AgentMove();
     }
 
     /// <summary>
-    /// 에이전트 잠시 멈춤
+    /// NavMesh 방향으로 회전 후 전진
     /// </summary>
-    public void AgentStop()
+    public void AgentMove()
     {
-        _agent.isStopped = true;
+        if (_agent.pathPending || _agent.remainingDistance <= _agent.stoppingDistance) return;
+
+        // 다음 웨이포인트 방향
+        Vector3 nextPoint = _agent.steeringTarget;
+        Vector3 dir = (nextPoint - transform.position).normalized;
+        dir.y = 0f;
+
+        // 목표 방향으로 회전
+        Quaternion targetRotation = Quaternion.LookRotation(dir);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _model.RotSpeed * Time.fixedDeltaTime);
+
+        // 방향이 맞으면 전진
+        float angle = Vector3.Angle(transform.forward, dir);
+        if (angle < 10f)
+        {
+            Vector3 move = transform.forward * _model.ForwardSpeed * Time.fixedDeltaTime;
+            _rigid.MovePosition(_rigid.position + move);
+        }
     }
 
-    /// <summary>
-    /// 에이전트 다시 움직이게
-    /// </summary>
-    public void AgentStart()
+    public virtual void TakeHit(HitData hitData)
     {
-        _agent.isStopped = false;
+        _model.TakeHit(hitData);
     }
 
     /// <summary>

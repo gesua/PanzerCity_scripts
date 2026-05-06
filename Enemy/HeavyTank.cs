@@ -25,6 +25,25 @@ public class HeavyTank : EnemyTank
         _model.OnHit += HandleHit;
     }
 
+    public override void TakeHit(HitData hitData)
+    {
+        switch (hitData.ZoneType)
+        {
+            case HitZoneType.None:
+            case HitZoneType.Front:
+                break;
+            case HitZoneType.Side:
+                hitData.AddDamage(1);
+                break;
+            case HitZoneType.Rear:
+                hitData.AddDamage(2);
+                break;
+        }
+
+        base.TakeHit(hitData);
+    }
+
+
     void HandleHpChanged(int current, int max)
     {
         // current 1~4를 인덱스 3~0으로 변환

@@ -65,6 +65,7 @@ public class Shell : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (_isReleased) return; // OnTrigger 여러번 들어오는거 방지
         if (!_hitLayer.Contains(other.gameObject.layer)) return;
 
         // HitData 넣음
@@ -72,6 +73,11 @@ public class Shell : MonoBehaviour
 
         // 충돌한 대상이 탱크면 피해 입히기
         other.GetComponent<IDamageable>()?.TakeHit(hitData);
+
+        if(other.GetComponent<IDamageable>() != null)
+        {
+            Debug.Log(other.name);
+        }
 
         Explode(hitData);
         Remove();
@@ -98,7 +104,6 @@ public class Shell : MonoBehaviour
     /// </summary>
     public void Remove()
     {
-        if (_isReleased) return;
         _isReleased = true;
 
         // rigidbody 초기화
