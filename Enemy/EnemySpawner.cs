@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
 /// <summary>
 /// 적 스폰 데이터테이블
@@ -223,5 +224,23 @@ public class EnemySpawner : MonoBehaviour
     {
         // 생성된 적 목록에서 제거된 적 제거
         _enemies.Remove(enemy);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        // 스폰 체크 반경
+        if (_spawnPos == null) return;
+
+        Gizmos.color = Color.green;
+
+        foreach (var t in _spawnPos)
+        {
+            if (t == null) continue;
+
+            Vector3 pos = t.position;
+
+            Gizmos.DrawWireSphere(pos, _spawnCheckRadius);
+            Gizmos.DrawSphere(pos, 0.1f);
+        }
     }
 }

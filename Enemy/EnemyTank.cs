@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UIElements;
 
 /// <summary>
 /// 적 성격
@@ -51,7 +52,8 @@ public class EnemyTank : TankBase
     [SerializeField] LayerMask _visionObstacleLayer = 1 << 6; // 시야 차단 레이어(맵)
     [SerializeField] Transform _turret; // 포탑
     [Header("----- 이동 관련 -----")]
-    [SerializeField] float _movementCheckDistance = 1.2f; // 이동 체크 거리
+    [SerializeField] float _movementCheckDistance = 0.2f; // 장애물 체크 거리
+    [SerializeField] Vector3 _raycastOffset = new Vector3(0f, 0f, 1.2f); // 본인 콜라이더보다 앞쪽에서 Ray쏘기
     [SerializeField] float _raycastSideOffset; // 좌우 사이드 한번 더 체크(0.6, 0.75)
     [SerializeField] LayerMask _movementObstacleLayer = 1 << 6 | 1 << 7 | 1 << 8 | 1 << 9;  // 이동 차단 레이어(맵, 외곽벽, 플레이어, 적)
     [SerializeField] LayerMask _agentObstacleLayer = 1 << 8 | 1 << 9; // 네브메시에이전트끼리 미는거 방지 레이어
@@ -230,7 +232,7 @@ public class EnemyTank : TankBase
     {
         LayerMask mask = checkAgentsOnly ? _agentObstacleLayer : _movementObstacleLayer;
 
-        Vector3 startCenter = _turret.position;
+        Vector3 startCenter = _turret.position + transform.TransformDirection(_raycastOffset);
         Vector3 startLeft = startCenter - transform.right * _raycastSideOffset;
         Vector3 startRight = startCenter + transform.right * _raycastSideOffset;
         Vector3 startMidLeft = startCenter - transform.right * (_raycastSideOffset * 0.5f);
@@ -489,7 +491,7 @@ public class EnemyTank : TankBase
         if (_turret == null) return;
 
         Gizmos.color = Color.green;
-        Vector3 startCenter = _turret.position;
+        Vector3 startCenter = _turret.position + transform.TransformDirection(_raycastOffset);
         Vector3 startLeft = startCenter - transform.right * _raycastSideOffset;
         Vector3 startRight = startCenter + transform.right * _raycastSideOffset;
         Vector3 startMidLeft = startCenter - transform.right * (_raycastSideOffset * 0.5f);
