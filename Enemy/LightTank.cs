@@ -12,6 +12,6 @@ public class LightTank : EnemyTank, IExplosionDamageable
     /// </summary>
     public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
-        _model.TakeHit(hitData);
+        _model.TakeDamage(hitData);
     }
 }

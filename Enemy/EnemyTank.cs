@@ -440,11 +440,6 @@ public class EnemyTank : TankBase
         }
     }
 
-    public virtual void TakeHit(HitData hitData)
-    {
-        _model.TakeHit(hitData);
-    }
-
     /// <summary>
     /// 사망 처리
     /// </summary>

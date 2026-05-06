@@ -5,7 +5,7 @@ using UnityEngine;
 /// 탱크 기본 데이터
 /// 데이터는 TankData에서 가져오면 됨
 /// </summary>
-public class TankModel : MonoBehaviour, IDamageable
+public class TankModel : MonoBehaviour
 {
     [Header("----- 치트 -----")]
     [SerializeField] bool InfiniteHP; // HP 무한
@@ -87,7 +87,7 @@ public class TankModel : MonoBehaviour, IDamageable
     }
 
 
-    public void TakeHit(HitData hitData)
+    public void TakeDamage(HitData hitData)
     {
         if (IsAlive == false) return;
         if (NoDamage) return; // 무적 치트

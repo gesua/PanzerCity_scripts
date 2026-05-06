@@ -69,4 +69,9 @@ public abstract class TankBase : MonoBehaviour, IAttackable
             _engineEffect.Stop();
         }
     }
+
+    public virtual void TakeHit(HitData hitData)
+    {
+        _model.TakeDamage(hitData);
+    }
 }
