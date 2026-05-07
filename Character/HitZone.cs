@@ -21,7 +21,7 @@ public class HitZone : MonoBehaviour, IDamageable
 
     public void TakeHit(HitData hitData)
     {
-        Debug.Log($"{transform.parent.name}의 {transform.name} 부위 피격");
+        //Debug.Log($"{transform.parent.name}의 {transform.name} 부위 피격");
 
         hitData.setZoneType(_zoneType);
         _parent.TakeHit(hitData);

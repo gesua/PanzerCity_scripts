@@ -28,7 +28,7 @@ public class CameraBedrockChange : MonoBehaviour
         // 외곽벽 모델 교체
         foreach (RaycastHit hit in hits)
         {
-            if(hit.collider.TryGetComponent<BedrockController>(out BedrockController block))
+            if(hit.collider.TryGetComponent(out BedrockController block))
             {
                 block.ShowTransparent();
                 if (!_changedBedrocks.Contains(block)) _changedBedrocks.Add(block);

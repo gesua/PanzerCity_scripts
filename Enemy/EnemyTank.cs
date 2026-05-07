@@ -113,7 +113,7 @@ public class EnemyTank : TankBase
         _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        _personality = EnemyPersonality.Aggressive;
+        //_personality = EnemyPersonality.Aggressive;
 
         // 상태 객체들
         // 방치 상태 객체 생성
@@ -354,13 +354,11 @@ public class EnemyTank : TankBase
     }
 
     /// <summary>
-    /// NavMeshAgent와 isKinematic 변경
+    /// NavMeshAgent 활성화
     /// </summary>
-    /// <param name="enable"></param>
     public void EnableAgent(bool enable)
     {
         _agent.enabled = enable;
-        //_rigid.isKinematic = enable;
     }
 
     /// <summary>
