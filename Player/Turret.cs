@@ -247,7 +247,7 @@ public class Turret : MonoBehaviour
                     HitZoneType.Front => _frontColor,
                     HitZoneType.Side => _sideColor,
                     HitZoneType.Rear => _rearColor,
-                    _ => _defaultColor
+                    _ => _rearColor
                 };
                 return;
             }
