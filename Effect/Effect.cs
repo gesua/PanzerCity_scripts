@@ -5,14 +5,13 @@ using UnityEngine;
 /// 단발성 이펙트에 붙여놓으면 됨
 /// Pool을 사용하는 이펙트들
 /// </summary>
-[RequireComponent(typeof(ParticleSystem))]
 public class Effect : MonoBehaviour
 {
     ParticleSystem _ps;
 
     private void Awake()
     {
-        _ps = GetComponent<ParticleSystem>();
+        _ps = GetComponentInChildren<ParticleSystem>();
     }
 
     public void Play()

@@ -57,7 +57,7 @@ public class EffectSpawner : MonoBehaviour
         effectGo.transform.position = pos;
 
         // 이펙트 재생
-        if (effectGo.GetComponentInChildren<Effect>() is Effect effect)
+        if (effectGo.TryGetComponent(out Effect effect))
         {
             effect.Play();
         }
