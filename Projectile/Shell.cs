@@ -68,13 +68,15 @@ public class Shell : MonoBehaviour
         if (_isReleased) return; // OnTrigger 여러번 들어오는거 방지
         if (!_hitLayer.Contains(other.gameObject.layer)) return;
 
+        // todo:Tag 대신 HashSet으로 바꾸기
+
         string tag = other.tag;
         if (tag == "Untagged") return; // 없는 태그 무시
 
         // 포탄 정보 추가
         HitData hitData = new HitData(_damage, transform.position, _ownerTank);
 
-        other.GetComponent<IDamageable>()?.TakeHit(hitData);
+        if (other.TryGetComponent(out IDamageable damageable)) damageable.TakeHit(hitData);
 
         Explode(hitData);
         Remove();

@@ -203,7 +203,7 @@ public class PlayerTank : TankBase
         _isAttack = false; // 공격 버튼 끄기
 
         // 반짝 이펙트
-        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.Twinkle, spawnPos + Vector3.up);
+        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.Twinkle, spawnPos);
 
         // 이펙트 지속시간 대기
         yield return new WaitForSeconds(1f);

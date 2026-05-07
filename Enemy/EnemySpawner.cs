@@ -140,7 +140,7 @@ public class EnemySpawner : MonoBehaviour
         string prefabPath = $"Tank/{tankData.TankID}{tankData.TankType}";
 
         // 스폰 이펙트 먼저 재생
-        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.Twinkle, spawnPos.Value + Vector3.up); // 바닥에서 1만큼 띄움
+        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.Twinkle, spawnPos.Value);
 
         // 이펙트 후 탱크 생성
         StartCoroutine(SpawnAfterEffect(prefabPath, spawnPos.Value));

@@ -139,11 +139,16 @@ public class CombatState : EnemyState
 
 
         // 네브메시 쓰는 성격은 켜기
-        if (_enemy.Personality == EnemyPersonality.Aggressive ||
-            _enemy.Personality == EnemyPersonality.Coward)
+        switch (_enemy.Personality)
         {
-            _pathUpdateTimer = _pathUpdateInterval; // 공격형만 사용함
-            _enemy.EnableAgent(true);
+            case EnemyPersonality.Aggressive:
+                _enemy.EnableAgent(true);
+                _pathUpdateTimer = _pathUpdateInterval; // 첫 위치 잡기
+                break;
+            case EnemyPersonality.Coward:
+                _enemy.EnableAgent(true);
+                _enemy.ResetFlee(); // 첫도주 리셋
+                break;
         }
     }
 
@@ -220,6 +225,7 @@ public class CombatState : EnemyState
         _enemy.AimAtTarget();
         if (!HandleAgentMovement()) return;
 
+        // 위치 계산
         _pathUpdateTimer += Time.deltaTime;
         if (_pathUpdateTimer >= _pathUpdateInterval)
         {
@@ -227,6 +233,7 @@ public class CombatState : EnemyState
             _enemy.MoveToTarget();
         }
 
+        // 이동
         _enemy.AgentMove();
     }
 
@@ -239,6 +246,8 @@ public class CombatState : EnemyState
         if (!HandleAgentMovement()) return;
 
         _enemy.FleeFromTarget(); // 차체는 반대 방향으로 도망
+
+        _enemy.AgentMove(); // 이동
     }
 
     /// <summary>

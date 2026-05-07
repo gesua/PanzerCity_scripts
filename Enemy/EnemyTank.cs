@@ -67,6 +67,8 @@ public class EnemyTank : TankBase
     float _lostTargetTimer;
     float _lostTargetDuration = 3f; // 시야에서 벗어난 후 타겟 유지 시간
 
+    bool _isFirstFlee; // 첫 도주 체크용
+
     public EnemyPersonality Personality => _personality;
 
     /// <summary>
@@ -108,10 +110,10 @@ public class EnemyTank : TankBase
         _collider.enabled = true;
 
         // 성격 랜덤 설정
-        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
+        //_personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        //_personality = EnemyPersonality.Coward;
+        _personality = EnemyPersonality.Coward;
 
         // 상태 객체들
         // 방치 상태 객체 생성
@@ -365,8 +367,16 @@ public class EnemyTank : TankBase
     public void MoveToTarget()
     {
         if (_target == null) return;
-        _agent.Warp(transform.position); // 위치 동기화
+        _agent.nextPosition = transform.position; // 네브메시 위치 동기화
         _agent.SetDestination(_target.position);
+    }
+
+    /// <summary>
+    /// 첫도주 리셋
+    /// </summary>
+    public void ResetFlee()
+    {
+        _isFirstFlee = true;
     }
 
     /// <summary>
@@ -376,8 +386,11 @@ public class EnemyTank : TankBase
     {
         if (_target == null) return;
 
+        _agent.nextPosition = transform.position; // 네브메시 위치 동기화
+
         // 목적지에 도달했을 때만 새로 계산
-        if (_agent.remainingDistance > _stoppingDistance) return;
+        if (_isFirstFlee == false && _agent.remainingDistance > _stoppingDistance) return;
+        _isFirstFlee = false;
 
         Vector3 bestPoint = transform.position;
         float bestDistance = 0f;
@@ -406,9 +419,7 @@ public class EnemyTank : TankBase
             }
         }
 
-        _agent.Warp(transform.position); // 위치 동기화
         _agent.SetDestination(bestPoint);
-        AgentMove();
     }
 
     /// <summary>
