@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 플레이어 탱크 포탑
@@ -10,6 +11,7 @@ public class Turret : MonoBehaviour
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Transform _turret;
     [SerializeField] Transform _barrel;
+    [SerializeField] Image _centerCrosshairImage;
     [SerializeField] RectTransform _centerCrosshair;
     [SerializeField] RectTransform _turretCrosshair;
     [SerializeField] CameraTarget _cameraTarget;
@@ -24,6 +26,12 @@ public class Turret : MonoBehaviour
     bool _isSniping;
     bool _aimLocked;
     Coroutine _sniperRoutine;
+
+    // 조준점 색 변경
+    Color _frontColor = Color.red;
+    Color _sideColor = Color.yellow;
+    Color _rearColor = Color.green;
+    Color _defaultColor = Color.white;
 
     public Transform TurretTr => _turret;
     public Transform BarrelTr => _barrel;
@@ -94,8 +102,12 @@ public class Turret : MonoBehaviour
         RotateTurret();
         RotateBarrel();
         TurretCrosshair();
+        UpdateCrosshairColor();
     }
 
+    /// <summary>
+    /// 포탑 좌우 회전
+    /// </summary>
     void RotateTurret()
     {
         float screenY = GetCurrentScreenY();
@@ -133,6 +145,9 @@ public class Turret : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 주포 상하 회전
+    /// </summary>
     void RotateBarrel()
     {
         float screenY = GetCurrentScreenY();
@@ -173,6 +188,9 @@ public class Turret : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 포탑조준점(O) 위치 조절
+    /// </summary>
     void TurretCrosshair()
     {
         Ray ray = new Ray(_barrel.position, _barrel.forward);
@@ -196,12 +214,54 @@ public class Turret : MonoBehaviour
         _turretCrosshair.position = pos;
     }
 
+    /// <summary>
+    /// 포탑 초기화
+    /// </summary>
     public void ResetRotation()
     {
         _turret.localRotation = Quaternion.identity;
         _barrel.localRotation = Quaternion.identity;
     }
 
+    /// <summary>
+    /// 화면조준점(+) 색 조절
+    /// </summary>
+    void UpdateCrosshairColor()
+    {
+        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, GetCurrentScreenY(), 0f));
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000f, _aimLayerMask);
+
+        // 거리순 정렬
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (RaycastHit hit in hits)
+        {
+            // 이동용 콜라이더 무시
+            if (hit.collider.TryGetComponent(out TankModel tankModel)) continue;
+
+            // HitZone이면 색 변경
+            if (hit.collider.TryGetComponent(out HitZone hitZone))
+            {
+                _centerCrosshairImage.color = hitZone.ZoneType switch
+                {
+                    HitZoneType.Front => _frontColor,
+                    HitZoneType.Side => _sideColor,
+                    HitZoneType.Rear => _rearColor,
+                    _ => _defaultColor
+                };
+                return;
+            }
+
+            // 기본색
+            break;
+        }
+
+        _centerCrosshairImage.color = _defaultColor;
+    }
+
+    /// <summary>
+    /// 조준점 UI 보이기
+    /// </summary>
     public void SetCrosshairVisible(bool visible)
     {
         _centerCrosshair.gameObject.SetActive(visible);
@@ -222,6 +282,9 @@ public class Turret : MonoBehaviour
         return ray.origin + ray.direction * 1000f;
     }
 
+    /// <summary>
+    /// 3인칭/1인칭 화면조준점 위치
+    /// </summary>
     float GetCurrentScreenY()
     {
         return _isSniping ? 0.5f : 0.75f;
