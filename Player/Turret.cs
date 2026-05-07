@@ -28,10 +28,10 @@ public class Turret : MonoBehaviour
     Coroutine _sniperRoutine;
 
     // 조준점 색 변경
-    Color _frontColor = Color.red;
-    Color _sideColor = Color.yellow;
-    Color _rearColor = Color.green;
-    Color _defaultColor = Color.white;
+    Color _frontColor = new Color(1f, 0, 0, 0.3f);          // 빨강
+    Color _sideColor = new Color(1f, 0.92f, 0.016f, 0.3f);  // 노랑
+    Color _rearColor = new Color(0, 1f, 0, 0.3f);           // 초록
+    Color _defaultColor = new Color(1f, 1f, 1f, 0.3f);      // 하양
 
     public Transform TurretTr => _turret;
     public Transform BarrelTr => _barrel;
