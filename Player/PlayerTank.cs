@@ -197,6 +197,7 @@ public class PlayerTank : TankBase
         // 카메라 이동
         _mover.Teleport(spawnPos, Quaternion.identity); // 시작 위치로
         _turret.ResetRotation(); // 포탑 초기화
+        _normalVisual.SetActive(false); // 모델 비활성화
         _destroyedVisual.SetActive(false); // 파괴된 모델 비활성화
         _miniMapTankIcon.Hide(); // 미니맵 아이콘 숨기기
         _isAttack = false; // 공격 버튼 끄기

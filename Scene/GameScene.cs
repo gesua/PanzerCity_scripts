@@ -1,6 +1,6 @@
+using System;
 using System.Collections;
 using Unity.Cinemachine;
-using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -46,6 +46,8 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnFreeLookInput += HandleFreeLookInput;
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
+        _gameOverUI.RestartRequested += HandleRestartStage;
+        _gameOverUI.TitleRequested += HandleTitleRequested;
 
         // 이어줌
         _player.OnDamaged += _sceneEffect.ShowDamageEffect;
@@ -219,5 +221,42 @@ public class GameScene : MonoBehaviour
 
         //yield return new WaitForSeconds(_gameOverDelay);
         _gameOverUI.Show(true);
+    }
+
+    /// <summary>
+    /// 스테이지 재시작
+    /// </summary>
+    void HandleRestartStage()
+    {
+        StartCoroutine(RestartRoutine());
+    }
+
+    IEnumerator RestartRoutine()
+    {
+        string sceneName = _currentStage.SceneName;
+
+        // 스테이지 구독 해제
+        UnsubscribeStage();
+
+        // 현재 Stage 씬 언로드
+        yield return SceneManager.UnloadSceneAsync(sceneName);
+
+        // Stage 씬 다시 로드
+        yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+
+        // 플레이어, 카메라, UI 초기화
+        _player.Respawn(_playerSpawnPoint);
+        _cameraTarget.ResetRotation();
+        _playerLife = 3;
+        _gameInfoUI.UpdateLife(_playerLife);
+        _isGameOver = false;
+    }
+
+    /// <summary>
+    /// 메인화면으로 가기
+    /// </summary>
+    void HandleTitleRequested()
+    {
+        SceneManager.LoadScene("Title");
     }
 }

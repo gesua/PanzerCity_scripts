@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using Unity.VisualScripting;
@@ -24,7 +25,15 @@ public class GameOverUI : MonoBehaviour
     [SerializeField] float _darkFadeDuration = 1f;
     [SerializeField] float _buttonsFadeDuration = 0.5f;
 
+    public event Action RestartRequested;
+    public event Action TitleRequested;
+
     void Awake()
+    {
+        Initialize();
+    }
+
+    void Initialize()
     {
         _canvas.enabled = false;
 
@@ -98,5 +107,22 @@ public class GameOverUI : MonoBehaviour
         Color color = graphic.color;
         color.a = alpha;
         graphic.color = color;
+    }
+
+    /// <summary>
+    /// 재시작 버튼
+    /// </summary>
+    public void OnClickRestart()
+    {
+        Initialize();
+        RestartRequested?.Invoke();
+    }
+
+    /// <summary>
+    /// 메인화면 버튼
+    /// </summary>
+    public void OnClickTitle()
+    {
+        TitleRequested?.Invoke();
     }
 }

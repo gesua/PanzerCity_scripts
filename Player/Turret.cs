@@ -236,8 +236,7 @@ public class Turret : MonoBehaviour
 
         foreach (RaycastHit hit in hits)
         {
-            // 이동용 콜라이더 무시
-            if (hit.collider.TryGetComponent(out TankModel tankModel)) continue;
+            if (hit.collider.tag == "Untagged") continue; // 없는 태그 무시
 
             // HitZone이면 색 변경
             if (hit.collider.TryGetComponent(out HitZone hitZone))

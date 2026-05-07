@@ -67,21 +67,14 @@ public class Shell : MonoBehaviour
     {
         if (_isReleased) return; // OnTrigger 여러번 들어오는거 방지
         if (!_hitLayer.Contains(other.gameObject.layer)) return;
-        if (other.TryGetComponent(out TankModel tankModel)) return; // 이동용 콜라이더 무시
+
+        string tag = other.tag;
+        if (tag == "Untagged") return; // 없는 태그 무시
 
         // 포탄 정보 추가
         HitData hitData = new HitData(_damage, transform.position, _ownerTank);
 
-        // HitZone에 맞았으면 TakeHit 호출
-        if(other.TryGetComponent(out HitZone hitZone))
-        {
-            // 피아 구분(멀티까지 고려)
-            TankBase target = other.GetComponentInParent<TankBase>();
-            if (target != null && target.GetType() != _ownerTank.GetType())
-            {
-                hitZone.TakeHit(hitData);
-            }
-        }
+        other.GetComponent<IDamageable>()?.TakeHit(hitData);
 
         Explode(hitData);
         Remove();

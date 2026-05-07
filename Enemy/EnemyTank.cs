@@ -92,9 +92,7 @@ public class EnemyTank : TankBase
 
         // _agent 설정
         _agent.enabled = false;
-        _agent.speed = 0; // _model.ForwardSpeed;
-        //_agent.angularSpeed = _model.RotSpeed;
-        //_agent.acceleration = _model.Acceleration;
+        _agent.speed = 0;
         _agent.stoppingDistance = _stoppingDistance;
 
         // 전진/회전 못하게 막아놓기
@@ -113,7 +111,7 @@ public class EnemyTank : TankBase
         _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        //_personality = EnemyPersonality.Aggressive;
+        //_personality = EnemyPersonality.Coward;
 
         // 상태 객체들
         // 방치 상태 객체 생성
@@ -418,7 +416,7 @@ public class EnemyTank : TankBase
     /// </summary>
     public void AgentMove()
     {
-        if (_agent.pathPending || _agent.remainingDistance <= _agent.stoppingDistance) return;
+        if (_agent.pathPending) return;
 
         // 다음 웨이포인트 방향
         Vector3 nextPoint = _agent.steeringTarget;

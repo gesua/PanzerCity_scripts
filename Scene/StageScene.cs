@@ -11,7 +11,10 @@ public class StageScene : MonoBehaviour
     [SerializeField] Transform _playerSpawnPoint; // 플레이어 시작 지점
     [SerializeField] HQ _hq;
 
+    string _sceneName;
+
     public int StageID => _stageID;
+    public string SceneName => _sceneName;
     public EnemySpawner EnemySpawner => _enemySpawner;
 
     public event Action OnHQDestroyed;
@@ -20,6 +23,7 @@ public class StageScene : MonoBehaviour
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
+        _sceneName = "Stage" + (_stageID - 7100).ToString("D2"); // 현재 Scene이름
 
         _hq.OnDestroyed += () => OnHQDestroyed?.Invoke();
         OnStageLoaded?.Invoke(_playerSpawnPoint.position);
