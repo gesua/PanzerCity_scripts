@@ -233,6 +233,21 @@ public class GameScene : MonoBehaviour
 
     IEnumerator RestartRoutine()
     {
+        /*// 로딩 씬 로드 HACK:로딩 바꾸는중
+        yield return SceneManager.LoadSceneAsync("Loading", LoadSceneMode.Additive);
+        
+        Scene loadingScene = SceneManager.GetSceneByName("Loading");
+        LoadingUI loadingUI = null;
+        foreach (GameObject obj in loadingScene.GetRootGameObjects())
+        {
+            loadingUI = obj.GetComponent<LoadingUI>();
+            if (loadingUI != null) break;
+        }*/
+
+        // 로딩 이미지 띄우기
+        LoadingUI loadingUI = GameManager.Instance.LoadingUI;
+        loadingUI.Show();
+
         string sceneName = _currentStage.SceneName;
 
         // 스테이지 구독 해제
@@ -242,7 +257,10 @@ public class GameScene : MonoBehaviour
         yield return SceneManager.UnloadSceneAsync(sceneName);
 
         // Stage 씬 다시 로드
-        yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+        AsyncOperation stageLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+
+        // 로딩바 업데이트 HACK:로딩 바꾸는중
+        yield return StartCoroutine(loadingUI.UpdateProgress(stageLoad));
 
         // 플레이어, 카메라, UI 초기화
         _player.Respawn(_playerSpawnPoint);
@@ -250,6 +268,10 @@ public class GameScene : MonoBehaviour
         _playerLife = 3;
         _gameInfoUI.UpdateLife(_playerLife);
         _isGameOver = false;
+
+        yield return new WaitForSeconds(0.1f);
+
+        loadingUI.Hide();
     }
 
     /// <summary>

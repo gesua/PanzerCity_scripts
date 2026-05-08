@@ -10,11 +10,13 @@ public class GameManager : Singleton<GameManager>
     PoolManager _poolManager;
     DataManager _dataManager;
     EffectManager _effectManager;
+    LoadingUI _loadingUI;
 
     public ResourceManager ResourceManager => _resourceManager;
     public PoolManager PoolManager => _poolManager;
     public DataManager DataManager => _dataManager;
     public EffectManager EffectManager => _effectManager;
+    public LoadingUI LoadingUI => _loadingUI;
 
     protected override void Awake()
     {
@@ -28,5 +30,12 @@ public class GameManager : Singleton<GameManager>
         _poolManager.Initialize(_resourceManager);
         _dataManager.Initialize();
         _effectManager.Initialize();
+
+        
+        GameObject loadingUIPrefab = Resources.Load<GameObject>("UI/LoadingUI");
+        GameObject loadingGo = Instantiate(loadingUIPrefab);
+        DontDestroyOnLoad(loadingGo);
+        _loadingUI = loadingGo.GetComponent<LoadingUI>();
+        
     }
 }

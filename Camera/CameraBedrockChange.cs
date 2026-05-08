@@ -31,7 +31,7 @@ public class CameraBedrockChange : MonoBehaviour
             if(hit.collider.TryGetComponent(out BedrockController block))
             {
                 block.ShowTransparent();
-                if (!_changedBedrocks.Contains(block)) _changedBedrocks.Add(block);
+                if (_changedBedrocks.Contains(block) == false) _changedBedrocks.Add(block);
             }
         }
     }

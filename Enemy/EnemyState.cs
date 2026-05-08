@@ -165,7 +165,7 @@ public class CombatState : EnemyState
         if (_playerDetectTimer > _playerDetectInterval)
         {
             _playerDetectTimer = 0f;
-            if (!_enemy.CanSeePlayer() && _enemy.Target == null)
+            if (_enemy.CanSeePlayer() == false && _enemy.Target == null)
             {
                 _enemy.ChangeState(EnemyStateType.Idle);
                 return;
@@ -223,7 +223,7 @@ public class CombatState : EnemyState
     void UpdateAggressive()
     {
         _enemy.AimAtTarget();
-        if (!HandleAgentMovement()) return;
+        if (HandleAgentMovement() == false) return;
 
         // 위치 계산
         _pathUpdateTimer += Time.deltaTime;
@@ -243,7 +243,7 @@ public class CombatState : EnemyState
     void UpdateCoward()
     {
         _enemy.AimAtTarget(); // 포탑은 플레이어 조준 유지
-        if (!HandleAgentMovement()) return;
+        if (HandleAgentMovement() == false) return;
 
         _enemy.FleeFromTarget(); // 차체는 반대 방향으로 도망
 

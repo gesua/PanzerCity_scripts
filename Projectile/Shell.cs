@@ -66,9 +66,7 @@ public class Shell : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (_isReleased) return; // OnTrigger 여러번 들어오는거 방지
-        if (!_hitLayer.Contains(other.gameObject.layer)) return;
-
-        // todo:Tag 대신 HashSet으로 바꾸기
+        if (_hitLayer.Contains(other.gameObject.layer) == false) return;
 
         string tag = other.tag;
         if (tag == "Untagged") return; // 없는 태그 무시

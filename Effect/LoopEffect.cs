@@ -22,7 +22,7 @@ public class LoopEffect : MonoBehaviour
 
     public void Stop()
     {
-        if (!_ps.isPlaying) return;
+        if (_ps.isPlaying == false) return;
         _ps.Stop();
     }
 }

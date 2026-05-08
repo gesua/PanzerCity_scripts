@@ -34,7 +34,7 @@ public class CameraBedrockFade : MonoBehaviour
             if (rend != null)
             {
                 FadeObject(rend);
-                if (!_fadedObjects.Contains(rend)) _fadedObjects.Add(rend);
+                if (_fadedObjects.Contains(rend) == false) _fadedObjects.Add(rend);
             }
         }
     }

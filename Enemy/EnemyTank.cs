@@ -427,7 +427,7 @@ public class EnemyTank : TankBase
             Vector3 candidatePoint = transform.position + dir * fleeDistance;
 
             // NavMesh 위의 유효한 지점인지 체크
-            if (!NavMesh.SamplePosition(candidatePoint, out NavMeshHit hit, 3f, NavMesh.AllAreas)) continue;
+            if (NavMesh.SamplePosition(candidatePoint, out NavMeshHit hit, 3f, NavMesh.AllAreas) == false) continue;
 
             // 플레이어와 거리가 가장 먼 지점 선택
             float distToPlayer = Vector3.Distance(hit.position, _target.position);
