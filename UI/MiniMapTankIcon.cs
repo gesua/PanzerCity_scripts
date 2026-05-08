@@ -11,7 +11,7 @@ public class MiniMapTankIcon : MonoBehaviour
     [SerializeField] PlayerTank _player;    // 플레이어
 
     /// <summary>
-    /// 아이콘 보이기
+    /// 아이콘 표시
     /// </summary>
     public void Show()
     {
@@ -19,7 +19,7 @@ public class MiniMapTankIcon : MonoBehaviour
     }
 
     /// <summary>
-    /// 아이콘 숨기기
+    /// 아이콘 숨김
     /// </summary>
     public void Hide()
     {

@@ -67,6 +67,7 @@ public class EnemyTank : TankBase
     float _lostTargetTimer;
     float _lostTargetDuration = 3f; // 시야에서 벗어난 후 타겟 유지 시간
 
+    bool __isAIActive; // 상태머신 활성화 여부
     bool _isFirstFlee; // 첫 도주 체크용
 
     public EnemyPersonality Personality => _personality;
@@ -115,21 +116,39 @@ public class EnemyTank : TankBase
         // HACK:성격 테스트
         _personality = EnemyPersonality.Stationary;
 
-        // 상태 객체들
-        // 방치 상태 객체 생성
+        // 상태 객체들 생성
+        // 방치 상태
         _states[(int)EnemyStateType.Idle] = new IdleState(this, _roamSpan, _model.MinAttackTime, _model.MaxAttackTime);
-        // 교전 상태 객체 생성
+        // 교전 상태
         _states[(int)EnemyStateType.Combat] = new CombatState(this, _model.MinAttackTime, _model.MaxAttackTime);
-        // 사망 상태 객체 생성
+        // 사망 상태
         _states[(int)EnemyStateType.Dead] = new DeadState(this, _deadDuration);
+    }
 
+    /// <summary>
+    /// AI 상태머신 시작
+    /// </summary>
+    public void StartAI()
+    {
         // 현재 상태 설정
         _currentState = _states[(int)EnemyStateType.Idle];
         _currentState.Enter();
+
+        __isAIActive = true;
+    }
+
+    /// <summary>
+    /// 렌더러 표시 설정
+    /// </summary>
+    public void SetRenderersVisible(bool visible)
+    {
+        _destructionEffect.SetModelVisible(visible);
     }
 
     private void FixedUpdate()
     {
+        if (__isAIActive == false) return;
+
         // 현재 상태 갱신
         _currentState.Update();
         UpdateLostTarget();
@@ -456,10 +475,10 @@ public class EnemyTank : TankBase
         SetEngineEffect(false);
 
         // 폭발 이펙트 재생
-        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.SmallExplosion, _turret.position); // transform 위치로 하면 바닥에서 폭발함
+        GameManager.Instance.EffectManager.SpawnEffect(EffectType.SmallExplosion, _turret.position); // transform 위치로 하면 바닥에서 폭발함
 
         // 바닥에 잔불 이펙트 생성
-        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.TinyFlames, transform.position);
+        GameManager.Instance.EffectManager.SpawnEffect(EffectType.TinyFlames, transform.position);
 
         // 사망 상태로 변경
         _collider.enabled = false; // 콜라이더 비활성화
@@ -482,6 +501,9 @@ public class EnemyTank : TankBase
 
         // 자신 제거 이벤트 전체 구독 해지
         OnRemoved = null;
+
+        // AI 비활성화
+        __isAIActive = false;
 
         // 자신 게임오브젝트 제거
         gameObject.DestroyOrReturnToPool();

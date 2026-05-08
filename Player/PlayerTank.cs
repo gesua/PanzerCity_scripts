@@ -169,7 +169,7 @@ public class PlayerTank : TankBase
         _destroyedBarrel.transform.localRotation = _turret.BarrelTr.transform.localRotation;
 
         // 폭발 이펙트 재생
-        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.SmallExplosion, TurretTr.position);
+        GameManager.Instance.EffectManager.SpawnEffect(EffectType.SmallExplosion, TurretTr.position);
 
         // 사망 지속시간 뒤에 Invoke
         StartCoroutine(DeadRoutine());
@@ -203,7 +203,7 @@ public class PlayerTank : TankBase
         _isAttack = false; // 공격 버튼 끄기
 
         // 반짝 이펙트
-        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.Twinkle, spawnPos);
+        GameManager.Instance.EffectManager.SpawnEffect(EffectType.Twinkle, spawnPos);
 
         // 이펙트 지속시간 대기
         yield return new WaitForSeconds(1f);

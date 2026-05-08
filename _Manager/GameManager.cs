@@ -14,7 +14,7 @@ public class GameManager : Singleton<GameManager>
     public ResourceManager ResourceManager => _resourceManager;
     public PoolManager PoolManager => _poolManager;
     public DataManager DataManager => _dataManager;
-    public EffectSpawner EffectSpawner => _effectSpawner;
+    public EffectSpawner EffectManager => _effectSpawner;
 
     protected override void Awake()
     {

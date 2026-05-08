@@ -35,7 +35,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         if (ShowEffects)
         {
             // 포신 이펙트 생성
-            GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.TinyExplosion, _firePoint.position);
+            GameManager.Instance.EffectManager.SpawnEffect(EffectType.TinyExplosion, _firePoint.position);
         }
 
         // 포탄 생성

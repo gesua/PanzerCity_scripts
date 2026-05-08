@@ -60,4 +60,12 @@ public class EnemyTankDestructionEffect : MonoBehaviour
         _destroyedModel.SetActive(false);
         _model.SetActive(true);
     }
+
+    /// <summary>
+    /// 모델 표시 설정
+    /// </summary>
+    public void SetModelVisible(bool visible)
+    {
+        _model.SetActive(visible);
+    }
 }

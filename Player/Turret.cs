@@ -259,7 +259,7 @@ public class Turret : MonoBehaviour
     }
 
     /// <summary>
-    /// 조준점 UI 보이기
+    /// 조준점 UI 표시 설정
     /// </summary>
     public void SetCrosshairVisible(bool visible)
     {

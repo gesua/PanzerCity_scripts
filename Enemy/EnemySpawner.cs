@@ -142,11 +142,8 @@ public class EnemySpawner : MonoBehaviour
         TankData tankData = GameManager.Instance.DataManager.GetTankData(tankID);
         string prefabPath = $"Tank/{tankData.TankID}{tankData.TankType}";
 
-        // 스폰 이펙트 먼저 재생
-        GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.Twinkle, spawnPos.Value);
-
-        // 이펙트 후 탱크 생성
-        StartCoroutine(SpawnAfterEffect(prefabPath, spawnPos.Value));
+        // 탱크 생성
+        StartCoroutine(SpawnRoutine(prefabPath, spawnPos.Value));
 
         // 적 스폰 UI에서 아이콘 제거
         OnEnemySpawned?.Invoke(_spawnedCount);
@@ -156,20 +153,33 @@ public class EnemySpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// 이펙트 후 탱크 생성 코루틴
+    /// 탱크 생성 코루틴
     /// </summary>
-    IEnumerator SpawnAfterEffect(string prefabPath, Vector3 pos)
+    IEnumerator SpawnRoutine(string prefabPath, Vector3 spawnPos)
     {
-        yield return new WaitForSeconds(_enemySpawnEffectTime); // 이펙트 지속시간
-
-        // 탱크 생성
+        // 탱크 미리 생성
         GameObject enemyGo = GameManager.Instance.PoolManager.GetFromPool(prefabPath);
         enemyGo.transform.SetParent(transform);
-        enemyGo.transform.position = pos;
+        enemyGo.transform.position = spawnPos;
 
         // 초기화
         EnemyTank enemy = enemyGo.GetComponent<EnemyTank>();
         enemy.Initialize();
+
+        // 렌더러 끄기
+        enemy.SetRenderersVisible(false);
+
+        // 스폰 이펙트 먼저 재생
+        GameManager.Instance.EffectManager.SpawnEffect(EffectType.Twinkle, spawnPos);
+
+        // 이펙트 지속시간 대기
+        yield return new WaitForSeconds(_enemySpawnEffectTime);
+
+        // 렌더러 켜기
+        enemy.SetRenderersVisible(true);
+
+        // AI 시작
+        enemy.StartAI();
 
         _enemies.Add(enemy); // 리스트에 추가
         enemy.OnRemoved += HandleEnemyRemoved; // 제거 이벤트 구독
