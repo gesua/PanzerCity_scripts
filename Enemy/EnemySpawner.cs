@@ -87,9 +87,6 @@ public class EnemySpawner : MonoBehaviour
             int index = (_spawnPosIndex[_spawnedCount] + i) % _spawnPos.Length;
             Vector3 pos = _spawnPos[index].position;
 
-            Collider[] test = Physics.OverlapSphere(pos, _spawnCheckRadius, _spawnCheckLayer);
-            if (test.Length > 0) Debug.Log($"{test[0].gameObject.name}가 있어서 스폰 안됨");
-
             if (Physics.OverlapSphere(pos, _spawnCheckRadius, _spawnCheckLayer).Length == 0)
             {
                 return pos;

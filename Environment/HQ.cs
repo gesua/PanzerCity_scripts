@@ -28,6 +28,14 @@ public class HQ : MonoBehaviour, IDamageable
         _iconRenderer.material = _destroyedMaterial;
         OnDestroyed?.Invoke();
 
-        //GameManager.Instance.EffectSpawner.SpawnEffect(EffectType.TinyExplosion, _firePoint.position);
+        Invoke(nameof(PlayEffect), 0.1f);
+    }
+
+    /// <summary>
+    /// 폭발 이펙트 재생
+    /// </summary>
+    void PlayEffect()
+    {
+        GameManager.Instance.EffectManager.SpawnEffect(EffectType.StatueExplosion, transform.position + Vector3.up * 2.5f);
     }
 }

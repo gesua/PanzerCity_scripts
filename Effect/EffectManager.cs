@@ -6,6 +6,7 @@ public enum EffectType // 파일 이름과 동일하게 해야함
     CompleteShellExplosion, // 연기 일어남(포탄용)
     TankExplosion,          // 빛나는 바늘이 퍼져나감 [미사용]
     // UnityTechnologies 이펙트
+    StatueExplosion,        // 조각상 폭발용
     TinyExplosion,          // 포신 폭발용
     SmallExplosion,         // 탱크 폭발용
     Twinkle,                // 반짝(적 스폰용)
@@ -18,7 +19,7 @@ public enum EffectType // 파일 이름과 동일하게 해야함
 /// VFX(비주얼 이펙트)를 원하는 위치에 스폰
 /// GameManager에서 관리되고 있음
 /// </summary>
-public class EffectSpawner : MonoBehaviour
+public class EffectManager : MonoBehaviour
 {
     PoolManager _poolManager;
 
@@ -28,6 +29,7 @@ public class EffectSpawner : MonoBehaviour
         _poolManager.GetPool(GetPrefabPath(EffectType.CompleteShellExplosion));
         _poolManager.GetPool(GetPrefabPath(EffectType.TankExplosion));
         _poolManager.GetPool(GetPrefabPath(EffectType.TinyExplosion));
+        _poolManager.GetPool(GetPrefabPath(EffectType.StatueExplosion), 1); // 1개만 있어도 될거 같음
         _poolManager.GetPool(GetPrefabPath(EffectType.SmallExplosion));
         _poolManager.GetPool(GetPrefabPath(EffectType.Twinkle));
         _poolManager.GetPool(GetPrefabPath(EffectType.PressurisedSteam));
