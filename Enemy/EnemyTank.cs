@@ -111,10 +111,10 @@ public class EnemyTank : TankBase
         _collider.enabled = true;
 
         // 성격 랜덤 설정
-        //_personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
+        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        _personality = EnemyPersonality.Stationary;
+        //_personality = EnemyPersonality.Stationary;
 
         // 상태 객체들 생성
         // 방치 상태
@@ -370,6 +370,19 @@ public class EnemyTank : TankBase
     public void ClearTarget()
     {
         if (_target != null) _target = null;
+    }
+
+    /// <summary>
+    /// 차체를 타겟 방향으로 회전
+    /// </summary>
+    public void RotateBodyToTarget()
+    {
+        if (_target == null) return;
+        Vector3 dir = (_target.position - transform.position);
+        dir.y = 0f;
+        if (dir.sqrMagnitude < Mathf.Epsilon) return;
+        Quaternion targetRotation = Quaternion.LookRotation(dir);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _model.RotSpeed * Time.deltaTime);
     }
 
     /// <summary>

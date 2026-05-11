@@ -206,6 +206,7 @@ public class CombatState : EnemyState
     {
         _enemy.SetEngineEffect(false);
         _enemy.AimAtTarget();
+        _enemy.RotateBodyToTarget();
     }
 
     /// <summary>
