@@ -23,6 +23,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] GameInfoUI _gameInfoUI;     // 게임 정보 UI
     [SerializeField] EnemySpawnUI _enemySpawnUI; // 적 스폰 UI
     [SerializeField] GameOverUI _gameOverUI;     // 게임오버 UI
+    [SerializeField] PauseUI _pauseUI;
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] int _playerLife = 3;       // 목숨
     //[SerializeField] float _gameOverDelay = 5f; // 게임오버 딜레이
@@ -31,6 +32,7 @@ public class GameScene : MonoBehaviour
     StageScene _currentStage; // 현재 스테이지
 
     bool _isGameOver;
+    bool _isPaused;
 
     private void Start()
     {
@@ -44,6 +46,7 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnToggleRightUIInput += HandleToggleRightUIInput;
         _inputSystemHandler.OnMapInput += HandleMapInput;
         _inputSystemHandler.OnFreeLookInput += HandleFreeLookInput;
+        _inputSystemHandler.OnPauseInput += HandlePauseInput;
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
         _gameOverUI.RestartRequested += HandleRestartStage;
@@ -160,6 +163,17 @@ public class GameScene : MonoBehaviour
     void HandleFreeLookInput(bool isFreeLook)
     {
         _player.SetAimLocked(isFreeLook);
+    }
+
+    /// <summary>
+    /// 일시정지
+    /// </summary>
+    void HandlePauseInput()
+    {
+        _isPaused = !_isPaused;
+        _pauseUI.SetActive(_isPaused);
+        Time.timeScale = _isPaused ? 0f : 1f;
+        Cursor.lockState = _isPaused ? CursorLockMode.None : CursorLockMode.Locked;
     }
 
     /// <summary>
