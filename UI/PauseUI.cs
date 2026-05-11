@@ -1,7 +1,33 @@
+using System;
 using UnityEngine;
 
 public class PauseUI : MonoBehaviour
 {
+    public event Action OnResumeClicked;    // 전투재개
+    public event Action OnRestartClicked;   // 재도전
+    public event Action OnMainMenuClicked;  // 메인메뉴
+    public event Action OnTutorialClicked;  // 튜토리얼
+
+    public void OnClickResume()
+    {
+        OnResumeClicked?.Invoke();
+    }
+
+    public void OnClickRestart()
+    {
+        OnRestartClicked?.Invoke();
+    }
+
+    public void OnClickMainMenu()
+    {
+        OnMainMenuClicked?.Invoke();
+    }
+
+    public void OnClickTutorial()
+    {
+        OnTutorialClicked?.Invoke();
+    }
+
     public void SetActive(bool active)
     {
         gameObject.SetActive(active);
