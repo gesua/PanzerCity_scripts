@@ -9,14 +9,9 @@ public class AutoBlink : MonoBehaviour
     [SerializeField] SkinnedMeshRenderer _face; // 움직일 얼굴
     [SerializeField] Animator _animator;
 
-    // 테스트중
-    //string _blinkStateName = "eye_close";
-    //int _faceLayerIndex = 1; // Face 레이어 인덱스
-
     const int EYE_INDEX = 0;
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _eyeCloseWight = 100f;
-    //[SerializeField] float _blinkSpan = 3f;     // 눈 깜빡임 간격
     [SerializeField] float _blinkSpeed = 0.1f;  // 눈 깜빡임 속도
 
     bool _isEyeClose;   // 눈 감았는지

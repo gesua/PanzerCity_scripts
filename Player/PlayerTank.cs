@@ -17,6 +17,7 @@ public class PlayerTank : TankBase
     [SerializeField] GameObject _destroyedVisual; // 파괴된 모델
     [SerializeField] GameObject _destroyedTurret; // 파괴된 포탑
     [SerializeField] GameObject _destroyedBarrel; // 파괴된 주포
+    [SerializeField] CommanderController _commander; // 전차장 캐릭터
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
 
@@ -153,21 +154,24 @@ public class PlayerTank : TankBase
 
         // 포탑 끄기
         _turret.enabled = false;
-
         // 조준점 숨기기
         _turret.SetCrosshairVisible(false);
-
         // 서서히 멈추기
         _mover.Stop();
 
-        // 모델 교체
+        // 전차장 세팅
+        _commander.transform.SetParent(transform);
+        // 전차장을 카메라 방향으로 회전
+        _commander.LookAtCamera();
+        // 슬픈 표정
+        _commander.SetSadFace();
+
+        // 파괴된 모델로 교체
         _normalVisual.SetActive(false);
         _destroyedVisual.SetActive(true);
-
         // 포탑 위치 맞춰줌
         _destroyedTurret.transform.localRotation = TurretTr.localRotation;
         _destroyedBarrel.transform.localRotation = _turret.BarrelTr.transform.localRotation;
-
         // 폭발 이펙트 재생
         GameManager.Instance.EffectManager.SpawnEffect(EffectType.SmallExplosion, TurretTr.position);
 
@@ -194,6 +198,11 @@ public class PlayerTank : TankBase
 
     IEnumerator RespawnRoutine(Vector3 spawnPos)
     {
+        // 전차장 초기화
+        _commander.transform.SetParent(TurretTr);
+        _commander.transform.rotation = Quaternion.identity;
+        _commander.ResetFace();
+
         // 카메라 이동
         _mover.Teleport(spawnPos, Quaternion.identity); // 시작 위치로
         _turret.ResetRotation(); // 포탑 초기화
