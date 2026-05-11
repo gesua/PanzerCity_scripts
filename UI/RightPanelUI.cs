@@ -14,6 +14,8 @@ public class RightPanelUI : MonoBehaviour
     bool _isHidden = false;
     Coroutine _slideRoutine;
 
+    public bool IsOpen => !_isHidden;
+
     void Awake()
     {
         _shownX = _panel.anchoredPosition.x;

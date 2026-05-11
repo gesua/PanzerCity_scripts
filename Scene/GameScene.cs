@@ -10,6 +10,7 @@ using UnityEngine.SceneManagement;
 public class GameScene : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
+    [SerializeField] Camera _mainCamera;
     [SerializeField] InputSystemHandler _inputSystemHandler;
     [SerializeField] PlayerTank _player;
     [SerializeField] CameraTarget _cameraTarget;
@@ -33,6 +34,9 @@ public class GameScene : MonoBehaviour
 
     bool _isGameOver;
     bool _isPaused;
+
+    // 카메라 w크기 관련
+    float _rightPanelPixelWidth = 350f; // 오른쪽 패널 픽셀 너비
 
     private void Start()
     {
@@ -62,6 +66,10 @@ public class GameScene : MonoBehaviour
 
         // 목숨 UI 갱신
         _gameInfoUI.UpdateLife(_playerLife);
+
+        // HACK:카메라 w값 조절(나중에 하기)
+        //bool isOpen = _rightPanelUI.IsOpen;
+        //UpdateCameraRect(isOpen);
     }
 
     // Stage 씬 로드 완료 후 StageScene 연결
@@ -151,6 +159,17 @@ public class GameScene : MonoBehaviour
     void HandleToggleRightUIInput()
     {
         _rightPanelUI.Toggle();
+        //bool isOpen = _rightPanelUI.IsOpen;
+        //UpdateCameraRect(isOpen);
+    }
+
+    /// <summary>
+    /// HACK:카메라 w값 조절(나중에 하기)
+    /// </summary>
+    void UpdateCameraRect(bool isPanelOpen)
+    {
+        float ratio = isPanelOpen ? 1f - (_rightPanelPixelWidth / Screen.width) : 1f;
+        _mainCamera.rect = new Rect(0f, 0f, ratio, 1f);
     }
 
     /// <summary>

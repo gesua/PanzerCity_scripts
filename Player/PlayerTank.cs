@@ -162,6 +162,7 @@ public class PlayerTank : TankBase
         // 전차장 세팅
         _commander.transform.SetParent(transform);
         // 전차장을 카메라 방향으로 회전
+        //_commander.SetLookAtCam(true);
         _commander.LookAtCamera();
         // 슬픈 표정
         _commander.SetSadFace();
@@ -200,8 +201,8 @@ public class PlayerTank : TankBase
     {
         // 전차장 초기화
         _commander.transform.SetParent(TurretTr);
-        _commander.transform.rotation = Quaternion.identity;
-        _commander.ResetFace();
+        _commander.transform.localRotation = Quaternion.identity;
+        _commander.Reset();
 
         // 카메라 이동
         _mover.Teleport(spawnPos, Quaternion.identity); // 시작 위치로

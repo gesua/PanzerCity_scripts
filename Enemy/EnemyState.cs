@@ -193,9 +193,13 @@ public class CombatState : EnemyState
         _attackTimer += Time.deltaTime;
         if (_attackTimer > _attackInterval)
         {
-            _attackTimer = 0f;
-            _attackInterval = Random.Range(_minAttackTime, _maxAttackTime);
-            _enemy.Attack();
+            if (_enemy.CanSeePlayer()) // 시야에 있을 때만 발사
+            {
+                _attackTimer = 0f;
+                _attackInterval = Random.Range(_minAttackTime, _maxAttackTime);
+
+                _enemy.Attack();
+            }
         }
     }
 

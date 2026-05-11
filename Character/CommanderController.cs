@@ -1,11 +1,13 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 전차장 캐릭터 제어
 /// 표정, 모션, 눈 깜빡임
 /// </summary>
 public class CommanderController : MonoBehaviour
-{[Header("----- 컴포넌트 -----")]
+{
+    [Header("----- 컴포넌트 -----")]
     [SerializeField] Animator _animator;
     [SerializeField] SkinnedMeshRenderer _face;
 
@@ -17,15 +19,16 @@ public class CommanderController : MonoBehaviour
 
     //[Header("----- BlendShape 인덱스 -----")]
     int _eyeBlkIndex = 0;
-    int _eyeSadIndex = 7;
-    int _blwSadIndex = 8;
-    int _mthDropIndex = 18;
+
+    int _faceLayer = 1;
 
     // 눈 깜빡임 관련
     bool _isEyeClose;
     bool _isBlinkStart;
     float _nextBlinkTime;
     float _blinkTimer;
+
+    bool _lookAtCam;
 
     void Start()
     {
@@ -34,8 +37,11 @@ public class CommanderController : MonoBehaviour
 
     void LateUpdate()
     {
+        if (_lookAtCam) LookAtCamera();
+
         EyeBlink();
     }
+
     void EyeBlink()
     {
         if (_isBlinkStart) // 눈 깜빡이기
@@ -91,19 +97,17 @@ public class CommanderController : MonoBehaviour
     /// </summary>
     public void SetSadFace()
     {
-        _face.SetBlendShapeWeight(_eyeSadIndex, 100f);
-        _face.SetBlendShapeWeight(_blwSadIndex, 100f);
-        _face.SetBlendShapeWeight(_mthDropIndex, 100f);
+        _animator.CrossFade("sad", 0.1f, _faceLayer);
     }
 
     /// <summary>
-    /// 표정 초기화
+    /// 초기화
     /// </summary>
-    public void ResetFace()
+    public void Reset()
     {
-        _face.SetBlendShapeWeight(_eyeSadIndex, 0f);
-        _face.SetBlendShapeWeight(_blwSadIndex, 0f);
-        _face.SetBlendShapeWeight(_mthDropIndex, 0f);
+        _lookAtCam = false;
+
+        _animator.CrossFade("default", 0.1f, _faceLayer);
     }
 
     /// <summary>
@@ -113,6 +117,11 @@ public class CommanderController : MonoBehaviour
     {
         Vector3 dirToCamera = Camera.main.transform.position - transform.position;
         dirToCamera.y = 0f;
-        transform.rotation = Quaternion.LookRotation(-dirToCamera);
+        transform.rotation = Quaternion.LookRotation(dirToCamera);
+    }
+
+    public void SetLookAtCam(bool active)
+    {
+        _lookAtCam = active;
     }
 }

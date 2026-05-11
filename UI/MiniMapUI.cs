@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 미니맵 UI
@@ -19,12 +20,16 @@ public class MiniMapUI : MonoBehaviour
 
     void Awake()
     {
+        // Canvas Scaler 기준 해상도 가져오기
+        CanvasScaler canvasScaler = GetComponentInParent<CanvasScaler>();
+        Vector2 referenceResolution = canvasScaler.referenceResolution;
+
         // 미니맵 세팅
         _smallSize = _miniMap.sizeDelta; // 현재 크기
-        _smallPos = new Vector2(Screen.width * 0.5f - _smallSize.x * 0.5f, -Screen.height * 0.5f + _smallSize.y * 0.5f); // 오른쪽 아래 위치
+        _smallPos = new Vector2(referenceResolution.x * 0.5f - _smallSize.x * 0.5f, -referenceResolution.y * 0.5f + _smallSize.y * 0.5f);
 
         // 확대맵 세팅
-        float screenSize = Mathf.Min(Screen.width, Screen.height);
+        float screenSize = Mathf.Min(referenceResolution.x, referenceResolution.y);
         _largeSize = new Vector2(screenSize, screenSize); // 해상도 최대 사이즈
         _largePos = Vector2.zero; // 화면 중앙
 
