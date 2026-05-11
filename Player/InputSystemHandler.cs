@@ -113,17 +113,15 @@ public class InputSystemHandler : MonoBehaviour
     // ESC키(일시정지 메뉴)
     public void HandlePauseInput(InputAction.CallbackContext context)
     {
-        TogglePause();
-
         if (context.performed) OnPauseInput?.Invoke();
     }
 
     /// <summary>
     /// 일시정지 시 입력 막아놓고 초기화
     /// </summary>
-    public void TogglePause()
+    public void SetPause(bool enabled)
     {
-        _isPaused = !_isPaused;
+        _isPaused = enabled;
 
         // 키 입력 초기화
         if (_isPaused)

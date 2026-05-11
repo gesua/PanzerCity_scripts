@@ -47,6 +47,10 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnMapInput += HandleMapInput;
         _inputSystemHandler.OnFreeLookInput += HandleFreeLookInput;
         _inputSystemHandler.OnPauseInput += HandlePauseInput;
+        _pauseUI.OnResumeClicked += HandlePauseInput;
+        _pauseUI.OnRestartClicked += HandleRestartStage;
+        _pauseUI.OnMainMenuClicked += HandleTitleRequested;
+        //_pauseUI.OnTutorialClicked += HandleTutorial;
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
         _gameOverUI.RestartRequested += HandleRestartStage;
@@ -171,6 +175,7 @@ public class GameScene : MonoBehaviour
     void HandlePauseInput()
     {
         _isPaused = !_isPaused;
+        _inputSystemHandler.SetPause(_isPaused);
         _pauseUI.SetActive(_isPaused);
         Time.timeScale = _isPaused ? 0f : 1f;
         Cursor.lockState = _isPaused ? CursorLockMode.None : CursorLockMode.Locked;
@@ -247,16 +252,12 @@ public class GameScene : MonoBehaviour
 
     IEnumerator RestartRoutine()
     {
-        /*// 로딩 씬 로드 HACK:로딩 바꾸는중
-        yield return SceneManager.LoadSceneAsync("Loading", LoadSceneMode.Additive);
-        
-        Scene loadingScene = SceneManager.GetSceneByName("Loading");
-        LoadingUI loadingUI = null;
-        foreach (GameObject obj in loadingScene.GetRootGameObjects())
-        {
-            loadingUI = obj.GetComponent<LoadingUI>();
-            if (loadingUI != null) break;
-        }*/
+        // 일시정지 관련 초기화
+        _isPaused = false;
+        _inputSystemHandler.SetPause(_isPaused);
+        _pauseUI.SetActive(_isPaused);
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.Locked;
 
         // 로딩 이미지 띄우기
         LoadingUI loadingUI = GameManager.Instance.LoadingUI;
@@ -273,11 +274,11 @@ public class GameScene : MonoBehaviour
         // Stage 씬 다시 로드
         AsyncOperation stageLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
 
-        // 로딩바 업데이트 HACK:로딩 바꾸는중
+        // 로딩바 업데이트
         yield return StartCoroutine(loadingUI.UpdateProgress(stageLoad));
 
         // 플레이어, 카메라, UI 초기화
-        _player.Respawn(_playerSpawnPoint);
+        //_player.Respawn(_playerSpawnPoint);
         _cameraTarget.ResetRotation();
         _playerLife = 3;
         _gameInfoUI.UpdateLife(_playerLife);
@@ -293,6 +294,8 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleTitleRequested()
     {
+        Time.timeScale = 1f;
+        UnsubscribeStage();
         SceneManager.LoadScene("Title");
     }
 }
