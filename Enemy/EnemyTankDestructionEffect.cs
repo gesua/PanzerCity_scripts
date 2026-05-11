@@ -9,6 +9,8 @@ public class EnemyTankDestructionEffect : MonoBehaviour
     [Header("----- 컴포넌트 -----")]
     [SerializeField] GameObject _model; // 원래 모델
     [SerializeField] GameObject _destroyedModel; // 파괴된 모델
+    [SerializeField] Transform _turretTr; // 원래 포탑
+    [SerializeField] Transform _destroyedTurretTr; // 파괴된 포탑
     [SerializeField] Transform[] _destroyedTr; // 파괴된 모델 트랜스폼
     [SerializeField] Rigidbody[] _destroyedRigids; // 파괴된 모델의 rigidbody들
     
@@ -35,13 +37,13 @@ public class EnemyTankDestructionEffect : MonoBehaviour
         _model.SetActive(false); // 원래 모델 비활성화
         _destroyedModel.SetActive(true); // 파괴된 모델 활성화
 
+        // 포탑 회전값 동기화
+        _destroyedTurretTr.rotation = _turretTr.rotation;
+
         // 자식 rigidbody 전부 날리기
         Rigidbody[] parts = _destroyedModel.GetComponentsInChildren<Rigidbody>();
         foreach (Rigidbody part in parts)
         {
-            //Vector3 dir = (part.transform.position - transform.position).normalized;
-            //part.AddForce(dir * _explosionForce, ForceMode.Impulse);
-
             part.AddExplosionForce(_explosionForce, transform.position, 1000f, 0f, ForceMode.Impulse);
         }
     }
