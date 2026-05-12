@@ -97,7 +97,10 @@ public class CommanderController : MonoBehaviour
     /// </summary>
     public void SetSadFace()
     {
-        _animator.CrossFade("sad", 0.1f, _faceLayer);
+        if (_animator.isActiveAndEnabled)
+        {
+            _animator.CrossFade("sad", 0.1f, _faceLayer);
+        }
     }
 
     /// <summary>
@@ -107,7 +110,10 @@ public class CommanderController : MonoBehaviour
     {
         _lookAtCam = false;
 
-        _animator.CrossFade("default", 0.1f, _faceLayer);
+        if (_animator.isActiveAndEnabled)
+        {
+            _animator.CrossFade("default", 0.1f, _faceLayer);
+        }
     }
 
     /// <summary>
