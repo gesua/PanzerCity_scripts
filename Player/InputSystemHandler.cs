@@ -17,6 +17,7 @@ public class InputSystemHandler : MonoBehaviour
     public event Action OnMapInput;
     public event Action<bool> OnFreeLookInput;
     public event Action OnPauseInput;
+    public event Action OnInventoryInput;
 
     bool _onAttack; // 좌클릭 상태 토글
     bool _isPaused;  // 일시정지 시 키입력 막음
@@ -101,7 +102,7 @@ public class InputSystemHandler : MonoBehaviour
         }
     }
 
-    // Alt키(조준점 고정, 카메라)
+    // Alt키(조준점 고정, 카메라, C키)
     public void HandleFreeLookInput(InputAction.CallbackContext context)
     {
         if (_isPaused) return;
@@ -129,5 +130,11 @@ public class InputSystemHandler : MonoBehaviour
             _cameraRotInput = Vector2.zero; // 카메라
             if (enabled) OnAttackInput?.Invoke(false); // 공격 상태
         }
+    }
+
+    // I키(인벤토리)
+    public void HandleInventoryInput(InputAction.CallbackContext context)
+    {
+        if (context.performed) OnInventoryInput?.Invoke();
     }
 }

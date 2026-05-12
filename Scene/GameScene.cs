@@ -24,7 +24,8 @@ public class GameScene : MonoBehaviour
     [SerializeField] GameInfoUI _gameInfoUI;     // 게임 정보 UI
     [SerializeField] EnemySpawnUI _enemySpawnUI; // 적 스폰 UI
     [SerializeField] GameOverUI _gameOverUI;     // 게임오버 UI
-    [SerializeField] PauseUI _pauseUI;
+    [SerializeField] PauseUI _pauseUI;           // 일시정지 UI
+    [SerializeField] InventoryUI _inventoryUI;   // 인벤토리 UI
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] int _playerLife = 3;       // 목숨
     //[SerializeField] float _gameOverDelay = 5f; // 게임오버 딜레이
@@ -55,6 +56,7 @@ public class GameScene : MonoBehaviour
         _pauseUI.OnRestartClicked += HandleRestartStage;
         _pauseUI.OnMainMenuClicked += HandleTitleRequested;
         //_pauseUI.OnTutorialClicked += HandleTutorial;
+        _inputSystemHandler.OnInventoryInput += HandleInventoryInput;
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
         _gameOverUI.RestartRequested += HandleRestartStage;
@@ -198,6 +200,14 @@ public class GameScene : MonoBehaviour
         _pauseUI.SetActive(_isPaused);
         Time.timeScale = _isPaused ? 0f : 1f;
         Cursor.lockState = _isPaused ? CursorLockMode.None : CursorLockMode.Locked;
+    }
+
+    /// <summary>
+    /// 인벤토리
+    /// </summary>
+    void HandleInventoryInput()
+    {
+        _inventoryUI.Toggle();
     }
 
     /// <summary>
