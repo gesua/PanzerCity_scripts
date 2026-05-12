@@ -33,6 +33,8 @@ public class Turret : MonoBehaviour
     Color _rearColor = new Color(0, 1f, 0, 0.3f);           // 초록
     Color _defaultColor = new Color(1f, 1f, 1f, 0.3f);      // 하양
 
+    EnemyTank _targetTank; // 실루엣 켜는 용도
+
     public Transform TurretTr => _turret;
     public Transform BarrelTr => _barrel;
     public Vector3 BarrelForward => _barrel.forward;
@@ -228,6 +230,13 @@ public class Turret : MonoBehaviour
     /// </summary>
     void UpdateCrosshairColor()
     {
+        // 이전 타겟 실루엣 끄기
+        if (_targetTank != null)
+        {
+            _targetTank.SetSilhouette(false);
+            _targetTank = null;
+        }
+
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, GetCurrentScreenY(), 0f));
         RaycastHit[] hits = Physics.RaycastAll(ray, 1000f, _aimLayerMask);
 
@@ -238,9 +247,16 @@ public class Turret : MonoBehaviour
         {
             if (hit.collider.tag == "Untagged") continue; // 없는 태그 무시
 
-            // HitZone이면 색 변경
+            // HitZone인지 확인
             if (hit.collider.TryGetComponent(out HitZone hitZone))
             {
+                // 실루엣 켜기
+                if(hitZone.Parent.TryGetComponent(out _targetTank))
+                {
+                    _targetTank.SetSilhouette(true);
+                }
+
+                // 조준점 색 변경
                 _centerCrosshairImage.color = hitZone.ZoneType switch
                 {
                     HitZoneType.Front => _frontColor,

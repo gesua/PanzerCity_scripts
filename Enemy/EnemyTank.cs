@@ -41,6 +41,7 @@ public class EnemyTank : TankBase
     [SerializeField] Rigidbody _rigid;
     [SerializeField] EnemyTankDestructionEffect _destructionEffect; // 파괴 연출
     [SerializeField] BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
+    [SerializeField] GameObject _silhouetteModel; // 조준시 보일 실루엣
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _roamSpan = 3f; // 최대 배회 간격
     [SerializeField] float _deadDuration = 5f; // 사망 상태 지속 시간
@@ -520,6 +521,14 @@ public class EnemyTank : TankBase
 
         // 자신 게임오브젝트 제거
         gameObject.DestroyOrReturnToPool();
+    }
+
+    /// <summary>
+    /// 실루엣 모델 켜기(가려진 부분만 보임)
+    /// </summary>
+    public void SetSilhouette(bool enable)
+    {
+        _silhouetteModel.SetActive(enable);
     }
 
     void OnDrawGizmos()

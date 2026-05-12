@@ -19,6 +19,7 @@ public class HitZone : MonoBehaviour, IDamageable
     [SerializeField] TankBase _parent;
     [SerializeField] HitZoneType _zoneType;
 
+    public TankBase Parent => _parent;
     public HitZoneType ZoneType => _zoneType;
 
     public void TakeHit(HitData hitData)
