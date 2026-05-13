@@ -18,6 +18,8 @@ public class InputSystemHandler : MonoBehaviour
     public event Action<bool> OnFreeLookInput;
     public event Action OnPauseInput;
     public event Action OnInventoryInput;
+    public event Action OnInteractInput;
+    public event Action<bool> OnCursorInput;
 
     bool _onAttack; // 좌클릭 상태 토글
     bool _isPaused;  // 일시정지 시 키입력 막음
@@ -136,5 +138,18 @@ public class InputSystemHandler : MonoBehaviour
     public void HandleInventoryInput(InputAction.CallbackContext context)
     {
         if (context.performed) OnInventoryInput?.Invoke();
+    }
+
+    // F키(상호작용, 아이템 줍기)
+    public void HandleInteractInput(InputAction.CallbackContext context)
+    {
+        if (context.performed) OnInteractInput?.Invoke();
+    }
+
+    // Ctrl키(마우스 커서 켬)
+    public void HandleCursorInput(InputAction.CallbackContext context)
+    {
+        if (context.started) OnCursorInput?.Invoke(true);
+        if (context.canceled) OnCursorInput?.Invoke(false);
     }
 }

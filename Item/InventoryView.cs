@@ -10,7 +10,6 @@ public class InventoryView : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
     [SerializeField] RectTransform _gridRoot;   // 그리드 루트
-    [SerializeField] GameObject _cellPrefab;    // 셀 프리팹
     [SerializeField] GameObject _itemPrefab;    // 아이템 프리팹
     [SerializeField] float _cellSize = 75f;     // 셀 크기
 

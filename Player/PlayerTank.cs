@@ -18,6 +18,7 @@ public class PlayerTank : TankBase
     [SerializeField] GameObject _destroyedTurret; // 파괴된 포탑
     [SerializeField] GameObject _destroyedBarrel; // 파괴된 주포
     [SerializeField] CommanderController _commander; // 전차장 캐릭터
+    [SerializeField] ItemPickup _itemPickup;
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
 
@@ -27,6 +28,7 @@ public class PlayerTank : TankBase
     int _prevHp; // 이전 체력(피격 확인용)
     bool _isDead; // 죽었는지
 
+    public ItemPickup ItemPickup => _itemPickup;
     public Transform TurretTr => _turret.TurretTr;
     public TankModel Model => _model;
     protected override bool ShowEffects => !_isSniperMode;

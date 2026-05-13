@@ -10,7 +10,6 @@ using UnityEngine.UI;
 public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
     [SerializeField] Image _icon;
-    [SerializeField] Image _background;
 
     public Action<Vector2> OnDragEnd;
     public Action OnClicked;

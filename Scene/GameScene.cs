@@ -36,6 +36,8 @@ public class GameScene : MonoBehaviour
     bool _isGameOver;
     bool _isPaused;
 
+    bool _OnCursor; // 마우스 커서 활성화 여부
+
     // 카메라 w크기 관련
     float _rightPanelPixelWidth = 350f; // 오른쪽 패널 픽셀 너비
 
@@ -52,11 +54,14 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnMapInput += HandleMapInput;
         _inputSystemHandler.OnFreeLookInput += HandleFreeLookInput;
         _inputSystemHandler.OnPauseInput += HandlePauseInput;
+        _rightPanelUI.OnPauseClicked += HandlePauseInput;
         _pauseUI.OnResumeClicked += HandlePauseInput;
         _pauseUI.OnRestartClicked += HandleRestartStage;
         _pauseUI.OnMainMenuClicked += HandleTitleRequested;
         //_pauseUI.OnTutorialClicked += HandleTutorial;
         _inputSystemHandler.OnInventoryInput += HandleInventoryInput;
+        _inputSystemHandler.OnInteractInput += HandleInteractInput;
+        _inputSystemHandler.OnCursorInput += HandleCursorInput;
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
         _gameOverUI.RestartRequested += HandleRestartStage;
@@ -68,6 +73,9 @@ public class GameScene : MonoBehaviour
 
         // 목숨 UI 갱신
         _gameInfoUI.UpdateLife(_playerLife);
+
+        // 인벤토리 초기화
+        _player.ItemPickup.Initialize(_inventoryUI.Presenter);
 
         // HACK:카메라 w값 조절(나중에 하기)
         //bool isOpen = _rightPanelUI.IsOpen;
@@ -116,6 +124,9 @@ public class GameScene : MonoBehaviour
         _currentStage = null;
     }
 
+    /// <summary>
+    /// 이동
+    /// </summary>
     void HandleMoveInput(Vector2 inputVector)
     {
         // x,y 축을 x,z축으로 변경
@@ -123,8 +134,13 @@ public class GameScene : MonoBehaviour
         _player.Move(moveVector);
     }
 
+    /// <summary>
+    /// 카메라
+    /// </summary>
     void HandleCameraRotateInput(Vector2 inputVector)
     {
+        if (_OnCursor) return; // 커서 보일 땐 잠금
+
         _cameraTarget.Rotate(inputVector);
     }
 
@@ -133,6 +149,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleAttackInput(bool isAttack)
     {
+        if (_OnCursor) return; // 커서 보일 땐 잠금
         if (_player.IsDead) return;
 
         _player.SetIsAttack(isAttack);
@@ -199,6 +216,8 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.SetPause(_isPaused);
         _pauseUI.SetActive(_isPaused);
         Time.timeScale = _isPaused ? 0f : 1f;
+
+        _OnCursor = _isPaused;
         Cursor.lockState = _isPaused ? CursorLockMode.None : CursorLockMode.Locked;
     }
 
@@ -208,6 +227,26 @@ public class GameScene : MonoBehaviour
     void HandleInventoryInput()
     {
         _inventoryUI.Toggle();
+    }
+
+    /// <summary>
+    /// 상호작용
+    /// </summary>
+    void HandleInteractInput()
+    {
+        _player.ItemPickup.TryPickup();
+    }
+
+    /// <summary>
+    /// 커서 보이기
+    /// </summary>
+    void HandleCursorInput(bool isActive)
+    {
+        if (_isPaused) return; // 일시정지 중엔 항상 보이기
+
+        _OnCursor = isActive;
+        Cursor.lockState = isActive ? CursorLockMode.None : CursorLockMode.Locked;
+        _player.SetIsAttack(false); // 자동 공격중인거 취소
     }
 
     /// <summary>

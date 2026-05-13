@@ -6,8 +6,7 @@ using UnityEngine;
 public class DroppedItem : MonoBehaviour
 {
     [SerializeField] SpriteRenderer _icon;
-
-    ItemConfig _itemConfig;
+    [SerializeField] ItemConfig _itemConfig;
 
     public ItemConfig ItemConfig => _itemConfig;
 
@@ -17,8 +16,13 @@ public class DroppedItem : MonoBehaviour
         _icon.sprite = itemConfig.IconSprite;
     }
 
+    /// <summary>
+    /// 획득
+    /// </summary>
     public void Pickup()
     {
-        gameObject.DestroyOrReturnToPool();
+        Debug.Log("아이템 풀로 되돌아감");
+
+        //gameObject.DestroyOrReturnToPool();
     }
 }

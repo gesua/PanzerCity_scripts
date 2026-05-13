@@ -4,7 +4,7 @@ using UnityEngine;
 /// 아이템 클릭, 드래그앤드롭 입력을 받아서 InventoryModel에 전달
 /// InventoryModel 변경 사항을 InventoryView에 반영
 /// </summary>
-public class InventoryPresenter : MonoBehaviour
+public class InventoryPresenter
 {
     InventoryModel _model;
     InventoryView _view;

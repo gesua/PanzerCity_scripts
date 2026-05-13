@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -8,6 +9,8 @@ public class RightPanelUI : MonoBehaviour
 {
     [SerializeField] float _slideDuration = 0.3f;
     [SerializeField] RectTransform _panel;
+
+    public event Action OnPauseClicked;
 
     float _hiddenX;  // 숨겨진 위치 (오른쪽 밖)
     float _shownX;   // 보여지는 위치
@@ -50,5 +53,10 @@ public class RightPanelUI : MonoBehaviour
         }
 
         _panel.anchoredPosition = new Vector2(targetX, _panel.anchoredPosition.y);
+    }
+
+    public void OnClickPause()
+    {
+        OnPauseClicked?.Invoke();
     }
 }

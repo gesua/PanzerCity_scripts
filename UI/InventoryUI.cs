@@ -6,11 +6,25 @@ using UnityEngine.UI;
 /// </summary>
 public class InventoryUI : MonoBehaviour
 {
+    [SerializeField] InventoryView _inventoryView;
+    [SerializeField] int _width = 4;
+    [SerializeField] int _height = 5;
+    [Header("----- 이미지 관련 -----")]
     [SerializeField] Sprite _open;  // 열린거
     [SerializeField] Sprite _close; // 닫힌거
     [SerializeField] Image _btnImg; // 가방 버튼 이미지
 
+    InventoryModel _inventoryModel;
+    InventoryPresenter _inventoryPresenter;
+    public InventoryPresenter Presenter => _inventoryPresenter;
+
     bool _isActive;
+
+    void Awake()
+    {
+        _inventoryModel = new InventoryModel(_width, _height);
+        _inventoryPresenter = new InventoryPresenter(_inventoryModel, _inventoryView);
+    }
 
     /// <summary>
     /// 창 토글
