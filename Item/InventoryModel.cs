@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -16,6 +17,7 @@ public class InventoryModel
     // 인벤토리에 있는 아이템 목록
     List<ItemModel> _items = new List<ItemModel>();
 
+    public int Width => _width;
     public IReadOnlyList<ItemModel> Items => _items;
 
     public InventoryModel(int width, int height)

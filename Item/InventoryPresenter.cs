@@ -14,8 +14,10 @@ public class InventoryPresenter
         _model = model;
         _view = view;
 
+        _view.Initialize(_model.Width);
         _view.OnItemMoved += HandleItemMoved;
         _view.OnItemClicked += HandleItemClicked;
+        _view.OnItemDragging += HandleItemDragging;
     }
 
     /// <summary>
@@ -51,8 +53,9 @@ public class InventoryPresenter
         else
         {
             // 이동 실패 시 원래 위치로 복구
-            _view.UpdateItemViewPosition(item);
+            _view.ResetItemViewPosition(item);
         }
+        _view.ResetCellColors();
     }
 
     /// <summary>
@@ -73,5 +76,14 @@ public class InventoryPresenter
     {
         // HACK:아이템 효과 처리는 나중에 추가
         RemoveItem(item);
+    }
+
+    /// <summary>
+    /// 드래그 중 셀 색상 업데이트
+    /// </summary>
+    void HandleItemDragging(ItemModel item, Vector2Int hoverPos)
+    {
+        bool isValid = _model.CanPlace(item, hoverPos);
+        _view.UpdateCellColors(item, hoverPos, isValid);
     }
 }

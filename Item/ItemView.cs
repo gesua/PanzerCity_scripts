@@ -5,18 +5,19 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 아이템을 화면에 표시
-/// ItemModel을 받아서 아이콘, 수량 텍스트 등을 UI로 보여줌
+/// ItemModel을 받아서 아이콘을 UI로 보여줌
 /// </summary>
 public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
     [SerializeField] Image _icon;
 
     public Action<Vector2> OnDragEnd;
+    public Action<Vector2> OnDragging;  // 드래그 중 위치 전달
+    public Action OnDragCanceled;       // 드래그 취소
     public Action OnClicked;
 
     ItemModel _item;
     float _cellSize;
-
     RectTransform _rectTransform;
     Canvas _canvas;
     Transform _originalParent;
@@ -49,6 +50,9 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        // 이거 안 해놓으면 드래그가 아니라 OnPointerClick로 들어옴
+        _icon.raycastTarget = false; // 본인 RayCast 막아놓음
+
         _originalParent = transform.parent;
         _originalPos = _rectTransform.anchoredPosition;
 
@@ -59,12 +63,23 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     public void OnDrag(PointerEventData eventData)
     {
         _rectTransform.anchoredPosition += eventData.delta / _canvas.scaleFactor;
+        OnDragging?.Invoke(eventData.position); // 드래그 중 위치 전달
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        transform.SetParent(_originalParent);
+        _icon.raycastTarget = true;
+
+        // 드롭 대상이 없으면 취소
+        if (eventData.pointerCurrentRaycast.gameObject == null)
+        {
+            OnDragCanceled?.Invoke();
+            ResetPosition();
+            return;
+        }
+
         OnDragEnd?.Invoke(eventData.position);
+        transform.SetParent(_originalParent);
     }
 
     public void OnPointerClick(PointerEventData eventData)

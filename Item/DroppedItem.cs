@@ -21,7 +21,7 @@ public class DroppedItem : MonoBehaviour
     /// </summary>
     public void Pickup()
     {
-        Debug.Log("아이템 풀로 되돌아감");
+        Debug.Log("아이템 풀로 되돌아감 // 현재 막아놓음");
 
         //gameObject.DestroyOrReturnToPool();
     }
