@@ -10,6 +10,7 @@ public class InventoryView : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
     [SerializeField] RectTransform _itemContainer;  // 아이템 뷰 배치할 레이어
+    [SerializeField] CanvasGroup _canvasGroup; // Raycast 막는 용도
     [SerializeField] GameObject _itemPrefab; // 아이템 프리팹
     [SerializeField] GridCell[] _cells;      // 미리 만들어둔 셀들
     [SerializeField] float _cellSize = 75f;  // 셀 크기
@@ -181,5 +182,13 @@ public class InventoryView : MonoBehaviour
             if (cell.GridPos == pos) return cell;
         }
         return null;
+    }
+
+    /// <summary>
+    /// ItemView들 blocksRaycasts
+    /// </summary>
+    public void SetItemContainerRaycast(bool blocksRaycasts)
+    {
+        _canvasGroup.blocksRaycasts = blocksRaycasts;
     }
 }

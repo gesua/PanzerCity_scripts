@@ -30,6 +30,7 @@ public class InventoryPresenter
     /// </summary>
     void HandleDragBegin(ItemModel item, Vector2 screenPos)
     {
+        _view.SetItemContainerRaycast(false);
         _draggingItem.Show(item.Config.IconSprite, screenPos, GetItemSize(item));
     }
 
@@ -46,6 +47,7 @@ public class InventoryPresenter
     /// </summary>
     void HandleDragEnd()
     {
+        _view.SetItemContainerRaycast(true);
         _draggingItem.Hide();
     }
 

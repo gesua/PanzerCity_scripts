@@ -467,6 +467,8 @@ public class EnemyTank : TankBase
         Vector3 dir = (nextPoint - transform.position).normalized;
         dir.y = 0f;
 
+        if (dir.sqrMagnitude < Mathf.Epsilon) return;
+
         // 목표 방향으로 회전
         Quaternion targetRotation = Quaternion.LookRotation(dir);
         transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _model.RotSpeed * Time.fixedDeltaTime);
