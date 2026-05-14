@@ -17,7 +17,7 @@ public class InventoryPresenter
         _view.Initialize(_model.Width);
         _view.OnItemMoved += HandleItemMoved;
         _view.OnItemClicked += HandleItemClicked;
-        _view.OnItemDragging += HandleItemDragging;
+        _view.OnCanPlace = (item, pos) => _model.CanPlace(item, pos);
     }
 
     /// <summary>
@@ -76,16 +76,5 @@ public class InventoryPresenter
     {
         // HACK:아이템 효과 처리는 나중에 추가
         RemoveItem(item);
-    }
-
-    /// <summary>
-    /// 드래그 중 셀 색상 업데이트
-    /// </summary>
-    void HandleItemDragging(ItemModel item, Vector2Int hoverPos)
-    {
-        Debug.Log("hoverPos : " + hoverPos);
-
-        bool isValid = _model.CanPlace(item, hoverPos);
-        _view.UpdateCellColors(item, hoverPos, isValid);
     }
 }

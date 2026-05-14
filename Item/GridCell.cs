@@ -6,7 +6,7 @@ using UnityEngine.UI;
 /// 인벤토리 그리드 1칸
 /// 놓을 수 있는 위치인지 색 변경, 드롭 인식
 /// </summary>
-public class GridCell : MonoBehaviour, IDropHandler
+public class GridCell : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] Image _background;
 
@@ -16,6 +16,8 @@ public class GridCell : MonoBehaviour, IDropHandler
 
     Vector2Int _gridPos;
     public System.Action<ItemView, Vector2Int> OnDropped;
+    public System.Action<Vector2Int> OnHoverEnter;
+    public System.Action OnHoverExit;
 
     public Vector2Int GridPos => _gridPos;
 
@@ -24,12 +26,30 @@ public class GridCell : MonoBehaviour, IDropHandler
         _gridPos = gridPos;
     }
 
+    /// <summary>
+    /// 드롭
+    /// </summary>
     public void OnDrop(PointerEventData eventData)
     {
         ItemView itemView = eventData.pointerDrag?.GetComponent<ItemView>();
         if (itemView == null) return;
-        Debug.Log("드롭된 셀 : " + transform.position);
         OnDropped?.Invoke(itemView, _gridPos);
+    }
+
+    /// <summary>
+    /// 드래그 중에 마우스 들어온거 체크
+    /// </summary>
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (eventData.dragging) OnHoverEnter?.Invoke(GridPos);
+    }
+
+    /// <summary>
+    /// 드래그 중에 마우스 나간거 체크
+    /// </summary>
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (eventData.dragging) OnHoverExit?.Invoke();
     }
 
     public void SetNormal()
@@ -39,8 +59,6 @@ public class GridCell : MonoBehaviour, IDropHandler
 
     public void SetValid()
     {
-        Debug.Log("초록색 셀 : " + transform.position);
-
         _background.color = _validColor;
     }
 

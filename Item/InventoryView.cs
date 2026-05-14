@@ -1,5 +1,6 @@
-using UnityEngine;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// 그리드 UI를 표시하고 드래그앤드롭 입력 처리
@@ -12,11 +13,14 @@ public class InventoryView : MonoBehaviour
     [SerializeField] GridCell[] _cells;      // 미리 만들어둔 셀들
     [SerializeField] float _cellSize = 75f;  // 셀 크기
 
+    ItemModel _draggingItem;
+
     Dictionary<ItemModel, ItemView> _itemViews = new();
 
-    public System.Action<ItemModel, Vector2Int> OnItemMoved;    // 아이템 이동
-    public System.Action<ItemModel, Vector2Int> OnItemDragging; // 아이템 드래그중
-    public System.Action<ItemModel> OnItemClicked;              // 아이템 클릭
+    public Action<ItemModel, Vector2Int> OnItemMoved;    // 아이템 이동
+    public Action<ItemModel, Vector2Int> OnItemDragging; // 아이템 드래그중
+    public Action<ItemModel> OnItemClicked;              // 아이템 클릭
+    public Func<ItemModel, Vector2Int, bool> OnCanPlace; // 놓을 수 있는 위치인지 체크
 
     public void Initialize(int width)
     {
@@ -27,6 +31,8 @@ public class InventoryView : MonoBehaviour
             int y = i / width;
             _cells[i].Initialize(new Vector2Int(x, y));
             _cells[i].OnDropped += HandleDrop;
+            _cells[i].OnHoverEnter += HandleHoverEnter;
+            _cells[i].OnHoverExit += HandleHoverExit;
         }
     }
 
@@ -37,6 +43,18 @@ public class InventoryView : MonoBehaviour
     {
         ItemModel item = GetItemByView(itemView);
         if (item != null) OnItemMoved?.Invoke(item, gridPos);
+    }
+
+    void HandleHoverEnter(Vector2Int gridPos)
+    {
+        if (_draggingItem == null) return;
+        bool isValid = OnCanPlace?.Invoke(_draggingItem, gridPos) ?? false;
+        UpdateCellColors(_draggingItem, gridPos, isValid);
+    }
+
+    void HandleHoverExit()
+    {
+        ResetCellColors();
     }
 
     /// <summary>
@@ -60,7 +78,8 @@ public class InventoryView : MonoBehaviour
         ItemView itemView = itemGo.GetComponent<ItemView>();
         itemView.Initialize(item, _cellSize);
         itemView.OnClicked += () => OnItemClicked?.Invoke(item);
-        itemView.OnDragging += (pos) => OnItemDragging?.Invoke(item, ScreenToGridPos(pos));
+        itemView.OnDragBegin += () => _draggingItem = item;
+        itemView.OnDragEnded += () => _draggingItem = null;
         itemView.OnDragCanceled += ResetCellColors;
         _itemViews[item] = itemView;
         UpdateItemViewPosition(item);
@@ -142,19 +161,5 @@ public class InventoryView : MonoBehaviour
             if (cell.GridPos == pos) return cell;
         }
         return null;
-    }
-
-    /// <summary>
-    /// 스크린 좌표를 그리드 좌표로 변환
-    /// </summary>
-    Vector2Int ScreenToGridPos(Vector2 screenPos)
-    {
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(_itemContainer, screenPos, null, out Vector2 localPos);
-
-        Debug.Log("드래그 위치 " + localPos);
-
-        int x = Mathf.FloorToInt(localPos.x / _cellSize);
-        int y = Mathf.FloorToInt(-localPos.y / _cellSize);
-        return new Vector2Int(x, y);
     }
 }

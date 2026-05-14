@@ -10,17 +10,19 @@ using UnityEngine.UI;
 public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
     [SerializeField] Image _icon;
+    [SerializeField] GameObject _dummy;
 
-    public Action<Vector2> OnDragEnd;
-    public Action<Vector2> OnDragging;  // 드래그 중 위치 전달
-    public Action OnDragCanceled;       // 드래그 취소
-    public Action OnClicked;
+    public Action OnDragBegin;    // 드래그 시작
+    public Action OnDragEnded;    // 드래그 끝
+    public Action OnDragCanceled; // 드래그 취소
+    public Action OnClicked;      // 클릭
 
     ItemModel _item;
     float _cellSize;
     RectTransform _rectTransform;
     Canvas _canvas;
     Vector2 _originalPos;
+
 
     void Awake()
     {
@@ -49,6 +51,8 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        OnDragBegin?.Invoke();
+
         // 이거 안 해놓으면 드래그가 아니라 OnPointerClick로 들어옴
         _icon.raycastTarget = false; // 본인 RayCast 막아놓음
 
@@ -60,12 +64,12 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnDrag(PointerEventData eventData)
     {
-        _rectTransform.anchoredPosition += eventData.delta / _canvas.scaleFactor;
-        OnDragging?.Invoke(eventData.position); // 드래그 중 위치 전달
+        throw new NotImplementedException();
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        OnDragEnded?.Invoke();
         _icon.raycastTarget = true;
 
         // 드롭 대상이 없으면 취소
@@ -75,9 +79,6 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             ResetPosition();
             return;
         }
-
-        transform.localScale = Vector3.one;
-        OnDragEnd?.Invoke(eventData.position);
     }
 
     public void OnPointerClick(PointerEventData eventData)
