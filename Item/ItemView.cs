@@ -20,7 +20,6 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     float _cellSize;
     RectTransform _rectTransform;
     Canvas _canvas;
-    Transform _originalParent;
     Vector2 _originalPos;
 
     void Awake()
@@ -53,11 +52,10 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         // 이거 안 해놓으면 드래그가 아니라 OnPointerClick로 들어옴
         _icon.raycastTarget = false; // 본인 RayCast 막아놓음
 
-        _originalParent = transform.parent;
         _originalPos = _rectTransform.anchoredPosition;
 
         // 드래그 중 최상위로 올리기
-        transform.SetParent(_canvas.transform);
+        transform.SetAsLastSibling();
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -78,8 +76,8 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             return;
         }
 
+        transform.localScale = Vector3.one;
         OnDragEnd?.Invoke(eventData.position);
-        transform.SetParent(_originalParent);
     }
 
     public void OnPointerClick(PointerEventData eventData)

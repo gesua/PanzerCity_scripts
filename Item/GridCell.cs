@@ -10,9 +10,9 @@ public class GridCell : MonoBehaviour, IDropHandler
 {
     [SerializeField] Image _background;
 
-    static readonly Color _normalColor = new Color(1f, 1f, 1f);
-    static readonly Color _validColor = new Color(0f, 1f, 0f);
-    static readonly Color _invalidColor = new Color(1f, 0f, 0f);
+    static readonly Color _normalColor = new Color(1f, 1f, 1f);  // 기본(파랑)
+    static readonly Color _validColor = new Color(0f, 1f, 0f);   // 초록
+    static readonly Color _invalidColor = new Color(1f, 0f, 0f); // 빨강
 
     Vector2Int _gridPos;
     public System.Action<ItemView, Vector2Int> OnDropped;
@@ -28,7 +28,7 @@ public class GridCell : MonoBehaviour, IDropHandler
     {
         ItemView itemView = eventData.pointerDrag?.GetComponent<ItemView>();
         if (itemView == null) return;
-        Debug.Log("드롭된 셀 위치: " + GridPos);
+        Debug.Log("드롭된 셀 : " + transform.position);
         OnDropped?.Invoke(itemView, _gridPos);
     }
 
@@ -39,6 +39,8 @@ public class GridCell : MonoBehaviour, IDropHandler
 
     public void SetValid()
     {
+        Debug.Log("초록색 셀 : " + transform.position);
+
         _background.color = _validColor;
     }
 

@@ -150,6 +150,9 @@ public class InventoryView : MonoBehaviour
     Vector2Int ScreenToGridPos(Vector2 screenPos)
     {
         RectTransformUtility.ScreenPointToLocalPointInRectangle(_itemContainer, screenPos, null, out Vector2 localPos);
+
+        Debug.Log("드래그 위치 " + localPos);
+
         int x = Mathf.FloorToInt(localPos.x / _cellSize);
         int y = Mathf.FloorToInt(-localPos.y / _cellSize);
         return new Vector2Int(x, y);

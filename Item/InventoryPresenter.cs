@@ -83,6 +83,8 @@ public class InventoryPresenter
     /// </summary>
     void HandleItemDragging(ItemModel item, Vector2Int hoverPos)
     {
+        Debug.Log("hoverPos : " + hoverPos);
+
         bool isValid = _model.CanPlace(item, hoverPos);
         _view.UpdateCellColors(item, hoverPos, isValid);
     }
