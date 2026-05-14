@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -15,9 +16,9 @@ public class GridCell : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
     static readonly Color _invalidColor = new Color(1f, 0f, 0f); // 빨강
 
     Vector2Int _gridPos;
-    public System.Action<ItemView, Vector2Int> OnDropped;
-    public System.Action<Vector2Int> OnHoverEnter;
-    public System.Action OnHoverExit;
+    public Action<ItemView, Vector2Int> OnDropped;
+    public Action<Vector2Int> OnHoverEnter;
+    public Action OnHoverExit;
 
     public Vector2Int GridPos => _gridPos;
 

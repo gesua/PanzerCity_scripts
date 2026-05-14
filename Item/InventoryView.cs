@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 그리드 UI를 표시하고 드래그앤드롭 입력 처리
+/// 아이템 컨테이너
+/// GridCell과 ItemView들 관리
 /// </summary>
 public class InventoryView : MonoBehaviour
 {
@@ -13,14 +14,19 @@ public class InventoryView : MonoBehaviour
     [SerializeField] GridCell[] _cells;      // 미리 만들어둔 셀들
     [SerializeField] float _cellSize = 75f;  // 셀 크기
 
-    ItemModel _draggingItem;
+    ItemModel _draggingItem; // 드래그 중인 아이템
 
     Dictionary<ItemModel, ItemView> _itemViews = new();
 
+    public Action<ItemModel, Vector2> OnDragBegin;
+    public Action<Vector2> OnDragMove;
+    public Action OnDragEnd;
     public Action<ItemModel, Vector2Int> OnItemMoved;    // 아이템 이동
     public Action<ItemModel, Vector2Int> OnItemDragging; // 아이템 드래그중
     public Action<ItemModel> OnItemClicked;              // 아이템 클릭
     public Func<ItemModel, Vector2Int, bool> OnCanPlace; // 놓을 수 있는 위치인지 체크
+
+    public float CellSize => _cellSize;
 
     public void Initialize(int width)
     {
@@ -78,9 +84,23 @@ public class InventoryView : MonoBehaviour
         ItemView itemView = itemGo.GetComponent<ItemView>();
         itemView.Initialize(item, _cellSize);
         itemView.OnClicked += () => OnItemClicked?.Invoke(item);
-        itemView.OnDragBegin += () => _draggingItem = item;
-        itemView.OnDragEnded += () => _draggingItem = null;
-        itemView.OnDragCanceled += ResetCellColors;
+        itemView.OnDragBegin += (pos) =>
+        {
+            _draggingItem = item;
+            OnDragBegin?.Invoke(item, pos);
+        };
+        itemView.OnDragging += (pos) => OnDragMove?.Invoke(pos);
+        itemView.OnDragEnded += () =>
+        {
+            _draggingItem = null;
+            OnDragEnd?.Invoke();
+        };
+        itemView.OnDragCanceled += () =>
+        {
+            _draggingItem = null;
+            OnDragEnd?.Invoke();
+            ResetCellColors();
+        };
         _itemViews[item] = itemView;
         UpdateItemViewPosition(item);
     }

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 /// </summary>
 public class InventoryUI : MonoBehaviour
 {
+    [SerializeField] DraggingItem _draggingItem;
     [SerializeField] InventoryView _inventoryView;
     [SerializeField] int _width = 4;
     [SerializeField] int _height = 5;
@@ -23,7 +24,7 @@ public class InventoryUI : MonoBehaviour
     void Awake()
     {
         _inventoryModel = new InventoryModel(_width, _height);
-        _inventoryPresenter = new InventoryPresenter(_inventoryModel, _inventoryView);
+        _inventoryPresenter = new InventoryPresenter(_inventoryModel, _inventoryView, _draggingItem);
     }
 
     /// <summary>

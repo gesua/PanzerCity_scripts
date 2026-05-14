@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// 아이템을 화면에 표시
+/// 개별 아이템
 /// ItemModel을 받아서 아이콘을 UI로 보여줌
 /// </summary>
 public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
@@ -12,10 +12,11 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     [SerializeField] Image _icon;
     [SerializeField] GameObject _dummy;
 
-    public Action OnDragBegin;    // 드래그 시작
-    public Action OnDragEnded;    // 드래그 끝
-    public Action OnDragCanceled; // 드래그 취소
-    public Action OnClicked;      // 클릭
+    public Action<Vector2> OnDragBegin; // 드래그 시작
+    public Action<Vector2> OnDragging;  // 드래그 중
+    public Action OnDragEnded;          // 드래그 끝
+    public Action OnDragCanceled;       // 드래그 취소
+    public Action OnClicked;            // 클릭
 
     ItemModel _item;
     float _cellSize;
@@ -51,10 +52,8 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        OnDragBegin?.Invoke();
-
-        // 이거 안 해놓으면 드래그가 아니라 OnPointerClick로 들어옴
-        _icon.raycastTarget = false; // 본인 RayCast 막아놓음
+        OnDragBegin?.Invoke(eventData.position);
+        _icon.enabled = false;
 
         _originalPos = _rectTransform.anchoredPosition;
 
@@ -64,13 +63,13 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnDrag(PointerEventData eventData)
     {
-        throw new NotImplementedException();
+        OnDragging?.Invoke(eventData.position);
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         OnDragEnded?.Invoke();
-        _icon.raycastTarget = true;
+        _icon.enabled = true;
 
         // 드롭 대상이 없으면 취소
         if (eventData.pointerCurrentRaycast.gameObject == null)
