@@ -6,6 +6,7 @@ using UnityEngine.UI;
 /// </summary>
 public class InventoryUI : MonoBehaviour
 {
+    [SerializeField] CanvasGroup _group;
     [SerializeField] DraggingItem _draggingItem;
     [SerializeField] InventoryView _inventoryView;
     [SerializeField] int _width = 4;
@@ -33,7 +34,9 @@ public class InventoryUI : MonoBehaviour
     public void Toggle()
     {
         _isActive = !_isActive;
-        gameObject.SetActive(_isActive);
+        _group.alpha = _isActive ? 1f : 0f;
+        _group.interactable = _isActive;
+        _group.blocksRaycasts = _isActive;
 
         // 가방 이미지 변경
         if (_isActive) _btnImg.sprite = _open;
