@@ -21,14 +21,12 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     ItemModel _item;
     float _cellSize;
     RectTransform _rectTransform;
-    Canvas _canvas;
     Vector2 _originalPos;
 
 
     void Awake()
     {
         _rectTransform = GetComponent<RectTransform>();
-        _canvas = GetComponentInParent<Canvas>();
     }
 
     public void Initialize(ItemModel item, float cellSize)

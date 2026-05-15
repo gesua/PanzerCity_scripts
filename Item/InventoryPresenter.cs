@@ -10,6 +10,8 @@ public class InventoryPresenter
     InventoryView _view;
     DraggingItem _draggingItem;
 
+    public bool IsDragging => _draggingItem != null;
+
     public InventoryPresenter(InventoryModel model, InventoryView view, DraggingItem draggingItem)
     {
         _model = model;
@@ -49,6 +51,14 @@ public class InventoryPresenter
     {
         _view.SetItemContainerRaycast(true);
         _draggingItem.Hide();
+    }
+
+    /// <summary>
+    /// 드래그 끝(외부용)
+    /// </summary>
+    public void EndDrag()
+    {
+        HandleDragEnd();
     }
 
     /// <summary>

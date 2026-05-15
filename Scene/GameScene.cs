@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 /// <summary>
@@ -247,6 +248,17 @@ public class GameScene : MonoBehaviour
         _OnCursor = isActive;
         Cursor.lockState = isActive ? CursorLockMode.None : CursorLockMode.Locked;
         _player.SetIsAttack(false); // 자동 공격중인거 취소
+
+        // 커서 사라질 때 드래그 중이면 강제 드롭
+        if(isActive == false && _inventoryUI.Presenter.IsDragging)
+        {
+            //_inventoryUI.Presenter.EndDrag();
+            Debug.Log("드래그 강제 종료");
+            EventSystem.current.SetSelectedGameObject(null);
+            // 현재 드래그 중인 PointerEventData를 강제 종료
+            PointerEventData pointerData = new PointerEventData(EventSystem.current);
+            ExecuteEvents.Execute(EventSystem.current.currentSelectedGameObject, pointerData, ExecuteEvents.endDragHandler);
+        }
     }
 
     /// <summary>
