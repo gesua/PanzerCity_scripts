@@ -15,7 +15,7 @@ public class AudioManager : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
     [SerializeField] AudioSource _bgmAs; // 배경음악 오디오소스
-    [SerializeField] AudioSource _sfxAs; // 효과음 오이오소스
+    [SerializeField] AudioSource _sfxAs; // 효과음 오디오소스
     [Header("----- 리소스 -----")]
     [SerializeField] AudioClip[] _bgmClips; // 배경음악 클립
     [SerializeField] AudioClip[] _sfxClips; // 효과음 클립
