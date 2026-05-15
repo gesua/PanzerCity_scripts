@@ -29,6 +29,7 @@ public class CommanderController : MonoBehaviour
     float _blinkTimer;
 
     bool _lookAtCam;
+    bool _isDead; // 사망 상태시 항상 슬픈 표정
 
     void Start()
     {
@@ -42,6 +43,9 @@ public class CommanderController : MonoBehaviour
         EyeBlink();
     }
 
+    /// <summary>
+    /// 눈 깜빡임
+    /// </summary>
     void EyeBlink()
     {
         if (_isBlinkStart) // 눈 깜빡이기
@@ -93,6 +97,14 @@ public class CommanderController : MonoBehaviour
     }
 
     /// <summary>
+    /// 사망 상태로 변경
+    /// </summary>
+    public void SetDead()
+    {
+        _isDead = true;
+    }
+
+    /// <summary>
     /// 슬픈 표정
     /// </summary>
     public void SetSadFace()
@@ -108,6 +120,7 @@ public class CommanderController : MonoBehaviour
     /// </summary>
     public void Reset()
     {
+        _isDead = false;
         _lookAtCam = false;
 
         if (_animator.isActiveAndEnabled)
@@ -129,5 +142,22 @@ public class CommanderController : MonoBehaviour
     public void SetLookAtCam(bool active)
     {
         _lookAtCam = active;
+    }
+
+    /// <summary>
+    /// 피격 모션
+    /// </summary>
+    public void PlayHitMotion()
+    {
+        _animator.SetTrigger("OnHit");
+    }
+
+    /// <summary>
+    /// 표정 교체 이벤트
+    /// </summary>
+    public void OnCallChangeFace(string faceName)
+    {
+        if (_isDead) return;
+        _animator.CrossFade(faceName, 0.1f, _faceLayer);
     }
 }

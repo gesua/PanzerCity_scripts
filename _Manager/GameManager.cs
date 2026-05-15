@@ -36,6 +36,5 @@ public class GameManager : Singleton<GameManager>
         GameObject loadingGo = Instantiate(loadingUIPrefab);
         DontDestroyOnLoad(loadingGo);
         _loadingUI = loadingGo.GetComponent<LoadingUI>();
-        
     }
 }

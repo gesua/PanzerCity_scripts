@@ -31,6 +31,7 @@ public class HitDirectionIndicator : MonoBehaviour
     IEnumerator ShowRoutine(Transform atkTank, RectTransform arrow)
     {
         arrow.gameObject.SetActive(true);
+        arrow.localScale = Vector3.one * 0.3f; // 크기 초기화(Pool엔 Canvas가 없어서 Scale이 점점 커짐)
         float elapsed = 0f;
         Image image = arrow.GetComponent<Image>();
 

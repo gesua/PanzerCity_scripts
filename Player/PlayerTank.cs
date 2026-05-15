@@ -144,6 +144,7 @@ public class PlayerTank : TankBase
     /// </summary>
     void HandleHit(HitData hitData)
     {
+        if(_isDead == false) _commander.PlayHitMotion(); // 피격 모션
         OnHit?.Invoke(hitData);
     }
 
@@ -162,9 +163,9 @@ public class PlayerTank : TankBase
         _mover.Stop();
 
         // 전차장 세팅
+        _commander.SetDead();
         _commander.transform.SetParent(transform);
         // 전차장을 카메라 방향으로 회전
-        //_commander.SetLookAtCam(true);
         _commander.LookAtCamera();
         // 슬픈 표정
         _commander.SetSadFace();

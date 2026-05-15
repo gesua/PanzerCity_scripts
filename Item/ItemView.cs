@@ -56,9 +56,6 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         _icon.enabled = false;
 
         _originalPos = _rectTransform.anchoredPosition;
-
-        // 드래그 중 최상위로 올리기
-        transform.SetAsLastSibling();
     }
 
     public void OnDrag(PointerEventData eventData)
