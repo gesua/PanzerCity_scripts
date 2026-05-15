@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class CommanderController : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
+    [SerializeField] Transform _commanderRoot;
     [SerializeField] Animator _animator;
     [SerializeField] SkinnedMeshRenderer _face;
 
@@ -30,6 +31,8 @@ public class CommanderController : MonoBehaviour
 
     bool _lookAtCam;
     bool _isDead; // 사망 상태시 항상 슬픈 표정
+
+    public Transform CommanderRoot => _commanderRoot;
 
     void Start()
     {

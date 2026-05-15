@@ -203,7 +203,7 @@ public class PlayerTank : TankBase
     IEnumerator RespawnRoutine(Vector3 spawnPos)
     {
         // 전차장 초기화
-        _commander.transform.SetParent(TurretTr);
+        _commander.CommanderRoot.SetParent(TurretTr);
         _commander.transform.localRotation = Quaternion.identity;
         _commander.Reset();
 
