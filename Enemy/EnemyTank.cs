@@ -594,5 +594,17 @@ public class EnemyTank : TankBase
             prevPoint = nextPoint;
         }
         // 감지범위 시각화 */
+
+        //* AI 이동경로 시각화
+        if (_agent == null || _agent.path == null) return;
+
+        Gizmos.color = Color.blue;
+        Vector3[] corners = _agent.path.corners;
+        for (int i = 0; i < corners.Length - 1; i++)
+        {
+            Gizmos.DrawLine(corners[i], corners[i + 1]);
+            Gizmos.DrawSphere(corners[i], 0.2f);
+        }
+        // AI 이동경로 시각화 */
     }
 }
