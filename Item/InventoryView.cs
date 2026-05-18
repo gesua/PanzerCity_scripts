@@ -13,6 +13,7 @@ public class InventoryView : MonoBehaviour
     [SerializeField] CanvasGroup _canvasGroup; // Raycast 막는 용도
     [SerializeField] GameObject _itemPrefab; // 아이템 프리팹
     [SerializeField] GridCell[] _cells;      // 미리 만들어둔 셀들
+    string _itemViewPath = "UI/ItemView"; // 아이템 프리팹 위치
     [SerializeField] float _cellSize = 75f;  // 셀 크기
 
     ItemModel _draggingItem; // 드래그 중인 아이템
@@ -28,6 +29,12 @@ public class InventoryView : MonoBehaviour
     public Func<ItemModel, Vector2Int, bool> OnCanPlace; // 놓을 수 있는 위치인지 체크
 
     public float CellSize => _cellSize;
+
+    private void Awake()
+    {
+        // Pool 생성
+        GameManager.Instance.PoolManager.GetPool(_itemViewPath);
+    }
 
     public void Initialize(int width)
     {
@@ -94,7 +101,8 @@ public class InventoryView : MonoBehaviour
     /// </summary>
     public void AddItemView(ItemModel item)
     {
-        GameObject itemGo = Instantiate(_itemPrefab, _itemContainer);
+        GameObject itemGo = GameManager.Instance.PoolManager.GetFromPool(_itemViewPath);
+        itemGo.transform.SetParent(_itemContainer, false);
         ItemView itemView = itemGo.GetComponent<ItemView>();
         itemView.Initialize(item, _cellSize);
         itemView.OnClicked += () => OnItemClicked?.Invoke(item);

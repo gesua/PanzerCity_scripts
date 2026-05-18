@@ -58,6 +58,7 @@ public class EnemySpawner : MonoBehaviour
         // Pool 생성
         GameManager.Instance.PoolManager.GetPool("Tank/201Light");
         GameManager.Instance.PoolManager.GetPool("Tank/202Medium");
+        GameManager.Instance.PoolManager.GetPool("Tank/203Heavy");
 
         // 적 생성 코루틴 실행
         _spawnEnemyRoutine = StartCoroutine(SpawnEnemyRoutine());
