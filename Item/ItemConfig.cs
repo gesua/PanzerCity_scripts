@@ -23,8 +23,8 @@ public class ItemConfig : ScriptableObject
 {
     [Header("----- 기본 정보 -----")]
     [SerializeField] int _id;                       // ID
-    [SerializeField] ItemType _itemType;            // 타입
     [SerializeField] string _name;                  // 이름
+    [SerializeField] ItemType _itemType;            // 타입
     [TextArea(3,5)][SerializeField] string _desc;   // 설명
     [SerializeField] int _price;                    // 가격
     [SerializeField] Sprite _iconSprite;            // 스프라이트

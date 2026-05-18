@@ -1,7 +1,5 @@
-using UnityEngine;
-
 /// <summary>
-/// 탱크 종류별 스탯 데이터테이블
+/// 탱크 종류별 스탯 데이터 (Tank_Status 참조)
 /// </summary>
 [System.Serializable]
 public class TankData
@@ -18,4 +16,8 @@ public class TankData
     public int ShellDamage;
     public float ShellSpeed;
     public float ExplosionRadius;
+    public int DropChance;
+    public int DropGroupID;
+    public int RewardGold;
+    public string Skill;
 }

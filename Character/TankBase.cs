@@ -18,6 +18,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     int _bushEnterCount; // 풀 경계선에서 꼬이는거 방지
 
     protected TankModel _model;
+    protected TankData _tankData;
     string _shellPath = "Shell"; // 포탄 프리팹 위치
 
     public BushGroup CurrentBush => _currentBush;
@@ -26,8 +27,8 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     protected virtual void Awake()
     {
         _model = GetComponent<TankModel>();
-        TankData data = GameManager.Instance.DataManager.GetTankData(_tankID);
-        if (data != null) _model.Initialize(data);
+        _tankData = GameManager.Instance.DataManager.GetTankData(_tankID);
+        if (_tankData != null) _model.Initialize(_tankData);
 
         // Pool 생성
         GameManager.Instance.PoolManager.GetPool(_shellPath);

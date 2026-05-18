@@ -7,13 +7,16 @@ using UnityEngine;
 /// </summary>
 public class DataManager : MonoBehaviour
 {
-    [System.Serializable]
-    class TankDataList { public List<TankData> list; }
-    Dictionary<int, TankData> _tankDataDict = new Dictionary<int, TankData>();
+    [System.Serializable] class TankDataList { public List<TankData> list; }
+    [System.Serializable] class EnemySpawnDataList { public List<EnemySpawnData> list; }
+    [System.Serializable] class ItemMasterList { public List<ItemMasterData> list; }
+    [System.Serializable] class ItemDropGroupList { public List<ItemDropGroupData> list; }
 
-    [System.Serializable]
-    class EnemySpawnDataList { public List<EnemySpawnData> list; }
+    Dictionary<int, TankData> _tankDataDict = new Dictionary<int, TankData>();
     Dictionary<int, List<int>> _spawnDataDict = new Dictionary<int, List<int>>();
+    Dictionary<int, ItemMasterData> _itemMasterDict = new();
+    Dictionary<int, List<ItemDropGroupData>> _itemDropGroupDict = new();
+    Dictionary<int, ItemMasterData> _itemConfigDict = new();
 
     public void Initialize()
     {
@@ -77,4 +80,52 @@ public class DataManager : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// 아이템 관련 Json 가져오기
+    /// </summary>
+    void LoadItemData()
+    {
+        // Item_Master 로드
+        TextAsset masterJson = Resources.Load<TextAsset>("Data/Item_Master");
+        ItemMasterList masterList = JsonUtility.FromJson<ItemMasterList>(masterJson.text);
+        foreach (ItemMasterData data in masterList.list)
+            _itemMasterDict[data.ItemID] = data;
+
+        // Item_DropGroup 로드
+        TextAsset dropJson = Resources.Load<TextAsset>("Data/Item_DropGroup");
+        ItemDropGroupList dropList = JsonUtility.FromJson<ItemDropGroupList>(dropJson.text);
+        foreach (ItemDropGroupData data in dropList.list)
+        {
+            if (!_itemDropGroupDict.ContainsKey(data.DropGroupID))
+                _itemDropGroupDict[data.DropGroupID] = new List<ItemDropGroupData>();
+            _itemDropGroupDict[data.DropGroupID].Add(data);
+        }
+    }
+
+    public ItemMasterData GetItemMasterData(int itemID)
+    {
+        _itemMasterDict.TryGetValue(itemID, out ItemMasterData data);
+        return data;
+    }
+
+    public List<ItemDropGroupData> GetDropGroup(int dropGroupID)
+    {
+        _itemDropGroupDict.TryGetValue(dropGroupID, out List<ItemDropGroupData> list);
+        return list;
+    }
+
+    void LoadItemConfigs()
+    {
+        //ItemMasterData[] configs = Resources.LoadAll<ItemMasterData>("Items");
+        //foreach (ItemMasterData config in configs)
+        //{
+        //    _itemConfigDict[config.Id] = config;
+        //}
+    }
+
+    public ItemMasterData GetItemConfig(int itemID)
+    {
+        _itemConfigDict.TryGetValue(itemID, out ItemMasterData config);
+        return config;
+    }
 }
