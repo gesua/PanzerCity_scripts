@@ -8,15 +8,17 @@ public class InventoryPresenter
 {
     InventoryModel _model;
     InventoryView _view;
-    DraggingItem _draggingItem;
+    DraggingItemUI _draggingItemUI;
 
-    public bool IsDragging => _draggingItem != null;
+    ItemModel _draggingItemModel;
 
-    public InventoryPresenter(InventoryModel model, InventoryView view, DraggingItem draggingItem)
+    public bool IsDragging => _draggingItemModel != null;
+
+    public InventoryPresenter(InventoryModel model, InventoryView view, DraggingItemUI draggingItem)
     {
         _model = model;
         _view = view;
-        _draggingItem = draggingItem;
+        _draggingItemUI = draggingItem;
 
         _view.Initialize(_model.Width);
         _view.OnDragBegin += HandleDragBegin;
@@ -32,8 +34,9 @@ public class InventoryPresenter
     /// </summary>
     void HandleDragBegin(ItemModel item, Vector2 screenPos)
     {
+        _draggingItemModel = item;
         _view.SetItemContainerRaycast(false);
-        _draggingItem.Show(item.Config.IconSprite, screenPos, GetItemSize(item));
+        _draggingItemUI.Show(item.Config.IconSprite, screenPos, GetItemSize(item));
     }
 
     /// <summary>
@@ -41,7 +44,7 @@ public class InventoryPresenter
     /// </summary>
     void HandleDragMove(Vector2 screenPos)
     {
-        _draggingItem.Follow(screenPos);
+        _draggingItemUI.Follow(screenPos);
     }
 
     /// <summary>
@@ -49,16 +52,17 @@ public class InventoryPresenter
     /// </summary>
     void HandleDragEnd()
     {
+        _draggingItemModel = null;
         _view.SetItemContainerRaycast(true);
-        _draggingItem.Hide();
+        _draggingItemUI.Hide();
     }
 
     /// <summary>
-    /// 드래그 끝(외부용)
+    /// 드래그 강제 종료
     /// </summary>
-    public void EndDrag()
+    public void ForceDrop()
     {
-        HandleDragEnd();
+        _view.ForceEndDrag();
     }
 
     /// <summary>

@@ -75,6 +75,18 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         }
     }
 
+    /// <summary>
+    /// 드래그 강제 종료
+    /// </summary>
+    public void ForceEndDrag()
+    {
+        OnDragEnded?.Invoke();
+        _icon.enabled = true;
+
+        OnDragCanceled?.Invoke();
+        ResetPosition();
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
         OnClicked?.Invoke();

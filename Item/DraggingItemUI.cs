@@ -4,7 +4,7 @@ using UnityEngine.UI;
 /// <summary>
 /// 드래그 중 마우스를 따라다니는 아이템 더미
 /// </summary>
-public class DraggingItem : MonoBehaviour
+public class DraggingItemUI : MonoBehaviour
 {
     [SerializeField] RectTransform _rectTransform;
     [SerializeField] Image _icon;

@@ -65,6 +65,19 @@ public class InventoryView : MonoBehaviour
     }
 
     /// <summary>
+    /// 드래그 강제 종료
+    /// </summary>
+    public void ForceEndDrag()
+    {
+        if (_draggingItem == null) return;
+        if (_itemViews.TryGetValue(_draggingItem, out ItemView view))
+        {
+            view.ForceEndDrag();
+        }
+        _draggingItem = null;
+    }
+
+    /// <summary>
     /// ItemView로 ItemModel 찾기
     /// </summary>
     ItemModel GetItemByView(ItemView itemView)

@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class InventoryUI : MonoBehaviour
 {
     [SerializeField] CanvasGroup _group;
-    [SerializeField] DraggingItem _draggingItem;
+    [SerializeField] DraggingItemUI _draggingItem;
     [SerializeField] InventoryView _inventoryView;
     [SerializeField] int _width = 4;
     [SerializeField] int _height = 5;
