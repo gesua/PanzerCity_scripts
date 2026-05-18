@@ -7,7 +7,9 @@ public class BushGroup : MonoBehaviour
 {
     [SerializeField] Renderer[] _renderers;
     [SerializeField] Material _transparentMat;
+    
     Material[] _originalMats;
+    int _plyaerEnterCount = 0;
 
     void Awake()
     {
@@ -17,20 +19,30 @@ public class BushGroup : MonoBehaviour
             _originalMats[i] = _renderers[i].material;
         }
     }
-    int _enterCount = 0;
 
-    public void OnPlayerEnter()
+    public void OnPlayerEnter(TankBase tank)
     {
-        _enterCount++;
-        if (_enterCount == 1) SetTransparent(true);
+        tank.OnBushEnter(this); // 풀숲그룹 지정
+        if (tank is PlayerTank == false) return;
+
+        // 플레이어 탱크면 풀숲 반투명
+        _plyaerEnterCount++;
+        if (_plyaerEnterCount == 1)
+        {
+            SetTransparent(true);
+        }
     }
 
-    public void OnPlayerExit()
+    public void OnPlayerExit(TankBase tank)
     {
-        _enterCount--;
-        if (_enterCount <= 0)
+        tank.OnBushExit(this);
+        if (tank is PlayerTank == false) return;
+
+        // 반투명 해제
+        _plyaerEnterCount--;
+        if (_plyaerEnterCount <= 0)
         {
-            _enterCount = 0;
+            _plyaerEnterCount = 0;
             SetTransparent(false);
         }
     }

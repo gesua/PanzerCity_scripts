@@ -24,9 +24,9 @@ public class PlayerTank : TankBase
 
     bool _isAttack; // 좌클릭 누르는 중인지
     bool _isSniperMode; // 저격 모드인지(Shift)
+    bool _isDead; // 죽었는지
     float _reloadTimer; // 재장전 시간 잴거
     int _prevHp; // 이전 체력(피격 확인용)
-    bool _isDead; // 죽었는지
 
     public ItemPickup ItemPickup => _itemPickup;
     public Transform TurretTr => _turret.TurretTr;

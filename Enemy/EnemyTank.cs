@@ -111,6 +111,9 @@ public class EnemyTank : TankBase
         _model.Initialize(); // 기본값들 초기화
         _collider.enabled = true;
 
+        // 풀숲 초기화
+        ResetBush();
+
         // 성격 랜덤 설정
         //_personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
@@ -293,9 +296,15 @@ public class EnemyTank : TankBase
             float angle = Vector3.Angle(_turret.forward, dirToPlayer);
             if (angle > _detectionAngle) continue;
 
-            // 시야 차단 체크 (벽 등에 가려져 있으면 감지 안 됨)
+            // 시야 차단 체크 (벽에 가려져 있으면 감지 안 됨)
             float distance = Vector3.Distance(_turret.position, playerPos);
             if (Physics.Raycast(_turret.position, dirToPlayer, distance, _visionObstacleLayer)) continue;
+
+            // 풀숲 체크 (플레이어와 같은 풀숲이어야 감지)
+            if (col.TryGetComponent(out PlayerTank player))
+            {
+                if (player.CurrentBush != CurrentBush) continue;
+            }
 
             _lostTargetTimer = 0f; // 타이머 초기화
             _target = col.transform; // 타겟 설정

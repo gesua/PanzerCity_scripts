@@ -11,17 +11,17 @@ public class BushBlock : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.TryGetComponent(out PlayerTank player))
+        if (other.TryGetComponent(out TankBase tank))
         {
-            _group.OnPlayerEnter();
+            _group.OnPlayerEnter(tank);
         }
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (other.TryGetComponent(out PlayerTank player))
+        if (other.TryGetComponent(out TankBase tank))
         {
-            _group.OnPlayerExit();
+            _group.OnPlayerExit(tank);
         }
     }
 }

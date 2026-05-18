@@ -14,9 +14,13 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
     [SerializeField] LoopEffect _engineEffect; // 엔진 이펙트
 
+    [SerializeField] BushGroup _currentBush; // 현재 들어가있는 풀숲그룹
+    int _bushEnterCount; // 풀 경계선에서 꼬이는거 방지
+
     protected TankModel _model;
     string _shellPath = "Shell"; // 포탄 프리팹 위치
 
+    public BushGroup CurrentBush => _currentBush;
     protected virtual bool ShowEffects => true; // 이펙트 보여줄지 여부(플레이어 저격 모드엔 안 보임)
 
     protected virtual void Awake()
@@ -49,6 +53,9 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         shell.Initialize(_model, gameObject.layer, this);
     }
 
+    /// <summary>
+    /// 엔진 이펙트 세팅
+    /// </summary>
     public void SetEngineEffect(bool isMoving)
     {
         if (_engineEffect == null) return;
@@ -73,5 +80,36 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     public virtual void TakeHit(HitData hitData)
     {
         _model.TakeDamage(hitData);
+    }
+
+    /// <summary>
+    /// 풀숲 진입
+    /// </summary>
+    public void OnBushEnter(BushGroup bush)
+    {
+        _bushEnterCount++;
+        _currentBush = bush;
+    }
+
+    /// <summary>
+    /// 풀숲 퇴장
+    /// </summary>
+    public void OnBushExit(BushGroup bush)
+    {
+        _bushEnterCount--;
+        if (_bushEnterCount <= 0)
+        {
+            _bushEnterCount = 0;
+            _currentBush = null;
+        }
+    }
+
+    /// <summary>
+    /// 풀숲그룹 초기화
+    /// </summary>
+    public void ResetBush()
+    {
+        _bushEnterCount = 0;
+        _currentBush = null;
     }
 }
