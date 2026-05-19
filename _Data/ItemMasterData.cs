@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 /// <summary>
 /// 아이템 관련 데이터 (Item_Master 참조)
 /// </summary>
@@ -12,4 +14,10 @@ public class ItemMasterData
     public string EquipSlot;
     public int BuyPrice;
     public string Skill;
+}
+
+[System.Serializable]
+public class ItemMasterList
+{
+    public List<ItemMasterData> list;
 }

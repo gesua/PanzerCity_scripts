@@ -9,7 +9,6 @@ public class DataManager : MonoBehaviour
 {
     [System.Serializable] class TankDataList { public List<TankData> list; }
     [System.Serializable] class EnemySpawnDataList { public List<EnemySpawnData> list; }
-    [System.Serializable] class ItemMasterList { public List<ItemMasterData> list; }
     [System.Serializable] class ItemDropGroupList { public List<ItemDropGroupData> list; }
 
     Dictionary<int, TankData> _tankDataDict = new Dictionary<int, TankData>();
