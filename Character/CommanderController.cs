@@ -17,10 +17,11 @@ public class CommanderController : MonoBehaviour
     [SerializeField] float _blinkSpeed = 0.1f;
     [SerializeField] float _blinkSpanMin = 2f;
     [SerializeField] float _blinkSpanMax = 5f;
+    [Header("----- 회전 -----")]
+    [SerializeField] float _lookSpeed = 180f;
 
     //[Header("----- BlendShape 인덱스 -----")]
     int _eyeBlkIndex = 0;
-
     int _faceLayer = 1;
 
     // 눈 깜빡임 관련
@@ -139,7 +140,10 @@ public class CommanderController : MonoBehaviour
     {
         Vector3 dirToCamera = Camera.main.transform.position - transform.position;
         dirToCamera.y = 0f;
-        transform.rotation = Quaternion.LookRotation(dirToCamera);
+        if (dirToCamera.sqrMagnitude < Mathf.Epsilon) return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(dirToCamera);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _lookSpeed * Time.deltaTime);
     }
 
     public void SetLookAtCam(bool active)

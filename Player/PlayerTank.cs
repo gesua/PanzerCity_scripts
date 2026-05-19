@@ -164,9 +164,9 @@ public class PlayerTank : TankBase
 
         // 전차장 세팅
         _commander.SetDead();
-        _commander.transform.SetParent(transform);
+        _commander.CommanderRoot.SetParent(transform);
         // 전차장을 카메라 방향으로 회전
-        _commander.LookAtCamera();
+        _commander.SetLookAtCam(true);
         // 슬픈 표정
         _commander.SetSadFace();
 
