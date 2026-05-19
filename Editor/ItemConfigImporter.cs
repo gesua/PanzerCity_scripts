@@ -42,7 +42,7 @@ public class ItemConfigImporter : EditorWindow
                 : System.Enum.Parse<EquipSlot>(data.EquipSlot);
             so.FindProperty("_equipSlot").enumValueIndex = (int)equipSlot;
 
-            // {0,0} 무조건 추가
+            // 차지하는 칸 없으면 {0,0} 무조건 추가
             SerializedProperty occupiedCells = so.FindProperty("_occupiedCells");
             if (occupiedCells.arraySize == 0)
             {
