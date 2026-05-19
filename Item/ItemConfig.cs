@@ -12,7 +12,7 @@ public enum EquipSlot
     None,
     Turret,  // 포탑
     Hull,    // 차체
-    MainGun,     // 주포
+    MainGun, // 주포
 }
 
 /// <summary>

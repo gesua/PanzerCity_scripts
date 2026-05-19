@@ -42,6 +42,14 @@ public class ItemConfigImporter : EditorWindow
                 : System.Enum.Parse<EquipSlot>(data.EquipSlot);
             so.FindProperty("_equipSlot").enumValueIndex = (int)equipSlot;
 
+            // {0,0} 무조건 추가
+            SerializedProperty occupiedCells = so.FindProperty("_occupiedCells");
+            if (occupiedCells.arraySize == 0)
+            {
+                occupiedCells.arraySize = 1;
+                occupiedCells.GetArrayElementAtIndex(0).vector2IntValue = Vector2Int.zero;
+            }
+
             so.ApplyModifiedProperties();
         }
 
