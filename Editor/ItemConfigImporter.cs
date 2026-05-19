@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEditor;
 
+/// <summary>
+/// Item_Master Json파일을 ItemConfig 에셋으로 바꿈
+/// </summary>
 public class ItemConfigImporter : EditorWindow
 {
     [MenuItem("Tools/Import Item Config")]

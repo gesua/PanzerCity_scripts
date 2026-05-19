@@ -42,6 +42,7 @@ public class EnemyTank : TankBase
     [SerializeField] EnemyTankDestructionEffect _destructionEffect; // 파괴 연출
     [SerializeField] BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
     [SerializeField] GameObject _silhouetteModel; // 조준시 보일 실루엣
+    [SerializeField] ItemDropper _itemDropper; // 아이템 드랍
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _roamSpan = 3f; // 최대 배회 간격
     [SerializeField] float _deadDuration = 5f; // 사망 상태 지속 시간
@@ -513,7 +514,7 @@ public class EnemyTank : TankBase
         _destructionEffect.Play();
 
         // 아이템 드랍
-        TryDropItem();
+        _itemDropper.TryDrop(_tankData.DropChance, _tankData.DropGroupID);
     }
 
     /// <summary>
@@ -535,52 +536,6 @@ public class EnemyTank : TankBase
 
         // 자신 게임오브젝트 제거
         gameObject.DestroyOrReturnToPool();
-    }
-
-    void TryDropItem()
-    {
-        if (_tankData.DropChance <= 0 || _tankData.DropGroupID <= 0) return;
-
-        // 드랍 확률 체크
-        if (UnityEngine.Random.Range(0, 100) >= _tankData.DropChance) return;
-
-        // 드랍 그룹에서 아이템 선택
-        List<ItemDropGroupData> dropGroup = GameManager.Instance.DataManager.GetDropGroup(_tankData.DropGroupID);
-        if (dropGroup == null || dropGroup.Count == 0) return;
-
-        // SpawnWeight 기반 랜덤 선택
-        int totalWeight = 0;
-        foreach (ItemDropGroupData data in dropGroup)
-            totalWeight += data.SpawnWeight;
-
-        int random = UnityEngine.Random.Range(0, totalWeight);
-        int cumulative = 0;
-        ItemDropGroupData selectedDrop = null;
-
-        foreach (ItemDropGroupData data in dropGroup)
-        {
-            cumulative += data.SpawnWeight;
-            if (random < cumulative)
-            {
-                selectedDrop = data;
-                break;
-            }
-        }
-
-        if (selectedDrop == null) return;
-
-        // 아이템 스폰
-        SpawnDroppedItem(selectedDrop.ItemID);
-    }
-
-    void SpawnDroppedItem(int itemID)
-    {
-        GameObject itemGo = GameManager.Instance.PoolManager.GetFromPool("DroppedItem");
-        itemGo.transform.position = transform.position;
-        DroppedItem droppedItem = itemGo.GetComponent<DroppedItem>();
-
-        //ItemMasterData itemConfig = GameManager.Instance.DataManager. // ItemID로 ItemConfig 가져오기
-        //droppedItem.Initialize(itemConfig);
     }
 
     /// <summary>

@@ -15,7 +15,7 @@ public class DataManager : MonoBehaviour
     Dictionary<int, List<int>> _spawnDataDict = new Dictionary<int, List<int>>();
     Dictionary<int, ItemMasterData> _itemMasterDict = new();
     Dictionary<int, List<ItemDropGroupData>> _itemDropGroupDict = new();
-    Dictionary<int, ItemMasterData> _itemConfigDict = new();
+    Dictionary<int, ItemConfig> _itemConfigDict = new();
 
     public void Initialize()
     {
@@ -26,8 +26,8 @@ public class DataManager : MonoBehaviour
     {
         LoadTankData();
         LoadEnemySpawnData();
+        LoadItemData();
         // 나중에 다른 데이터 추가
-        // LoadItemData();
         // LoadStageData();
     }
 
@@ -113,18 +113,9 @@ public class DataManager : MonoBehaviour
         return list;
     }
 
-    void LoadItemConfigs()
+    public ItemConfig GetItemConfig(int itemID)
     {
-        //ItemMasterData[] configs = Resources.LoadAll<ItemMasterData>("Items");
-        //foreach (ItemMasterData config in configs)
-        //{
-        //    _itemConfigDict[config.Id] = config;
-        //}
-    }
-
-    public ItemMasterData GetItemConfig(int itemID)
-    {
-        _itemConfigDict.TryGetValue(itemID, out ItemMasterData config);
+        _itemConfigDict.TryGetValue(itemID, out ItemConfig config);
         return config;
     }
 }
