@@ -88,16 +88,27 @@ public class DataManager : MonoBehaviour
         TextAsset masterJson = Resources.Load<TextAsset>("Data/Item_Master");
         ItemMasterList masterList = JsonUtility.FromJson<ItemMasterList>(masterJson.text);
         foreach (ItemMasterData data in masterList.list)
+        {
             _itemMasterDict[data.ItemID] = data;
+        }
 
         // Item_DropGroup 로드
         TextAsset dropJson = Resources.Load<TextAsset>("Data/Item_DropGroup");
         ItemDropGroupList dropList = JsonUtility.FromJson<ItemDropGroupList>(dropJson.text);
         foreach (ItemDropGroupData data in dropList.list)
         {
-            if (!_itemDropGroupDict.ContainsKey(data.DropGroupID))
+            if (_itemDropGroupDict.ContainsKey(data.DropGroupID) == false)
+            {
                 _itemDropGroupDict[data.DropGroupID] = new List<ItemDropGroupData>();
+            }
             _itemDropGroupDict[data.DropGroupID].Add(data);
+        }
+
+        // ItemConfig 에셋들 로드
+        ItemConfig[] itemConfigs = Resources.LoadAll<ItemConfig>("Items");
+        foreach (ItemConfig itemConfig in itemConfigs)
+        {
+            _itemConfigDict[itemConfig.Id] = itemConfig;
         }
     }
 

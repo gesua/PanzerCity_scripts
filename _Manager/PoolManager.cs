@@ -12,10 +12,12 @@ public class PoolManager : MonoBehaviour
     /// <summary>
     /// 초기화 함수
     /// </summary>
-    /// <param name="resourceManager"></param>
     public void Initialize(ResourceManager resourceManager)
     {
         _resourceManager = resourceManager;
+
+        // 미리 만들어 둘 거 만들기
+        GetPool("DroppedItem"); // HACK:로딩에서 만들기 포탄도
     }
 
     /// <summary>

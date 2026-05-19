@@ -14,7 +14,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
     [SerializeField] LoopEffect _engineEffect; // 엔진 이펙트
 
-    [SerializeField] BushGroup _currentBush; // 현재 들어가있는 풀숲그룹
+    BushGroup _currentBush; // 현재 들어가있는 풀숲그룹
     int _bushEnterCount; // 풀 경계선에서 꼬이는거 방지
 
     protected TankModel _model;

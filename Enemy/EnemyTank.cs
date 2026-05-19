@@ -165,6 +165,8 @@ public class EnemyTank : TankBase
     /// <param name="stateType">변경할 상태</param>
     public void ChangeState(EnemyStateType stateType)
     {
+        if (_currentState == null) return;
+
         // 현재 상태가 새로 바꾸려는 상태와 동일하면 종료
         if (_currentState.StateType == stateType) return;
 
@@ -471,8 +473,6 @@ public class EnemyTank : TankBase
     public void AgentMove()
     {
         if (_agent.pathPending) return;
-
-        Debug.Log($"목적지 : {_agent.destination} // 다음 웨이포인트 : {_agent.steeringTarget}");
 
         // 다음 웨이포인트 방향
         Vector3 dir = (_agent.steeringTarget - transform.position).normalized;

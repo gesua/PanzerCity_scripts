@@ -23,7 +23,10 @@ public class ItemDropper : MonoBehaviour
         // SpawnWeight 기반 랜덤 선택
         int totalWeight = 0;
         foreach (ItemDropGroupData data in dropGroup)
+        {
+            Debug.Log($"weight 값 : {data.SpawnWeight}");
             totalWeight += data.SpawnWeight;
+        }
 
         int random = Random.Range(0, totalWeight);
         int cumulative = 0;
@@ -32,6 +35,9 @@ public class ItemDropper : MonoBehaviour
         foreach (ItemDropGroupData data in dropGroup)
         {
             cumulative += data.SpawnWeight;
+
+            Debug.Log($"{random} < {cumulative}");
+
             if (random < cumulative)
             {
                 selectedDrop = data;
@@ -53,7 +59,10 @@ public class ItemDropper : MonoBehaviour
         if (itemConfig == null) return;
 
         GameObject itemGo = GameManager.Instance.PoolManager.GetFromPool("DroppedItem");
-        itemGo.transform.position = transform.position;
-        itemGo.GetComponent<DroppedItem>().Initialize(itemConfig);
+        itemGo.transform.position = transform.position + Vector3.up;
+        if (itemGo.TryGetComponent(out DroppedItem droppedItem))
+        {
+            droppedItem.Initialize(itemConfig);
+        }
     }
 }

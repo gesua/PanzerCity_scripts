@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -6,7 +7,12 @@ using UnityEngine;
 public class DroppedItem : MonoBehaviour
 {
     [SerializeField] SpriteRenderer _icon;
-    [SerializeField] ItemConfig _itemConfig;
+    [SerializeField] SpriteRenderer _minimapIcon;
+    ItemConfig _itemConfig;
+
+    // 미니맵에서 아이콘 깜빡임
+    float _blinkInterval = 0.5f;
+    Coroutine _blinkRoutine;
 
     public ItemConfig ItemConfig => _itemConfig;
 
@@ -14,6 +20,16 @@ public class DroppedItem : MonoBehaviour
     {
         _itemConfig = itemConfig;
         _icon.sprite = itemConfig.IconSprite;
+        _minimapIcon.sprite = itemConfig.IconSprite;
+    }
+    void OnEnable()
+    {
+        _blinkRoutine = StartCoroutine(BlinkRoutine());
+    }
+
+    void OnDisable()
+    {
+        if (_blinkRoutine != null) StopCoroutine(_blinkRoutine);
     }
 
     /// <summary>
@@ -21,8 +37,19 @@ public class DroppedItem : MonoBehaviour
     /// </summary>
     public void Pickup()
     {
-        Debug.Log("아이템 풀로 되돌아감 // 현재 막아놓음");
+        gameObject.DestroyOrReturnToPool();
+    }
 
-        //gameObject.DestroyOrReturnToPool();
+    /// <summary>
+    /// 미니맵에서 아이콘 깜빡임
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator BlinkRoutine()
+    {
+        while (true)
+        {
+            _minimapIcon.enabled = !_minimapIcon.enabled;
+            yield return new WaitForSeconds(_blinkInterval);
+        }
     }
 }
