@@ -34,6 +34,10 @@ public class TitleScene : MonoBehaviour
 
     IEnumerator StartRoutine()
     {
+        // Pool 미리 만들기
+        GameManager.Instance.PoolManager.GetPool("DroppedItem");
+        GameManager.Instance.PoolManager.GetPool("Shell");
+
         LoadingUI loadingUI = GameManager.Instance.LoadingUI;
 
         loadingUI.Show();

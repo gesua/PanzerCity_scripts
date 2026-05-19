@@ -29,9 +29,6 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         _model = GetComponent<TankModel>();
         _tankData = GameManager.Instance.DataManager.GetTankData(_tankID);
         if (_tankData != null) _model.Initialize(_tankData);
-
-        // Pool 생성
-        GameManager.Instance.PoolManager.GetPool(_shellPath);
     }
 
     public virtual void Attack()
