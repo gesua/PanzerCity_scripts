@@ -58,7 +58,7 @@ public class TitleScene : MonoBehaviour
         stageLoad.allowSceneActivation = true;
         yield return stageLoad;
 
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.1f); // 잠깐 기다리기
 
         SceneManager.UnloadSceneAsync("Title");
         loadingUI.Hide();

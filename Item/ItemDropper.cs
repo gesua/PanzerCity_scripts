@@ -24,7 +24,6 @@ public class ItemDropper : MonoBehaviour
         int totalWeight = 0;
         foreach (ItemDropGroupData data in dropGroup)
         {
-            Debug.Log($"weight 값 : {data.SpawnWeight}");
             totalWeight += data.SpawnWeight;
         }
 

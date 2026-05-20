@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -17,8 +18,9 @@ public class StageScene : MonoBehaviour
     public string SceneName => _sceneName;
     public EnemySpawner EnemySpawner => _enemySpawner;
 
-    public event Action OnHQDestroyed;
+    public event Action OnHQDestroyed; // 아군 기지 격파
     public event Action<Vector3> OnStageLoaded; // 스폰 위치 전달
+    public event Action OnStageClear; // 스테이지 클리어
 
     void Start()
     {
@@ -28,5 +30,18 @@ public class StageScene : MonoBehaviour
         _hq.OnDestroyed += () => OnHQDestroyed?.Invoke();
         OnStageLoaded?.Invoke(_playerSpawnPoint.position);
         _enemySpawner.Initialize(_stageID);
+
+        _enemySpawner.OnAllEnemiesDefeated += HandleAllEnemiesDefeated; // 모든 적 격파
+    }
+
+    void HandleAllEnemiesDefeated()
+    {
+        StartCoroutine(StageClearRoutine());
+    }
+
+    IEnumerator StageClearRoutine()
+    {
+        yield return new WaitForSeconds(3f);
+        OnStageClear?.Invoke();
     }
 }

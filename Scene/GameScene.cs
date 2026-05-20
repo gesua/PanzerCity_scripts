@@ -30,7 +30,7 @@ public class GameScene : MonoBehaviour
     //[SerializeField] float _gameOverDelay = 5f; // 게임오버 딜레이
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
-    StageScene _currentStage; // 현재 스테이지
+    [SerializeField] StageScene _currentStage; // 현재 스테이지
 
     bool _isGameOver;
     bool _isPaused;
@@ -100,7 +100,9 @@ public class GameScene : MonoBehaviour
         // 스테이지 UI 세팅
         _gameInfoUI.UpdateStage(_currentStage.StageID - 7100); // 스테이지 ID값 빼줌(7100)
 
-        _currentStage.OnHQDestroyed += HandleHQDestroyed;
+        // 이벤트 구독
+        _currentStage.OnHQDestroyed += HandleHQDestroyed; // 아군 기지 격파
+        _currentStage.OnStageClear += HandleStageClear; // 스테이지 클리어
 
         // 적 스폰 UI 연동
         _currentStage.EnemySpawner.OnSpawnListReady += _enemySpawnUI.Initialize;
@@ -120,7 +122,6 @@ public class GameScene : MonoBehaviour
         _currentStage.OnHQDestroyed -= HandleHQDestroyed;
         _currentStage.EnemySpawner.OnSpawnListReady -= _enemySpawnUI.Initialize;
         _currentStage.EnemySpawner.OnEnemySpawned -= _enemySpawnUI.SetEnemySpawn;
-        _currentStage = null;
     }
 
     /// <summary>
@@ -325,15 +326,25 @@ public class GameScene : MonoBehaviour
         _gameOverUI.Show(true);
     }
 
+
+    /// <summary>
+    /// 스테이지 클리어
+    /// </summary>
+    void HandleStageClear()
+    {
+        string nextScene = "Stage" + (_currentStage.StageID - 7100 + 1).ToString("D2");
+        StartCoroutine(LoadStageRoutine(nextScene));
+    }
+
     /// <summary>
     /// 스테이지 재시작
     /// </summary>
     void HandleRestartStage()
     {
-        StartCoroutine(RestartRoutine());
+        StartCoroutine(LoadStageRoutine(_currentStage.SceneName));
     }
 
-    IEnumerator RestartRoutine()
+    IEnumerator LoadStageRoutine(string sceneName)
     {
         // 일시정지 관련 초기화
         _isPaused = false;
@@ -346,29 +357,27 @@ public class GameScene : MonoBehaviour
         LoadingUI loadingUI = GameManager.Instance.LoadingUI;
         loadingUI.Show();
 
-        string sceneName = _currentStage.SceneName;
-
         // 스테이지 구독 해제
         UnsubscribeStage();
 
         // 현재 Stage 씬 언로드
-        yield return SceneManager.UnloadSceneAsync(sceneName);
+        yield return SceneManager.UnloadSceneAsync(_currentStage.SceneName);
 
-        // Stage 씬 다시 로드
+        _currentStage = null;
+
+        // 다음 Stage 씬 로드
         AsyncOperation stageLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+        yield return StartCoroutine(loadingUI.UpdateProgress(stageLoad));
 
         // 로딩바 업데이트
         yield return StartCoroutine(loadingUI.UpdateProgress(stageLoad));
 
         // 플레이어, 카메라, UI 초기화
-        //_player.Respawn(_playerSpawnPoint);
         _cameraTarget.ResetRotation();
-        _playerLife = 3;
         _gameInfoUI.UpdateLife(_playerLife);
         _isGameOver = false;
 
-        yield return new WaitForSeconds(0.1f);
-
+        yield return new WaitForSeconds(0.1f); // 잠깐 기다리기
         loadingUI.Hide();
     }
 

@@ -36,9 +36,9 @@ public class EnemySpawner : MonoBehaviour
     List<int> _spawnList; // TankID 순서 리스트
     int _stageSpawnCount; // 스테이지당 스폰할 횟수
 
-    // UI 연동용 event
     public event Action<List<int>> OnSpawnListReady; // 스폰 리스트 준비됨
     public event Action<int> OnEnemySpawned;         // 적 스폰됨
+    public event Action OnAllEnemiesDefeated;        // 모든 적 격파
 
     Coroutine _spawnEnemyRoutine;
     Coroutine _retryRoutine;
@@ -234,6 +234,12 @@ public class EnemySpawner : MonoBehaviour
     {
         // 생성된 적 목록에서 제거된 적 제거
         _enemies.Remove(enemy);
+        
+        // 스폰할 적도 없고 남은 적도 없으면 스테이지 클리어
+        if (_spawnedCount >= _stageSpawnCount && _enemies.Count == 0)
+        {
+            OnAllEnemiesDefeated?.Invoke();
+        }
     }
 
     private void OnDrawGizmosSelected()
