@@ -12,7 +12,7 @@ using UnityEngine.UI;
 public class GameOverUI : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
-    [SerializeField] Canvas _canvas;                // GameObject 대신 켜고 끌거
+    [SerializeField] GameObject _gameOverPanel;     // 전체 켜고 끌거
     [SerializeField] Image _backgroundImage;        // 게임오버 배경 이미지
     [SerializeField] Sprite[] _gameoverSprites;     // 0:HQ 파괴 1:탱크 파괴
     [SerializeField] Image _darkOverlay;            // 어둡게 깔거
@@ -35,7 +35,7 @@ public class GameOverUI : MonoBehaviour
 
     void Initialize()
     {
-        _canvas.enabled = false;
+        _gameOverPanel.SetActive(false);
 
         // 전부 투명하게 초기화
         SetAlpha(_backgroundImage, 0f);
@@ -60,7 +60,7 @@ public class GameOverUI : MonoBehaviour
             _backgroundImage.sprite = _gameoverSprites[1];
         }
 
-        _canvas.enabled = true;
+        _gameOverPanel.SetActive(true);
         StartCoroutine(ShowRoutine());
     }
 

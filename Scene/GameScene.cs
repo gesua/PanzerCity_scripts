@@ -23,6 +23,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] GameInfoUI _gameInfoUI;     // 게임 정보 UI
     [SerializeField] EnemySpawnUI _enemySpawnUI; // 적 스폰 UI
     [SerializeField] GameOverUI _gameOverUI;     // 게임오버 UI
+    [SerializeField] StageClearUI _stageClearUI; // 스테이지 클리어 UI
     [SerializeField] PauseUI _pauseUI;           // 일시정지 UI
     [SerializeField] InventoryUI _inventoryUI;   // 인벤토리 UI
     [Header("----- 런타임 데이터 -----")]
@@ -30,7 +31,7 @@ public class GameScene : MonoBehaviour
     //[SerializeField] float _gameOverDelay = 5f; // 게임오버 딜레이
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
-    [SerializeField] StageScene _currentStage; // 현재 스테이지
+    StageScene _currentStage; // 현재 스테이지
 
     bool _isGameOver;
     bool _isPaused;
@@ -102,13 +103,15 @@ public class GameScene : MonoBehaviour
 
         // 이벤트 구독
         _currentStage.OnHQDestroyed += HandleHQDestroyed; // 아군 기지 격파
+        _currentStage.EnemySpawner.OnAllEnemiesDefeated += HandleAllEnemiesDefeated; // 모든 적 격파(UI 띄울 용도)
         _currentStage.OnStageClear += HandleStageClear; // 스테이지 클리어
 
         // 적 스폰 UI 연동
         _currentStage.EnemySpawner.OnSpawnListReady += _enemySpawnUI.Initialize;
         _currentStage.EnemySpawner.OnEnemySpawned += _enemySpawnUI.SetEnemySpawn;
 
-        // 리스폰
+
+        // 리스폰 (이거 구독해제 해야함)
         _currentStage.OnStageLoaded += pos => _player.Respawn(_playerSpawnPoint = pos);
     }
 
@@ -120,6 +123,8 @@ public class GameScene : MonoBehaviour
         if (_currentStage == null) return;
 
         _currentStage.OnHQDestroyed -= HandleHQDestroyed;
+        _currentStage.OnStageClear -= HandleStageClear;
+        _currentStage.EnemySpawner.OnAllEnemiesDefeated -= HandleAllEnemiesDefeated;
         _currentStage.EnemySpawner.OnSpawnListReady -= _enemySpawnUI.Initialize;
         _currentStage.EnemySpawner.OnEnemySpawned -= _enemySpawnUI.SetEnemySpawn;
     }
@@ -326,12 +331,20 @@ public class GameScene : MonoBehaviour
         _gameOverUI.Show(true);
     }
 
+    /// <summary>
+    /// 모든 적 격파
+    /// </summary>
+    void HandleAllEnemiesDefeated()
+    {
+        StartCoroutine(_stageClearUI.Show());
+    }
 
     /// <summary>
     /// 스테이지 클리어
     /// </summary>
     void HandleStageClear()
     {
+        _stageClearUI.Hide();
         string nextScene = "Stage" + (_currentStage.StageID - 7100 + 1).ToString("D2");
         StartCoroutine(LoadStageRoutine(nextScene));
     }

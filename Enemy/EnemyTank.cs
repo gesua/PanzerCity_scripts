@@ -63,7 +63,7 @@ public class EnemyTank : TankBase
     Transform _target; // 플레이어
     Vector3 _lookDir; // 이동할 방향
     bool _isRot; // 회전해야 하는지 체크
-    float _stoppingDistance = 2.5f;  // 플레이어와 겹쳐져서 미세조절중
+    float _stoppingDistance = 2.5f;  // 멈출 거리
 
     // 시야에서 사라져도 일정시간 타겟 유지
     float _lostTargetTimer;
