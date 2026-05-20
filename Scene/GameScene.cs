@@ -28,7 +28,6 @@ public class GameScene : MonoBehaviour
     [SerializeField] InventoryUI _inventoryUI;   // 인벤토리 UI
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] int _playerLife = 3;       // 목숨
-    //[SerializeField] float _gameOverDelay = 5f; // 게임오버 딜레이
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
@@ -111,8 +110,8 @@ public class GameScene : MonoBehaviour
         _currentStage.EnemySpawner.OnEnemySpawned += _enemySpawnUI.SetEnemySpawn;
 
 
-        // 리스폰 (이거 구독해제 해야함)
-        _currentStage.OnStageLoaded += pos => _player.Respawn(_playerSpawnPoint = pos);
+        // 리스폰
+        _currentStage.OnStageLoaded += HandleStageLoaded;
     }
 
     /// <summary>
@@ -127,6 +126,15 @@ public class GameScene : MonoBehaviour
         _currentStage.EnemySpawner.OnAllEnemiesDefeated -= HandleAllEnemiesDefeated;
         _currentStage.EnemySpawner.OnSpawnListReady -= _enemySpawnUI.Initialize;
         _currentStage.EnemySpawner.OnEnemySpawned -= _enemySpawnUI.SetEnemySpawn;
+        _currentStage.OnStageLoaded -= HandleStageLoaded;
+    }
+
+    /// <summary>
+    /// 스테이지 불러와짐
+    /// </summary>
+    void HandleStageLoaded(Vector3 pos)
+    {
+        _player.Respawn(_playerSpawnPoint = pos);
     }
 
     /// <summary>
@@ -327,7 +335,6 @@ public class GameScene : MonoBehaviour
         yield return new WaitForSecondsRealtime(2f); // 카메라 전환 시간보다 1초 더 기다리기
         Time.timeScale = 1f; // 시간 재생
 
-        //yield return new WaitForSeconds(_gameOverDelay);
         _gameOverUI.Show(true);
     }
 

@@ -103,28 +103,32 @@ public class InventoryView : MonoBehaviour
     {
         GameObject itemGo = GameManager.Instance.PoolManager.GetFromPool(_itemViewPath);
         itemGo.transform.SetParent(_itemContainer, false);
-        ItemView itemView = itemGo.GetComponent<ItemView>();
-        itemView.Initialize(item, _cellSize);
-        itemView.OnClicked += () => OnItemClicked?.Invoke(item);
-        itemView.OnDragBegin += (pos) =>
+
+        // itemView 각종 이벤트들 람다식으로 구독
+        if (itemGo.TryGetComponent(out ItemView itemView))
         {
-            _draggingItem = item;
-            OnDragBegin?.Invoke(item, pos);
-        };
-        itemView.OnDragging += (pos) => OnDragMove?.Invoke(pos);
-        itemView.OnDragEnded += () =>
-        {
-            _draggingItem = null;
-            OnDragEnd?.Invoke();
-        };
-        itemView.OnDragCanceled += () =>
-        {
-            _draggingItem = null;
-            OnDragEnd?.Invoke();
-            ResetCellColors();
-        };
-        _itemViews[item] = itemView;
-        UpdateItemViewPosition(item);
+            itemView.Initialize(item, _cellSize);
+            itemView.OnClicked += () => OnItemClicked?.Invoke(item);
+            itemView.OnDragBegin += (pos) =>
+            {
+                _draggingItem = item;
+                OnDragBegin?.Invoke(item, pos);
+            };
+            itemView.OnDragging += (pos) => OnDragMove?.Invoke(pos);
+            itemView.OnDragEnded += () =>
+            {
+                _draggingItem = null;
+                OnDragEnd?.Invoke();
+            };
+            itemView.OnDragCanceled += () =>
+            {
+                _draggingItem = null;
+                OnDragEnd?.Invoke();
+                ResetCellColors();
+            };
+            _itemViews[item] = itemView;
+            UpdateItemViewPosition(item);
+        }
     }
 
     /// <summary>
@@ -134,7 +138,13 @@ public class InventoryView : MonoBehaviour
     {
         if (_itemViews.TryGetValue(item, out ItemView view))
         {
-            Destroy(view.gameObject);
+            // 구독 해제
+            view.OnClicked = null;
+            view.OnDragBegin = null;
+            view.OnDragging = null;
+            view.OnDragEnded = null;
+            view.OnDragCanceled = null;
+            view.gameObject.DestroyOrReturnToPool();
             _itemViews.Remove(item);
         }
     }
