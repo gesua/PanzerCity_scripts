@@ -8,8 +8,8 @@ using UnityEngine;
 public class TankModel : MonoBehaviour
 {
     [Header("----- 치트 -----")]
-    [SerializeField] bool InfiniteHP; // HP 무한
-    [SerializeField] bool NoDamage;   // 안 죽음
+    [SerializeField] bool _infiniteHP; // HP 무한
+    [SerializeField] bool _noDamage;   // 피격 무시
 
     [Header("----- 이동 -----")]
     [SerializeField] float _forwardSpeed = 5f;  // 전진 속력
@@ -90,17 +90,25 @@ public class TankModel : MonoBehaviour
     public void TakeDamage(HitData hitData)
     {
         if (IsAlive == false) return;
-        if (NoDamage) return; // 무적 치트
+        if (_noDamage) return; // 무적 치트
 
         _currentHp = Mathf.Clamp(_currentHp - hitData.Damage, 0, _maxHp);
 
         OnHpChanged?.Invoke(_currentHp, _maxHp);
 
-        if (InfiniteHP && _currentHp < 1) _currentHp = _maxHp; // HP무한 치트
+        if (_infiniteHP && _currentHp < 1) _currentHp = _maxHp; // HP무한 치트
 
         // 사망
         if (IsAlive == false) OnDead?.Invoke();
 
         OnHit?.Invoke(hitData);
+    }
+
+    /// <summary>
+    /// 무적 세팅
+    /// </summary>
+    public void SetNoDamage(bool noDamage)
+    {
+        _noDamage = noDamage;
     }
 }

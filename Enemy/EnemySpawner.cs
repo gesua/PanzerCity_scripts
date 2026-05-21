@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -240,12 +241,21 @@ public class EnemySpawner : MonoBehaviour
         // 생성된 적 목록에서 제거된 적 제거
         _enemies.Remove(enemy);
 
-        Debug.Log($"스테이지 클리어 확인:{_spawnedCount} >= {_stageSpawnCount} && {_enemies.Count} == 0");
-
         // 스폰할 적도 없고 남은 적도 없으면 이벤트 발행
         if (_spawnedCount >= _stageSpawnCount && _enemies.Count == 0)
         {
             OnAllEnemiesDefeated?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 폭탄 아이템 효과
+    /// </summary>
+    public void DestroyAllEnemies()
+    {
+        foreach (EnemyTank enemy in _enemies.ToList())
+        {
+            enemy.GetComponent<TankModel>().TakeDamage(new HitData(9999, enemy.transform.position, null));
         }
     }
 

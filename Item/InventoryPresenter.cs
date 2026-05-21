@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -13,6 +14,8 @@ public class InventoryPresenter
     ItemModel _draggingItemModel;
 
     public bool IsDragging => _draggingItemModel != null;
+
+    public event Action<int> OnItemUsed; // 아이템 사용(ID)
 
     public InventoryPresenter(InventoryModel model, InventoryView view, DraggingItemUI draggingItem)
     {
@@ -119,7 +122,7 @@ public class InventoryPresenter
     /// </summary>
     void UseItem(ItemModel item)
     {
-        // HACK:아이템 효과 처리는 나중에 추가
+        OnItemUsed?.Invoke(item.Config.Id);
         RemoveItem(item);
     }
 

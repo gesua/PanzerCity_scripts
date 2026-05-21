@@ -63,7 +63,7 @@ public class EnemyTank : TankBase
     Transform _target; // 플레이어
     Vector3 _lookDir; // 이동할 방향
     bool _isRot; // 회전해야 하는지 체크
-    float _stoppingDistance = 2.5f;  // 멈출 거리
+    float _stoppingDistance = 3f;  // 멈출 거리
 
     // 시야에서 사라져도 일정시간 타겟 유지
     float _lostTargetTimer;
@@ -96,8 +96,10 @@ public class EnemyTank : TankBase
         base.Awake();
 
         // _agent 설정
+        // 이동 막아놔도 speed, angularSpeed가 들어있어야 경로가 튀지 않음
         _agent.enabled = false;
-        _agent.speed = 0;
+        _agent.speed = _model.ForwardSpeed;
+        _agent.angularSpeed = _model.RotSpeed;
         _agent.stoppingDistance = _stoppingDistance;
 
         // 전진/회전 못하게 막아놓기

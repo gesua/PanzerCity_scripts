@@ -8,7 +8,7 @@ public class HeavyTank : EnemyTank
 {
     [Header("----- 컴포넌트(HeavyTank) -----")]
     [SerializeField] Renderer[] _renderers; // 색상 바꿀 렌더러들
-    
+
     // 바뀔 색
     Color[] _hpColors =
     {
@@ -59,6 +59,8 @@ public class HeavyTank : EnemyTank
 
     void HandleHit(HitData hitData)
     {
+        if (hitData.AtkTank == null) return;
+
         // 공격한 탱크를 바로 타겟으로 설정
         SetTarget(hitData.AtkTank.transform);
         ChangeState(EnemyStateType.Combat);

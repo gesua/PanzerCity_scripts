@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
-using Unity.VisualScripting;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Localization;
-using UnityEngine.Localization.Components;
+using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 
 /// <summary>
@@ -13,26 +13,30 @@ using UnityEngine.UI;
 public class GameOverUI : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
-    [SerializeField] GameObject _gameOverPanel;     // 전체 켜고 끌거
-    [SerializeField] Image _backgroundImage;        // 게임오버 배경 이미지
-    [SerializeField] Sprite[] _gameoverSprites;     // 0:HQ 파괴 1:탱크 파괴
-    [SerializeField] Image _darkOverlay;            // 어둡게 깔거
-    [SerializeField] CanvasGroup _buttonsGroup;     // 그룹(글자, 버튼)
-    [SerializeField] GameObject _messageText; // Localize 받아올 용도
-    LocalizeStringEvent _descLocalizeEvent; // 패배 내용 Localize
+    [SerializeField] GameObject _gameOverPanel; // 전체 켜고 끌거
+    [SerializeField] Image _backgroundImage;    // 게임오버 배경 이미지
+    [SerializeField] Sprite[] _gameoverSprites; // 0:HQ 파괴 1:탱크 파괴
+    [SerializeField] Image _darkOverlay;        // 어둡게 깔거
+    [SerializeField] CanvasGroup _buttonsGroup; // 그룹(글자, 버튼)
+    [SerializeField] TextMeshProUGUI _descText; // 패배 내용 텍스트
 
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _bgFadeDuration = 2f;
     [SerializeField] float _darkFadeDuration = 1f;
     [SerializeField] float _buttonsFadeDuration = 0.5f;
 
+    [Header("----- Localization -----")]
+    [SerializeField] LocalizedString _tankDefeatedString; // 목숨 0
+    [SerializeField] LocalizedString _hqDestroyedString;  // HQ 파괴
+    [SerializeField] TMP_FontAsset _koFont; // 한글 폰트
+    [SerializeField] TMP_FontAsset _enFont; // 영어 폰트
+
     public event Action RestartRequested;
     public event Action TitleRequested;
 
     void Awake()
     {
-        //_descLocalizeEvent = _messageText.GetComponent<LocalizeStringEvent>();
-
+        LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
         Initialize();
     }
 
@@ -46,29 +50,26 @@ public class GameOverUI : MonoBehaviour
         _buttonsGroup.alpha = 0f;
     }
 
+    void OnLocaleChanged(Locale locale)
+    {
+        // 폰트 변경
+        if (locale.Identifier.Code == "ko")
+            _descText.font = _koFont;
+        else
+            _descText.font = _enFont;
+    }
+
     /// <summary>
     /// 패배 UI 보여줌
     /// </summary>
     /// <param name="isHQDestroyed">HQ 패배인지</param>
     public void Show(bool isHQDestroyed)
     {
-        string tableKey = isHQDestroyed ? "UI_GAMEOVER_DESC_HQ" : "UI_GAMEOVER_DESC_TANK";
-        _descLocalizeEvent.StringReference = new LocalizedString("Localization", tableKey);
+        LocalizedString localizedString = isHQDestroyed ? _hqDestroyedString : _tankDefeatedString;
+        _descText.text = localizedString.GetLocalizedString();
+        
         int num = isHQDestroyed ? 0 : 1;
         _backgroundImage.sprite = _gameoverSprites[num];
-
-        /*
-        if (isHQDestroyed) // HQ 파괴
-        {
-            _messageText.text = "조각상이 파괴되었습니다.";
-            _backgroundImage.sprite = _gameoverSprites[0];
-        }
-        else // 목숨 0
-        {
-            _messageText.text = "전차가 파괴되었습니다.";
-            _backgroundImage.sprite = _gameoverSprites[1];
-        }
-        */
 
         _gameOverPanel.SetActive(true);
         StartCoroutine(ShowRoutine());

@@ -17,6 +17,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] CinemachineBrain _cinemachineBrain; // 블렌드 방식 변경용
     [SerializeField] SceneEffect _sceneEffect;
     [SerializeField] HitDirectionIndicator _hitDirectionIndicator; // 피격 방향 표시기
+    [SerializeField] ItemEffectHandler _itemEffectHandler; // 아이템 사용
     // UI
     [SerializeField] RightPanelUI _rightPanelUI; // 오른쪽 메뉴 UI
     [SerializeField] MiniMapUI _miniMapUI;       // 미니맵 UI
@@ -65,6 +66,25 @@ public class GameScene : MonoBehaviour
         _player.OnPlayerRespawn += HandlePlayerRespawn;
         _gameOverUI.RestartRequested += HandleRestartStage;
         _gameOverUI.TitleRequested += HandleTitleRequested;
+        _inventoryUI.Presenter.OnItemUsed += _itemEffectHandler.Use;
+
+        // 아이템 효과들
+        // 목숨 증가
+        _itemEffectHandler.OnLifeUp += () =>
+        {
+            _playerLife++;
+            _gameInfoUI.UpdateLife(_playerLife);
+        };
+        // 나 무적
+        _itemEffectHandler.OnHyperShield += duration =>
+        {
+            StartCoroutine(HyperShieldRoutine(duration));
+        };
+        // 폭탄
+        _itemEffectHandler.OnAirSupport += () =>
+        {
+            _currentStage.EnemySpawner.DestroyAllEnemies();
+        };
 
         // 이어줌
         _player.OnDamaged += _sceneEffect.ShowDamageEffect;
@@ -409,5 +429,15 @@ public class GameScene : MonoBehaviour
         Time.timeScale = 1f;
         UnsubscribeStage();
         SceneManager.LoadScene("Title");
+    }
+
+    /// <summary>
+    /// 나 무적 아이템 사용
+    /// </summary>
+    IEnumerator HyperShieldRoutine(float duration)
+    {
+        _player.Model.SetNoDamage(true);
+        yield return new WaitForSeconds(duration);
+        _player.Model.SetNoDamage(false);
     }
 }
