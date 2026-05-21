@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
-using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 
 /// <summary>
@@ -17,8 +18,8 @@ public class GameOverUI : MonoBehaviour
     [SerializeField] Sprite[] _gameoverSprites;     // 0:HQ 파괴 1:탱크 파괴
     [SerializeField] Image _darkOverlay;            // 어둡게 깔거
     [SerializeField] CanvasGroup _buttonsGroup;     // 그룹(글자, 버튼)
-    [SerializeField] TextMeshProUGUI _titleText;    // 제목 테스트
-    [SerializeField] TextMeshProUGUI _messageText;  // 내용 텍스트
+    [SerializeField] GameObject _messageText; // Localize 받아올 용도
+    LocalizeStringEvent _descLocalizeEvent; // 패배 내용 Localize
 
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _bgFadeDuration = 2f;
@@ -30,6 +31,8 @@ public class GameOverUI : MonoBehaviour
 
     void Awake()
     {
+        //_descLocalizeEvent = _messageText.GetComponent<LocalizeStringEvent>();
+
         Initialize();
     }
 
@@ -49,6 +52,12 @@ public class GameOverUI : MonoBehaviour
     /// <param name="isHQDestroyed">HQ 패배인지</param>
     public void Show(bool isHQDestroyed)
     {
+        string tableKey = isHQDestroyed ? "UI_GAMEOVER_DESC_HQ" : "UI_GAMEOVER_DESC_TANK";
+        _descLocalizeEvent.StringReference = new LocalizedString("Localization", tableKey);
+        int num = isHQDestroyed ? 0 : 1;
+        _backgroundImage.sprite = _gameoverSprites[num];
+
+        /*
         if (isHQDestroyed) // HQ 파괴
         {
             _messageText.text = "조각상이 파괴되었습니다.";
@@ -59,6 +68,7 @@ public class GameOverUI : MonoBehaviour
             _messageText.text = "전차가 파괴되었습니다.";
             _backgroundImage.sprite = _gameoverSprites[1];
         }
+        */
 
         _gameOverPanel.SetActive(true);
         StartCoroutine(ShowRoutine());

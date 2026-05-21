@@ -1,7 +1,6 @@
 using System;
 using Unity.Cinemachine;
 using UnityEngine;
-using static UnityEngine.Analytics.IAnalytic;
 
 /// <summary>
 /// 아군 HQ
@@ -18,7 +17,7 @@ public class HQ : MonoBehaviour, IDamageable
 
     public void TakeHit(HitData hitData)
     {
-        if (hitData.AtkTank is PlayerTank) return; // 아군이 직접 못 부수게 함
+        //if (hitData.AtkTank is PlayerTank) return; // 아군이 직접 못 부수게 함
 
         if (_isDestroy) return;
         _isDestroy = true;
