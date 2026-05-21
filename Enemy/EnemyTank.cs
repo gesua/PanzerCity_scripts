@@ -69,7 +69,7 @@ public class EnemyTank : TankBase
     float _lostTargetTimer;
     float _lostTargetDuration = 3f; // 시야에서 벗어난 후 타겟 유지 시간
 
-    bool __isAIActive; // 상태머신 활성화 여부
+    bool _isAIActive; // 상태머신 활성화 여부
     bool _isFirstFlee; // 첫 도주 체크용
 
     public EnemyPersonality Personality => _personality;
@@ -141,7 +141,7 @@ public class EnemyTank : TankBase
         _currentState = _states[(int)EnemyStateType.Idle];
         _currentState.Enter();
 
-        __isAIActive = true;
+        _isAIActive = true;
     }
 
     /// <summary>
@@ -154,7 +154,7 @@ public class EnemyTank : TankBase
 
     private void FixedUpdate()
     {
-        if (__isAIActive == false) return;
+        if (_isAIActive == false) return;
 
         // 현재 상태 갱신
         _currentState.Update();
@@ -534,7 +534,7 @@ public class EnemyTank : TankBase
         OnRemoved = null;
 
         // AI 비활성화
-        __isAIActive = false;
+        _isAIActive = false;
 
         // 자신 게임오브젝트 제거
         gameObject.DestroyOrReturnToPool();

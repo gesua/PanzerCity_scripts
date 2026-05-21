@@ -7,9 +7,11 @@ using UnityEngine;
 public class ItemEffectHandler : MonoBehaviour
 {
     [SerializeField] float _hyperShieldDuration = 5f; // 무적 시간
+    [SerializeField] float _empFieldDuration = 5f; // 적 멈추는 시간
 
     public event Action OnLifeUp;
     public event Action<float> OnHyperShield; // 나 무적<지속시간>
+    public event Action<float> OnEMPField;
     public event Action OnAirSupport;
 
     public void Use(int itemID)
@@ -25,6 +27,7 @@ public class ItemEffectHandler : MonoBehaviour
                 UseHyperShield();
                 break;
             case 1004: // 적 멈춤
+                UseEMPField();
                 break;
             case 1005: // 폭탄
                 UseAirSupport();
@@ -46,6 +49,14 @@ public class ItemEffectHandler : MonoBehaviour
     void UseHyperShield()
     {
         OnHyperShield?.Invoke(_hyperShieldDuration);
+    }
+
+    /// <summary>
+    /// 적 멈춤
+    /// </summary>
+    void UseEMPField()
+    {
+        OnEMPField?.Invoke(_empFieldDuration);
     }
 
     /// <summary>
