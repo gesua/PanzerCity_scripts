@@ -39,6 +39,7 @@ public class EnemySpawner : MonoBehaviour
     public event Action<List<int>> OnSpawnListReady; // 스폰 리스트 준비됨
     public event Action<int> OnEnemySpawned;         // 적 스폰됨
     public event Action OnAllEnemiesDefeated;        // 모든 적 격파
+    public event Action<DroppedItem> OnItemDropped;  // StageScene에 연결 용도
 
     Coroutine _spawnEnemyRoutine;
     Coroutine _retryRoutine;
@@ -122,8 +123,7 @@ public class EnemySpawner : MonoBehaviour
         if (spawnPos == null)
         {
             // 이미 재시도 중이면 새로 시작하지 않음
-            if (_retryRoutine == null)
-                _retryRoutine = StartCoroutine(RetrySpawn());
+            if (_retryRoutine == null) _retryRoutine = StartCoroutine(RetrySpawn());
             return;
         }
 
@@ -160,8 +160,13 @@ public class EnemySpawner : MonoBehaviour
         enemyGo.transform.position = spawnPos;
 
         // 초기화
-        EnemyTank enemy = enemyGo.GetComponent<EnemyTank>();
+        enemyGo.TryGetComponent(out EnemyTank enemy);
         enemy.Initialize();
+
+        if (enemy.TryGetComponent(out ItemDropper itemDropper))
+        {
+            itemDropper.OnItemDropped += item => OnItemDropped?.Invoke(item);
+        }
 
         // 렌더러 끄기
         enemy.SetRenderersVisible(false);
@@ -234,8 +239,10 @@ public class EnemySpawner : MonoBehaviour
     {
         // 생성된 적 목록에서 제거된 적 제거
         _enemies.Remove(enemy);
-        
-        // 스폰할 적도 없고 남은 적도 없으면 스테이지 클리어
+
+        Debug.Log($"스테이지 클리어 확인:{_spawnedCount} >= {_stageSpawnCount} && {_enemies.Count} == 0");
+
+        // 스폰할 적도 없고 남은 적도 없으면 이벤트 발행
         if (_spawnedCount >= _stageSpawnCount && _enemies.Count == 0)
         {
             OnAllEnemiesDefeated?.Invoke();

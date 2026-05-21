@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,6 +7,8 @@ using UnityEngine;
 /// </summary>
 public class ItemDropper : MonoBehaviour
 {
+    public event Action<DroppedItem> OnItemDropped;
+
     /// <summary>
     /// 드랍 확률 체크 및 아이템 선택
     /// </summary>
@@ -14,7 +17,7 @@ public class ItemDropper : MonoBehaviour
         if (dropChance <= 0 || dropGroupID <= 0) return;
 
         // 드랍 확률 체크
-        if (Random.Range(0, 100) >= dropChance) return;
+        if (UnityEngine.Random.Range(0, 100) >= dropChance) return;
 
         // 드랍 그룹에서 아이템 선택
         List<ItemDropGroupData> dropGroup = GameManager.Instance.DataManager.GetDropGroup(dropGroupID);
@@ -27,15 +30,13 @@ public class ItemDropper : MonoBehaviour
             totalWeight += data.SpawnWeight;
         }
 
-        int random = Random.Range(0, totalWeight);
+        int random = UnityEngine.Random.Range(0, totalWeight);
         int cumulative = 0;
         ItemDropGroupData selectedDrop = null;
 
         foreach (ItemDropGroupData data in dropGroup)
         {
             cumulative += data.SpawnWeight;
-
-            Debug.Log($"{random} < {cumulative}");
 
             if (random < cumulative)
             {
@@ -63,5 +64,7 @@ public class ItemDropper : MonoBehaviour
         {
             droppedItem.Initialize(itemConfig);
         }
+
+        OnItemDropped?.Invoke(droppedItem);
     }
 }

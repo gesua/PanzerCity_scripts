@@ -30,8 +30,7 @@ public class CameraBedrockFade : MonoBehaviour
 
         foreach (RaycastHit hit in hits)
         {
-            MeshRenderer rend = hit.collider.GetComponent<MeshRenderer>();
-            if (rend != null)
+            if(hit.collider.TryGetComponent(out MeshRenderer rend))
             {
                 FadeObject(rend);
                 if (_fadedObjects.Contains(rend) == false) _fadedObjects.Add(rend);

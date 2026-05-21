@@ -46,9 +46,10 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         shellGo.transform.rotation = _firePoint.rotation;
 
         // 포탄 초기화
-        Shell shell = shellGo.GetComponent<Shell>();
-
-        shell.Initialize(_model, gameObject.layer, this);
+        if (shellGo.TryGetComponent(out Shell shell))
+        {
+            shell.Initialize(_model, gameObject.layer, this);
+        }
     }
 
     /// <summary>

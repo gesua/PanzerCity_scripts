@@ -6,14 +6,14 @@ using UnityEngine;
 /// </summary>
 public class ItemPickup : MonoBehaviour
 {
-    [SerializeField] float _pickupRange = 2f;
+    [SerializeField] GameObject _pickupUI; // 획득 UI
+    [SerializeField] float _pickupRange = 2f; // 획득 거리
     [SerializeField] LayerMask _itemLayer;
-    [SerializeField] GameObject _pickupUI; // "E키 획득" UI
 
-    [SerializeField] float _detectInterval = 0.2f;
+    float _detectInterval = 0.2f; // 아이템 재탐색 시간
     float _detectTimer;
 
-    DroppedItem _nearestItem;
+    DroppedItem _nearestItem; // 획득할 가까운 아이템
     InventoryPresenter _inventoryPresenter;
 
     public void Initialize(InventoryPresenter inventoryPresenter)
@@ -54,7 +54,7 @@ public class ItemPickup : MonoBehaviour
             if (dist < minDist)
             {
                 minDist = dist;
-                _nearestItem = col.GetComponent<DroppedItem>();
+                col.TryGetComponent(out _nearestItem);
             }
         }
 

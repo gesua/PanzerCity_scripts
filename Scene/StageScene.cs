@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -13,6 +14,7 @@ public class StageScene : MonoBehaviour
     [SerializeField] HQ _hq;
 
     string _sceneName;
+    List<DroppedItem> _droppedItems = new(); // 씬 전환시 사라질 아이템들
 
     public int StageID => _stageID;
     public string SceneName => _sceneName;
@@ -32,6 +34,7 @@ public class StageScene : MonoBehaviour
         _enemySpawner.Initialize(_stageID);
 
         _enemySpawner.OnAllEnemiesDefeated += HandleAllEnemiesDefeated; // 모든 적 격파
+        _enemySpawner.OnItemDropped += item => _droppedItems.Add(item);
     }
 
     void HandleAllEnemiesDefeated()
@@ -42,6 +45,19 @@ public class StageScene : MonoBehaviour
     IEnumerator StageClearRoutine()
     {
         yield return new WaitForSeconds(3f);
+        Cleanup();
         OnStageClear?.Invoke();
+    }
+
+    /// <summary>
+    /// 바닥에 있는 아이템들 초기화
+    /// </summary>
+    public void Cleanup()
+    {
+        foreach (DroppedItem item in _droppedItems)
+        {
+            item.gameObject.DestroyOrReturnToPool();
+        }
+        _droppedItems.Clear();
     }
 }
