@@ -80,6 +80,11 @@ public class GameScene : MonoBehaviour
         {
             StartCoroutine(HyperShieldRoutine(duration));
         };
+        // 적 멈춤
+        _itemEffectHandler.OnEMPField += duration =>
+        {
+            _currentStage.EnemySpawner.StartEMPField(duration);
+        };
         // 폭탄
         _itemEffectHandler.OnAirSupport += () =>
         {

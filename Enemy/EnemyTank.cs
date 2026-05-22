@@ -145,6 +145,14 @@ public class EnemyTank : TankBase
     }
 
     /// <summary>
+    /// AI 상태머신 사용여부 세팅
+    /// </summary>
+    public void SetAIActive(bool active)
+    {
+        _isAIActive = active;
+    }
+
+    /// <summary>
     /// 렌더러 표시 설정
     /// </summary>
     public void SetRenderersVisible(bool visible)

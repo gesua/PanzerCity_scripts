@@ -36,6 +36,8 @@ public class EnemySpawner : MonoBehaviour
 
     List<int> _spawnList; // TankID 순서 리스트
     int _stageSpawnCount; // 스테이지당 스폰할 횟수
+    
+    bool _isEMPActive; // 적 멈추는 아이템 사용했는지
 
     public event Action<List<int>> OnSpawnListReady; // 스폰 리스트 준비됨
     public event Action<int> OnEnemySpawned;         // 적 스폰됨
@@ -184,6 +186,9 @@ public class EnemySpawner : MonoBehaviour
         // AI 시작
         enemy.StartAI();
 
+        // 적 멈춤 아이템 사용중이면 멈춰놓음
+        if (_isEMPActive) enemy.SetAIActive(false);
+
         _enemies.Add(enemy); // 리스트에 추가
         enemy.OnRemoved += HandleEnemyRemoved; // 제거 이벤트 구독
     }
@@ -248,6 +253,31 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
+    public void StartEMPField(float duration)
+    {
+        StartCoroutine(EMPFieldRoutine(duration));
+    }
+
+    IEnumerator EMPFieldRoutine(float duration)
+    {
+        _isEMPActive = true;
+        SetAllEnemiesAIActive(false);
+        yield return new WaitForSeconds(duration);
+        _isEMPActive = false;
+        SetAllEnemiesAIActive(true);
+    }
+
+    /// <summary>
+    /// 적 멈춤 아이템 효과
+    /// </summary>
+    public void SetAllEnemiesAIActive(bool active)
+    {
+        foreach (EnemyTank enemy in _enemies)
+        {
+            enemy.SetAIActive(active);
+        }
+    }
+
     /// <summary>
     /// 폭탄 아이템 효과
     /// </summary>
@@ -255,7 +285,10 @@ public class EnemySpawner : MonoBehaviour
     {
         foreach (EnemyTank enemy in _enemies.ToList())
         {
-            enemy.GetComponent<TankModel>().TakeDamage(new HitData(9999, enemy.transform.position, null));
+            if (enemy.TryGetComponent(out TankModel tankModel))
+            {
+                tankModel.TakeDamage(new HitData(9999, enemy.transform.position, null));
+            }
         }
     }
 
