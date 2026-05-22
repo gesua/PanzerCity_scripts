@@ -27,6 +27,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] StageClearUI _stageClearUI; // 스테이지 클리어 UI
     [SerializeField] PauseUI _pauseUI;           // 일시정지 UI
     [SerializeField] InventoryUI _inventoryUI;   // 인벤토리 UI
+    [SerializeField] WarningUI _warningUI;       // 경고 UI
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] int _playerLife = 3;       // 목숨
 
@@ -348,8 +349,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleBaseWallDestroyed()
     {
-        Debug.Log("기지가 공격당하고 있습니다.");
-        //_warningUI.Show("기지가 공격당하고 있습니다.");
+        _warningUI.Show();
     }
 
     /// <summary>
