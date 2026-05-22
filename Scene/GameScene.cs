@@ -106,7 +106,9 @@ public class GameScene : MonoBehaviour
         //UpdateCameraRect(isOpen);
     }
 
-    // Stage 씬 로드 완료 후 StageScene 연결
+    /// <summary>
+    /// Stage 씬 로드 완료 후 StageScene 연결
+    /// </summary>
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnStageLoaded;
@@ -126,7 +128,8 @@ public class GameScene : MonoBehaviour
         _gameInfoUI.UpdateStage(_currentStage.StageID - 7100); // 스테이지 ID값 빼줌(7100)
 
         // 이벤트 구독
-        _currentStage.OnHQDestroyed += HandleHQDestroyed; // 아군 기지 격파
+        _currentStage.OnHQDestroyed += HandleHQDestroyed; // 아군 기지 파괴
+        _currentStage.OnBaseWallDestroyed += HandleBaseWallDestroyed; // 기지 벽 파괴
         _currentStage.EnemySpawner.OnAllEnemiesDefeated += HandleAllEnemiesDefeated; // 모든 적 격파(UI 띄울 용도)
         _currentStage.OnStageClear += HandleStageClear; // 스테이지 클리어
 
@@ -341,6 +344,15 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 기지 벽 파괴됨
+    /// </summary>
+    void HandleBaseWallDestroyed()
+    {
+        Debug.Log("기지가 공격당하고 있습니다.");
+        //_warningUI.Show("기지가 공격당하고 있습니다.");
+    }
+
+    /// <summary>
     /// HQ 파괴되서 게임오버
     /// </summary>
     void HandleHQDestroyed()
@@ -437,7 +449,7 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
-    /// 나 무적 아이템 사용
+    /// 무적 아이템 사용
     /// </summary>
     IEnumerator HyperShieldRoutine(float duration)
     {

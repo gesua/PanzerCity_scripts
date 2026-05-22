@@ -1,6 +1,6 @@
+using System;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEngine.Analytics.IAnalytic;
 
 /// <summary>
 /// 벽
@@ -16,6 +16,8 @@ public class Wall : MonoBehaviour, IExplosionDamageable
     // 자식 큐브들
     Rigidbody[] _cubeRigids;
     FragmentCube[] _cubeFadeOuts;
+
+    public event Action OnDestroyed;
 
     void Awake()
     {
@@ -42,6 +44,8 @@ public class Wall : MonoBehaviour, IExplosionDamageable
         {
             fadeOut.StartFade(_disappearDelay);
         }
+
+        OnDestroyed?.Invoke();
 
         Destroy(gameObject, _disappearDelay); // 일정시간 후 제거
     }
