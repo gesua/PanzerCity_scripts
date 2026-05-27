@@ -33,13 +33,13 @@ public enum Direction
 /// 스폰 후 배회하다 플레이어를 감지하면 성격에 따라 다르게 행동
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(EnemyTankDestructionEffect))]
+[RequireComponent(typeof(TankVisualController))]
 public class EnemyTank : TankBase
 {
     [Header("----- 컴포넌트(EnemyTank) -----")]
     [SerializeField] NavMeshAgent _agent;
     [SerializeField] Rigidbody _rigid;
-    [SerializeField] EnemyTankDestructionEffect _destructionEffect; // 파괴 연출
+    [SerializeField] TankVisualController _destructionEffect; // 파괴 연출
     [SerializeField] BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
     [SerializeField] GameObject _silhouetteModel; // 조준시 보일 실루엣
     [SerializeField] ItemDropper _itemDropper; // 아이템 드랍

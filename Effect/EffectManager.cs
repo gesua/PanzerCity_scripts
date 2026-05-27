@@ -37,6 +37,7 @@ public class EffectManager : MonoBehaviour
         _poolManager.GetPool(GetPrefabPath(EffectType.PressurisedSteam));
         _poolManager.GetPool(GetPrefabPath(EffectType.TinyFlames));
         _poolManager.GetPool(GetPrefabPath(EffectType.SmokeEffect));
+        _poolManager.GetPool(GetPrefabPath(EffectType.Lightning));
     }
 
     /// <summary>

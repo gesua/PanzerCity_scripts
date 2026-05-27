@@ -1,10 +1,11 @@
 using UnityEngine;
 
 /// <summary>
+/// 적 탱크 모델 관련
 /// 적 탱크 파괴됐을 때 연출
 /// 파괴된 모델로 교체 후 부품 다 날려버리기
 /// </summary>
-public class EnemyTankDestructionEffect : MonoBehaviour
+public class TankVisualController : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
     [SerializeField] GameObject _model; // 원래 모델
