@@ -1,6 +1,4 @@
-using System.Collections;
 using UnityEngine;
-using static UnityEngine.Analytics.IAnalytic;
 
 /// <summary>
 /// 벽에 들어있는 큐브 조각
@@ -21,6 +19,11 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
 
     // 주변 터질 때 영향 받을거
     Rigidbody _rigid;
+
+    // 기지벽 복구시킬 용도
+    Material _originalMat;
+    Vector3 _originalPos;
+    Quaternion _originalRot;
 
     void Awake()
     {
@@ -55,5 +58,32 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
     public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
         _rigid.AddExplosionForce(explosionForce, pos, 1000f, 0f, ForceMode.Impulse);
+    }
+
+    /// <summary>
+    /// 원래 값 세팅
+    /// </summary>
+    public void SetOriginal()
+    {
+        _originalPos = transform.localPosition;
+        _originalRot = transform.localRotation;
+        _originalMat = _renderer.material;
+    }
+
+    public void Reset()
+    {
+        _isFading = false;
+        _rigid.isKinematic = true;
+        _rigid.linearVelocity = Vector3.zero;
+        _rigid.angularVelocity = Vector3.zero;
+        transform.localPosition = _originalPos;
+        transform.localRotation = _originalRot;
+        
+        // 알파값 복구
+        if (_color != null) _color.a = 1;
+        _renderer.material.color = _color;
+        _renderer.material = _originalMat;
+
+        gameObject.SetActive(true);
     }
 }

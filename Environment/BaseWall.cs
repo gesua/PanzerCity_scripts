@@ -11,10 +11,13 @@ public class BaseWall : MonoBehaviour
 
     public event Action OnBaseWallDestroyed;
 
-    void OnEnable()
+    private void Awake()
     {
         foreach (Wall wall in _walls)
+        {
             wall.OnDestroyed += HandleWallDestroyed;
+            wall.SetAsBaseWall();
+        }
     }
 
     void OnDisable()

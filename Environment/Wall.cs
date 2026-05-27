@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -9,21 +10,30 @@ using UnityEngine.AI;
 public class Wall : MonoBehaviour, IExplosionDamageable
 {
     [SerializeField] NavMeshObstacle _navMeshObstacle; // 네브메쉬 계산용
+    [SerializeField] Collider _collider;
 
+    bool _isBaseWall; // 기지 벽인지
     float _disappearDelay = 5f; // 사라지는 시간
-    Collider _collider;
 
     // 자식 큐브들
     Rigidbody[] _cubeRigids;
-    FragmentCube[] _cubeFadeOuts;
+    FragmentCube[] _cubes;
 
     public event Action OnDestroyed;
 
     void Awake()
     {
         _cubeRigids = GetComponentsInChildren<Rigidbody>();
-        _cubeFadeOuts = GetComponentsInChildren<FragmentCube>();
-        _collider = GetComponent<Collider>();
+        _cubes = GetComponentsInChildren<FragmentCube>();
+
+        // 기지 벽이면 원래 값 세팅
+        if (_isBaseWall)
+        {
+            foreach (FragmentCube cube in _cubes)
+            {
+                cube.SetOriginal();
+            }
+        }
     }
 
     public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
@@ -40,13 +50,46 @@ public class Wall : MonoBehaviour, IExplosionDamageable
         }
 
         // 큐브들 페이드 아웃
-        foreach (FragmentCube fadeOut in _cubeFadeOuts)
+        foreach (FragmentCube fadeOut in _cubes)
         {
             fadeOut.StartFade(_disappearDelay);
         }
 
         OnDestroyed?.Invoke();
 
-        Destroy(gameObject, _disappearDelay); // 일정시간 후 제거
+        if (_isBaseWall)
+        {
+            StartCoroutine(DisableRoutine()); // 끄기만 함
+        }
+        else
+        {
+            Destroy(gameObject, _disappearDelay); // 일정시간 후 제거
+        }
+    }
+
+    public void SetAsBaseWall()
+    {
+        _isBaseWall = true;
+    }
+
+    IEnumerator DisableRoutine()
+    {
+        yield return new WaitForSeconds(_disappearDelay);
+        gameObject.SetActive(false);
+    }
+
+    public void Reset()
+    {
+        _collider.enabled = true;
+        _navMeshObstacle.enabled = true;
+        foreach (Rigidbody rigid in _cubeRigids)
+        {
+            rigid.isKinematic = true;
+        }
+        foreach (FragmentCube cube in _cubes)
+        {
+            cube.Reset();
+        }
+        gameObject.SetActive(true);
     }
 }
