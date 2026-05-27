@@ -9,8 +9,13 @@ using UnityEngine;
 public class BaseWall : MonoBehaviour
 {
     [SerializeField] Wall[] _walls;
+    [SerializeField] GameObject _normalWalls; // 기존 벽
     [SerializeField] GameObject _shieldWalls; // 흰색 벽
-    
+
+    // 기지무적 아이템 사용시 깜빡임 관련
+    [SerializeField] float _blinkStartTime = 2f;
+    [SerializeField] float _blinkInterval = 0.1f;
+
     Coroutine _shieldRoutine;
 
     public event Action OnBaseWallDestroyed;
@@ -50,13 +55,16 @@ public class BaseWall : MonoBehaviour
 
     IEnumerator ShieldRoutine(float duration)
     {
-        // 기존 벽 끄기
+        // 기존 벽 복구
         foreach (Wall wall in _walls)
         {
-            if (wall.gameObject.activeSelf)
+            if (wall.gameObject.activeSelf == false)
             {
-                wall.gameObject.SetActive(false);
+                wall.gameObject.SetActive(true); // HACK:이거 없으면 Reset 작동 안 하나?
+                wall.Reset();
             }
+
+            wall.gameObject.SetActive(false);
         }
 
         // 흰색 벽 활성화
@@ -67,15 +75,5 @@ public class BaseWall : MonoBehaviour
         // 흰색 벽 비활성화
         _shieldWalls.SetActive(false);
         _shieldRoutine = null;
-
-        // 기존 벽 복구
-        foreach (Wall wall in _walls)
-        {
-            if (!wall.gameObject.activeSelf)
-            {
-                wall.gameObject.SetActive(true);
-                wall.Reset();
-            }
-        }
     }
 }
