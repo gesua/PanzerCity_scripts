@@ -9,10 +9,12 @@ public enum EffectType // 파일 이름과 동일하게 해야함
     StatueExplosion,        // 조각상 폭발용
     TinyExplosion,          // 포신 폭발용
     SmallExplosion,         // 탱크 폭발용
-    Twinkle,                // 반짝(적 스폰용)
+    Twinkle,                // 반짝(스폰용)
     PressurisedSteam,       // 탱크 엔진 흰 연기 [직접 붙여서 사용중]
     TinyFlames,             // 탱크 파괴 후 잔불
     SmokeEffect,            // 탱크 잔해 검은 연기 [미사용]
+    EnergyExplosion,        // 전기 폭발 [미사용]
+    Lightning,              // 전기 지지직(적 멈추는 아이템)
 }
 
 /// <summary>
