@@ -43,6 +43,7 @@ public class EnemyTank : TankBase
     [SerializeField] BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
     [SerializeField] GameObject _silhouetteModel; // 조준시 보일 실루엣
     [SerializeField] ItemDropper _itemDropper; // 아이템 드랍
+    [SerializeField] LoopEffect _empEffect; // 적 멈춤 아이템 사용시 이펙트
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _roamSpan = 3f; // 최대 배회 간격
     [SerializeField] float _deadDuration = 5f; // 사망 상태 지속 시간
@@ -554,6 +555,12 @@ public class EnemyTank : TankBase
     public void SetSilhouette(bool enable)
     {
         _silhouetteModel.SetActive(enable);
+    }
+
+    public void SetEMPEffect(bool active)
+    {
+        if (active) _empEffect.Play();
+        else _empEffect.Stop();
     }
 
     void OnDrawGizmos()

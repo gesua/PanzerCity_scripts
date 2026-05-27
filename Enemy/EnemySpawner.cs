@@ -189,7 +189,11 @@ public class EnemySpawner : MonoBehaviour
         enemy.StartAI();
 
         // 적 멈춤 아이템 사용중이면 멈춰놓음
-        if (_isEMPActive) enemy.SetAIActive(false);
+        if (_isEMPActive)
+        {
+            enemy.SetAIActive(false);
+            enemy.SetEMPEffect(true);
+        }
 
         _enemies.Add(enemy); // 리스트에 추가
         enemy.OnRemoved += HandleEnemyRemoved; // 제거 이벤트 구독
@@ -294,6 +298,7 @@ public class EnemySpawner : MonoBehaviour
         foreach (EnemyTank enemy in _enemies)
         {
             enemy.SetAIActive(active);
+            enemy.SetEMPEffect(!active); // 파직거리는 이펙트
         }
     }
 
