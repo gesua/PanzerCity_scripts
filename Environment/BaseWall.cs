@@ -8,14 +8,14 @@ using UnityEngine;
 /// </summary>
 public class BaseWall : MonoBehaviour
 {
-    [SerializeField] Wall[] _walls; // HACK:구조 고치기
+    [SerializeField] Wall[] _walls;
     [SerializeField] GameObject _shieldWalls; // 흰색 벽
     
     Coroutine _shieldRoutine;
 
     public event Action OnBaseWallDestroyed;
 
-    private void Awake()
+    void Start()
     {
         foreach (Wall wall in _walls)
         {

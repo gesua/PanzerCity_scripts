@@ -8,6 +8,10 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class GameScene : MonoBehaviour
 {
+    [Header("----- 아이템 치트 -----")]
+    [SerializeField] int _cheatItemNum;
+    [SerializeField] bool _cheatActive;
+
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Camera _mainCamera;
     [SerializeField] InputSystemHandler _inputSystemHandler;
@@ -55,19 +59,22 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnMapInput += HandleMapInput;
         _inputSystemHandler.OnFreeLookInput += HandleFreeLookInput;
         _inputSystemHandler.OnPauseInput += HandlePauseInput;
+        _inputSystemHandler.OnInventoryInput += HandleInventoryInput;
+        _inputSystemHandler.OnInteractInput += HandleInteractInput;
+        _inputSystemHandler.OnCursorInput += HandleCursorInput;
+
         _rightPanelUI.OnPauseClicked += HandlePauseInput;
         _pauseUI.OnResumeClicked += HandlePauseInput;
         _pauseUI.OnRestartClicked += HandleRestartStage;
         _pauseUI.OnMainMenuClicked += HandleTitleRequested;
         //_pauseUI.OnTutorialClicked += HandleTutorial;
-        _inputSystemHandler.OnInventoryInput += HandleInventoryInput;
-        _inputSystemHandler.OnInteractInput += HandleInteractInput;
-        _inputSystemHandler.OnCursorInput += HandleCursorInput;
-        _player.Model.OnDead += HandlePlayerDead;
-        _player.OnPlayerRespawn += HandlePlayerRespawn;
+
         _gameOverUI.RestartRequested += HandleRestartStage;
         _gameOverUI.TitleRequested += HandleTitleRequested;
         _inventoryUI.Presenter.OnItemUsed += _itemEffectHandler.Use;
+
+        _player.Model.OnDead += HandlePlayerDead;
+        _player.OnPlayerRespawn += HandlePlayerRespawn;
 
 
         // 아이템 효과들
@@ -462,5 +469,26 @@ public class GameScene : MonoBehaviour
         _player.Model.SetNoDamage(true);
         yield return new WaitForSeconds(duration);
         _player.Model.SetNoDamage(false);
+    }
+
+    void Update()
+    {
+#if UNITY_EDITOR
+        if (_cheatActive)
+        {
+            AddCheatItem(_cheatItemNum);
+            _cheatActive = false;
+        }
+#endif
+    }
+
+    /// <summary>
+    /// 치트로 아이템 추가
+    /// </summary>
+    void AddCheatItem(int itemID)
+    {
+        ItemConfig config = GameManager.Instance.DataManager.GetItemConfig(itemID);
+        ItemModel item = new ItemModel(config);
+        _inventoryUI.Presenter.AddItem(item);
     }
 }

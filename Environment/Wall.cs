@@ -27,18 +27,6 @@ public class Wall : MonoBehaviour, IExplosionDamageable
         _cubes = GetComponentsInChildren<FragmentCube>();
     }
 
-    void Start()
-    {
-        // 기지 벽이면 원래 값 세팅
-        if (_isBaseWall)
-        {
-            foreach (FragmentCube cube in _cubes)
-            {
-                cube.SetOriginal();
-            }
-        }
-    }
-
     public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
         _collider.enabled = false; // 충돌 비활성화
@@ -73,6 +61,11 @@ public class Wall : MonoBehaviour, IExplosionDamageable
     public void SetAsBaseWall()
     {
         _isBaseWall = true;
+
+        foreach (FragmentCube cube in _cubes)
+        {
+            cube.SetOriginal();
+        }
     }
 
     IEnumerator DisableRoutine()
