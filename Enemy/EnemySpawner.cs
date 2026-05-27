@@ -26,9 +26,11 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] Transform[] _spawnPos;     // 스폰 위치
     [SerializeField] float _spawnCheckRadius = 2f; // 스폰 위치 체크 반경
     [SerializeField] LayerMask _spawnCheckLayer = 1 << 8 | 1 << 9; // 탱크 레이어(플레이어, 적)
+    [Header("----- 아이템 효과 -----")]
+    [SerializeField] float _blinkStartTime = 2f;  // 깜빡이기 시작할 시간
+    [SerializeField] float _blinkInterval = 0.1f; // 깜빡임 간격
 
-    [Header("----- 적 리스트(읽기 전용) -----")]
-    [SerializeField] List<EnemyTank> _enemies = new(); // 생성된 적 리스트
+    List<EnemyTank> _enemies = new(); // 생성된 적 리스트
 
     int[] _spawnPosIndex;      // 스폰 위치 순서
     int _spawnedCount = 0;  // 스폰된 수
@@ -253,6 +255,9 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 적 멈춤 아이템 효과
+    /// </summary>
     public void StartEMPField(float duration)
     {
         StartCoroutine(EMPFieldRoutine(duration));
@@ -262,13 +267,27 @@ public class EnemySpawner : MonoBehaviour
     {
         _isEMPActive = true;
         SetAllEnemiesAIActive(false);
-        yield return new WaitForSeconds(duration);
+
+        // 깜빡이기 전 대기
+        yield return new WaitForSeconds(duration - _blinkStartTime);
+
+        // 깜빡이기
+        float elapsed = 0f;
+        while (elapsed < _blinkStartTime)
+        {
+            SetAllEnemiesVisible(false);
+            yield return new WaitForSeconds(_blinkInterval);
+            SetAllEnemiesVisible(true);
+            yield return new WaitForSeconds(_blinkInterval);
+            elapsed += _blinkInterval * 2f;
+        }
+
         _isEMPActive = false;
         SetAllEnemiesAIActive(true);
     }
 
     /// <summary>
-    /// 적 멈춤 아이템 효과
+    /// 모든 적의 AI 켜고 끄기
     /// </summary>
     public void SetAllEnemiesAIActive(bool active)
     {
@@ -276,6 +295,15 @@ public class EnemySpawner : MonoBehaviour
         {
             enemy.SetAIActive(active);
         }
+    }
+
+    /// <summary>
+    /// 모든 적의 모습 켜고 끄기
+    /// </summary>
+    void SetAllEnemiesVisible(bool visible)
+    {
+        foreach (EnemyTank enemy in _enemies)
+            enemy.SetRenderersVisible(visible);
     }
 
     /// <summary>
