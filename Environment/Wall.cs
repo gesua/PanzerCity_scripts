@@ -25,7 +25,10 @@ public class Wall : MonoBehaviour, IExplosionDamageable
     {
         _cubeRigids = GetComponentsInChildren<Rigidbody>();
         _cubes = GetComponentsInChildren<FragmentCube>();
+    }
 
+    void Start()
+    {
         // 기지 벽이면 원래 값 세팅
         if (_isBaseWall)
         {

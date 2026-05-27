@@ -6,11 +6,22 @@ using UnityEngine;
 /// </summary>
 public class ItemEffectHandler : MonoBehaviour
 {
-    [SerializeField] float _hyperShieldDuration = 5f; // 무적 시간
+    [SerializeField] float _baseShieldDuration = 10f; // 기지 무적 시간
+    [SerializeField] float _hyperShieldDuration = 5f; // 나 무적 시간
     [SerializeField] float _empFieldDuration = 10f; // 적 멈추는 시간
 
     public event Action OnLifeUp;
-    public event Action<float> OnHyperShield; // 나 무적<지속시간>
+    /// <summary>
+    /// 기지 무적 [지속시간]
+    /// </summary>
+    public event Action<float> OnBaseShield;
+    /// <summary>
+    /// 나 무적 [지속시간]
+    /// </summary>
+    public event Action<float> OnHyperShield;
+    /// <summary>
+    /// 적 멈춤 [지속시간]
+    /// </summary>
     public event Action<float> OnEMPField;
     public event Action OnAirSupport;
 
@@ -22,6 +33,7 @@ public class ItemEffectHandler : MonoBehaviour
                 UseLifeUp();
                 break;
             case 1002: // 기지 무적
+                UseBaseShield();
                 break;
             case 1003: // 나 무적
                 UseHyperShield();
@@ -41,6 +53,14 @@ public class ItemEffectHandler : MonoBehaviour
     void UseLifeUp()
     {
         OnLifeUp?.Invoke();
+    }
+
+    /// <summary>
+    /// 기지 무적
+    /// </summary>
+    void UseBaseShield()
+    {
+        OnBaseShield?.Invoke(_baseShieldDuration);
     }
 
     /// <summary>

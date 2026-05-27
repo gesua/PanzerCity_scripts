@@ -69,12 +69,18 @@ public class GameScene : MonoBehaviour
         _gameOverUI.TitleRequested += HandleTitleRequested;
         _inventoryUI.Presenter.OnItemUsed += _itemEffectHandler.Use;
 
+
         // 아이템 효과들
         // 목숨 증가
         _itemEffectHandler.OnLifeUp += () =>
         {
             _playerLife++;
             _gameInfoUI.UpdateLife(_playerLife);
+        };
+        // 기지 무적
+        _itemEffectHandler.OnBaseShield += duration =>
+        {
+            _currentStage.BaseWall.ActivateShield(duration);
         };
         // 나 무적
         _itemEffectHandler.OnHyperShield += duration =>

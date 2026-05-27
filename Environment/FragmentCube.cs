@@ -52,7 +52,7 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
 
         _renderer.material = _transparentMat; // 머터리얼 교체
         _color = _renderer.material.color;
-        gameObject.layer = 0; // 레이어를 Default로 변경하여 충돌 감지 방지
+        gameObject.layer = 0; // 레이어를 Default로 변경하여 충돌 감지를 방지
     }
 
     public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
@@ -67,17 +67,16 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
     {
         _originalPos = transform.localPosition;
         _originalRot = transform.localRotation;
-        _originalMat = _renderer.material;
+        _originalMat = _renderer.sharedMaterial;
     }
 
     public void Reset()
     {
         _isFading = false;
         _rigid.isKinematic = true;
-        _rigid.linearVelocity = Vector3.zero;
-        _rigid.angularVelocity = Vector3.zero;
         transform.localPosition = _originalPos;
         transform.localRotation = _originalRot;
+        gameObject.layer = 6; // Map 레이어로 복구
         
         // 알파값 복구
         if (_color != null) _color.a = 1;
