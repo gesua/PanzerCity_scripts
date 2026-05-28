@@ -7,7 +7,7 @@ using UnityEngine;
 public class ItemEffectHandler : MonoBehaviour
 {
     [SerializeField] float _baseShieldDuration = 10f; // 기지 무적 시간
-    [SerializeField] float _hyperShieldDuration = 5f; // 나 무적 시간
+    [SerializeField] float _hyperShieldDuration = 10f; // 나 무적 시간
     [SerializeField] float _empFieldDuration = 10f; // 적 멈추는 시간
 
     public event Action OnLifeUp;

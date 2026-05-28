@@ -18,7 +18,8 @@ public class PlayerTank : TankBase
     [SerializeField] GameObject _destroyedTurret; // 파괴된 포탑
     [SerializeField] GameObject _destroyedBarrel; // 파괴된 주포
     [SerializeField] CommanderController _commander; // 전차장 캐릭터
-    [SerializeField] ItemPickup _itemPickup;
+    [SerializeField] ItemPickup _itemPickup; // 아이템 줍기 단축키
+    [SerializeField] LoopEffect _shieldEffect; // 실드 이펙트
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
 
@@ -245,5 +246,14 @@ public class PlayerTank : TankBase
 
         // 포탑 끄기
         _turret.enabled = false;
+    }
+
+    /// <summary>
+    /// 실드 이펙트 켜기/끄기
+    /// </summary>
+    public void SetShieldEffect(bool active)
+    {
+        if (active) _shieldEffect.Play();
+        else _shieldEffect.Stop();
     }
 }
