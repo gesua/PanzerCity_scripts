@@ -33,6 +33,8 @@ public class Wall : MonoBehaviour, IExplosionDamageable
 
     public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
+        if (_isBaseWall && hitData.AtkTank is PlayerTank) return; // 기지 벽은 아군이 직접 못 부수게 함
+
         _collider.enabled = false; // 충돌 비활성화
         _navMeshObstacle.enabled = false; // 네브메시 장애물 비활성화
 
@@ -65,7 +67,7 @@ public class Wall : MonoBehaviour, IExplosionDamageable
     private void Update()
     {
         // 일정 시간 후 끄기
-        if(_isDisable)
+        if (_isDisable)
         {
             _timer += Time.deltaTime;
             if (_timer >= _disappearDelay)
