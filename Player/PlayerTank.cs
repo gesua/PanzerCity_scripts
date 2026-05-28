@@ -20,6 +20,7 @@ public class PlayerTank : TankBase
     [SerializeField] CommanderController _commander; // 전차장 캐릭터
     [SerializeField] ItemPickup _itemPickup; // 아이템 줍기 단축키
     [SerializeField] LoopEffect _shieldEffect; // 실드 이펙트
+    [SerializeField] ParticleSystem _shieldParticle; // 실드 파티클 색 변경 용도
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
 
@@ -28,6 +29,8 @@ public class PlayerTank : TankBase
     bool _isDead; // 죽었는지
     float _reloadTimer; // 재장전 시간 잴거
     int _prevHp; // 이전 체력(피격 확인용)
+
+    ParticleSystemRenderer _shieldRenderer;
 
     public ItemPickup ItemPickup => _itemPickup;
     public Transform TurretTr => _turret.TurretTr;
@@ -50,6 +53,9 @@ public class PlayerTank : TankBase
         _model.OnDead += HandleDead; // 사망
 
         Initialize();
+
+        // 실드 이펙트 색 변경 용도
+        _shieldRenderer = _shieldParticle.GetComponent<ParticleSystemRenderer>();
 
         // 게임 시작 전까지 멈춰놓기
         DisablePlayerAndUI();
@@ -145,7 +151,7 @@ public class PlayerTank : TankBase
     /// </summary>
     void HandleHit(HitData hitData)
     {
-        if(_isDead == false) _commander.PlayHitMotion(); // 피격 모션
+        if (_isDead == false) _commander.PlayHitMotion(); // 피격 모션
         OnHit?.Invoke(hitData);
     }
 
@@ -255,5 +261,21 @@ public class PlayerTank : TankBase
     {
         if (active) _shieldEffect.Play();
         else _shieldEffect.Stop();
+    }
+
+    /// <summary>
+    /// 실드 이펙트 색 변경
+    /// </summary>
+    /// <param name="ratio">0 ~ 1 (0이 끝나갈 때)</param>
+    public void UpdateShieldColor(float ratio)
+    {
+        // 초록 -> 노랑 -> 빨강
+        Color color;
+        if (ratio > 0.5f) color = Color.Lerp(Color.yellow, Color.green, (ratio - 0.5f) * 2f);
+        else color = Color.Lerp(Color.red, Color.yellow, ratio * 2f);
+
+        _shieldRenderer.trailMaterial.color = color;
+        var main = _shieldParticle.main;
+        main.startColor = color;
     }
 }

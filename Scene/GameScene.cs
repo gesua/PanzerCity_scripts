@@ -471,7 +471,17 @@ public class GameScene : MonoBehaviour
     {
         _player.Model.SetNoDamage(true);
         _player.SetShieldEffect(true);
-        yield return new WaitForSeconds(duration);
+
+        // 이펙트 색 변경
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float ratio = 1f - (elapsed / duration); // 1에서 0으로 감소
+            _player.UpdateShieldColor(ratio);
+            yield return null;
+        }
+
         _player.Model.SetNoDamage(false);
         _player.SetShieldEffect(false);
     }
