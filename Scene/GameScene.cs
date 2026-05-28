@@ -43,6 +43,8 @@ public class GameScene : MonoBehaviour
 
     bool _OnCursor; // 마우스 커서 활성화 여부
 
+    Coroutine _hyperShieldRoutine;
+
     // 카메라 w크기 관련
     float _rightPanelPixelWidth = 350f; // 오른쪽 패널 픽셀 너비
 
@@ -92,7 +94,8 @@ public class GameScene : MonoBehaviour
         // 나 무적
         _itemEffectHandler.OnHyperShield += duration =>
         {
-            StartCoroutine(HyperShieldRoutine(duration));
+            if (_hyperShieldRoutine != null) StopCoroutine(_hyperShieldRoutine);
+            _hyperShieldRoutine = StartCoroutine(HyperShieldRoutine(duration));
         };
         // 적 멈춤
         _itemEffectHandler.OnEMPField += duration =>
