@@ -74,6 +74,9 @@ public class Wall : MonoBehaviour, IExplosionDamageable
         gameObject.SetActive(false);
     }
 
+    /// <summary>
+    /// 초기화
+    /// </summary>
     public void Reset()
     {
         _collider.enabled = true;
@@ -87,5 +90,14 @@ public class Wall : MonoBehaviour, IExplosionDamageable
             cube.Reset();
         }
         gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// 콜라이더 설정
+    /// </summary>
+    public void SetCollidersEnabled(bool enabled)
+    {
+        _collider.enabled = enabled;
+        _navMeshObstacle.enabled = enabled;
     }
 }

@@ -60,20 +60,41 @@ public class BaseWall : MonoBehaviour
         {
             if (wall.gameObject.activeSelf == false)
             {
-                wall.gameObject.SetActive(true); // HACK:이거 없으면 Reset 작동 안 하나?
+                wall.gameObject.SetActive(true);
                 wall.Reset();
             }
-
-            wall.gameObject.SetActive(false);
+            wall.SetCollidersEnabled(false); // 콜라이더 꺼놓음
         }
 
         // 흰색 벽 활성화
         _shieldWalls.SetActive(true);
 
-        yield return new WaitForSeconds(duration);
+        yield return new WaitForSeconds(duration - _blinkStartTime);
+
+        // 깜빡이기
+        float elapsed = 0f;
+        while (elapsed < _blinkStartTime)
+        {
+            _shieldWalls.SetActive(false);
+            _normalWalls.SetActive(true);
+
+            yield return new WaitForSeconds(_blinkInterval);
+
+            _shieldWalls.SetActive(true);
+            _normalWalls.SetActive(false);
+
+            yield return new WaitForSeconds(_blinkInterval);
+            elapsed += _blinkInterval * 2f;
+        }
 
         // 흰색 벽 비활성화
         _shieldWalls.SetActive(false);
+        _normalWalls.SetActive(true);
+        foreach (Wall wall in _walls)
+        {
+            wall.SetCollidersEnabled(true);
+        }
+
         _shieldRoutine = null;
     }
 }
