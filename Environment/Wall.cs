@@ -15,6 +15,10 @@ public class Wall : MonoBehaviour, IExplosionDamageable
     bool _isBaseWall; // 기지 벽인지
     float _disappearDelay = 5f; // 사라지는 시간
 
+    // 끄는 시간
+    bool _isDisable;
+    float _timer;
+
     // 자식 큐브들
     Rigidbody[] _cubeRigids;
     FragmentCube[] _cubes;
@@ -50,11 +54,26 @@ public class Wall : MonoBehaviour, IExplosionDamageable
 
         if (_isBaseWall)
         {
-            StartCoroutine(DisableRoutine()); // 끄기만 함
+            _isDisable = true;
         }
         else
         {
             Destroy(gameObject, _disappearDelay); // 일정시간 후 제거
+        }
+    }
+
+    private void Update()
+    {
+        // 일정 시간 후 끄기
+        if(_isDisable)
+        {
+            _timer += Time.deltaTime;
+            if (_timer >= _disappearDelay)
+            {
+                gameObject.SetActive(false);
+                _isDisable = false;
+                _timer = 0;
+            }
         }
     }
 
@@ -68,17 +87,14 @@ public class Wall : MonoBehaviour, IExplosionDamageable
         }
     }
 
-    IEnumerator DisableRoutine()
-    {
-        yield return new WaitForSeconds(_disappearDelay);
-        gameObject.SetActive(false);
-    }
-
     /// <summary>
     /// 초기화
     /// </summary>
     public void Reset()
     {
+        _isDisable = false;
+        _timer = 0;
+
         _collider.enabled = true;
         _navMeshObstacle.enabled = true;
         foreach (Rigidbody rigid in _cubeRigids)

@@ -12,6 +12,12 @@ public class BaseWall : MonoBehaviour
     [SerializeField] GameObject _normalWalls; // 기존 벽
     [SerializeField] GameObject _shieldWalls; // 흰색 벽
 
+    // 기지무적 아이템 사용시 밀어내기
+    [SerializeField] Transform _hqCenter; // HQ 중심점
+    [SerializeField] Collider _pushBounds; // 밀어낼 영역
+    [SerializeField] float _pushOffset = 0.5f;
+    [SerializeField] LayerMask _tankLayer;
+
     // 기지무적 아이템 사용시 깜빡임 관련
     [SerializeField] float _blinkStartTime = 2f;
     [SerializeField] float _blinkInterval = 0.1f;
@@ -55,14 +61,13 @@ public class BaseWall : MonoBehaviour
 
     IEnumerator ShieldRoutine(float duration)
     {
+        // 벽 안에 있는 탱크 밀어내기
+        PushOutTanks();
+
         // 기존 벽 복구
         foreach (Wall wall in _walls)
         {
-            if (wall.gameObject.activeSelf == false)
-            {
-                wall.gameObject.SetActive(true);
-                wall.Reset();
-            }
+            wall.Reset();
             wall.SetCollidersEnabled(false); // 콜라이더 꺼놓음
         }
 
@@ -96,5 +101,28 @@ public class BaseWall : MonoBehaviour
         }
 
         _shieldRoutine = null;
+    }
+
+    /// <summary>
+    /// 벽 안에 있는 탱크 바깥으로 밀어내기
+    /// </summary>
+    void PushOutTanks()
+    {
+        Collider[] colliders = Physics.OverlapBox(_pushBounds.bounds.center, _pushBounds.bounds.extents, Quaternion.identity, _tankLayer);
+
+        foreach (Collider col in colliders)
+        {
+            if (col.TryGetComponent(out Rigidbody rigid))
+            {
+                // 중심에서 탱크 방향으로 밀어내기
+                Vector3 dir = (col.transform.position - _hqCenter.position).normalized;
+                dir.y = 0f;
+
+                float dist = Vector3.Distance(col.transform.position, _hqCenter.position);
+                float pushStrength = Mathf.Clamp(10f / dist, 0.5f, 3f);
+
+                rigid.position = rigid.position + dir * pushStrength * _pushOffset;
+            }
+        }
     }
 }
