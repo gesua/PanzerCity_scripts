@@ -524,6 +524,9 @@ public class EnemyTank : TankBase
         // 사망 효과 재생
         _destructionEffect.Play();
 
+        // 골드 추가
+        GameManager.Instance.PlayerData.AddGold(_tankData.RewardGold);
+
         // 아이템 드랍
         _itemDropper.TryDrop(_tankData.DropChance, _tankData.DropGroupID);
     }

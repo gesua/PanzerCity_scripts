@@ -274,6 +274,7 @@ public class PlayerTank : TankBase
         if (ratio > 0.5f) color = Color.Lerp(Color.yellow, Color.green, (ratio - 0.5f) * 2f);
         else color = Color.Lerp(Color.red, Color.yellow, ratio * 2f);
 
+        // Material과 startColor 둘 다 바꿔야 색이 진하게 바뀜
         _shieldRenderer.trailMaterial.color = color;
         var main = _shieldParticle.main;
         main.startColor = color;

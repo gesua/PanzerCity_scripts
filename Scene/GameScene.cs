@@ -32,8 +32,6 @@ public class GameScene : MonoBehaviour
     [SerializeField] PauseUI _pauseUI;           // 일시정지 UI
     [SerializeField] InventoryUI _inventoryUI;   // 인벤토리 UI
     [SerializeField] WarningUI _warningUI;       // 경고 UI
-    [Header("----- 런타임 데이터 -----")]
-    [SerializeField] int _playerLife = 3;       // 목숨
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
@@ -65,6 +63,9 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnInteractInput += HandleInteractInput;
         _inputSystemHandler.OnCursorInput += HandleCursorInput;
 
+        GameManager.Instance.PlayerData.OnGoldChanged += _gameInfoUI.UpdateGold;
+        GameManager.Instance.PlayerData.OnLifeChanged += _gameInfoUI.UpdateLife;
+
         _rightPanelUI.OnPauseClicked += HandlePauseInput;
         _pauseUI.OnResumeClicked += HandlePauseInput;
         _pauseUI.OnRestartClicked += HandleRestartStage;
@@ -83,8 +84,7 @@ public class GameScene : MonoBehaviour
         // 목숨 증가
         _itemEffectHandler.OnLifeUp += () =>
         {
-            _playerLife++;
-            _gameInfoUI.UpdateLife(_playerLife);
+            GameManager.Instance.PlayerData.AddLife(1);
         };
         // 기지 무적
         _itemEffectHandler.OnBaseShield += duration =>
@@ -113,7 +113,7 @@ public class GameScene : MonoBehaviour
         _player.OnHit += _hitDirectionIndicator.Show;
 
         // 목숨 UI 갱신
-        _gameInfoUI.UpdateLife(_playerLife);
+        _gameInfoUI.UpdateLife(GameManager.Instance.PlayerData.Life);
 
         // 인벤토리 초기화
         _player.ItemPickup.Initialize(_inventoryUI.Presenter);
@@ -343,11 +343,10 @@ public class GameScene : MonoBehaviour
     {
         if (_isGameOver) return; // HQ 파괴되면 리스폰 막기
 
-        if (_playerLife > 0)
+        if (GameManager.Instance.PlayerData.Life > 0)
         {
             // 목숨 UI 갱신
-            _playerLife--;
-            _gameInfoUI.UpdateLife(_playerLife);
+            GameManager.Instance.PlayerData.SpendLife(1);
 
             // 리스폰
             _player.Respawn(_playerSpawnPoint);
@@ -445,9 +444,8 @@ public class GameScene : MonoBehaviour
         // 로딩바 업데이트
         yield return StartCoroutine(loadingUI.UpdateProgress(stageLoad));
 
-        // 플레이어, 카메라, UI 초기화
+        // 카메라 초기화
         _cameraTarget.ResetRotation();
-        _gameInfoUI.UpdateLife(_playerLife);
         _isGameOver = false;
 
         yield return new WaitForSeconds(0.1f); // 잠깐 기다리기

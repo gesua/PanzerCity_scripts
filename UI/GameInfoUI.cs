@@ -7,7 +7,8 @@ using UnityEngine;
 public class GameInfoUI : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI _stageText; // 스테이지
-    [SerializeField] TextMeshProUGUI _lifeText; // 남은 목숨
+    [SerializeField] TextMeshProUGUI _lifeText; // 목숨
+    [SerializeField] TextMeshProUGUI _goldText; // 골드
 
     /// <summary>
     /// 스테이지 UI 세팅
@@ -18,10 +19,19 @@ public class GameInfoUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 남은 목숨 UI 세팅
+    /// 목숨 UI 세팅
     /// </summary>
     public void UpdateLife(int life)
     {
         _lifeText.text = life.ToString();
+    }
+
+
+    /// <summary>
+    /// 골드 UI 세팅
+    /// </summary>
+    public void UpdateGold(int gold)
+    {
+        _goldText.text = gold.ToString();
     }
 }
