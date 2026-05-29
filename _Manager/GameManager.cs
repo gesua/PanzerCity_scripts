@@ -11,6 +11,7 @@ public class GameManager : Singleton<GameManager>
     DataManager _dataManager;
     EffectManager _effectManager;
     AudioManager _audioManager;
+    OptionManager _optionManager;
     PlayerData _playerData;
     LoadingUI _loadingUI;
 
@@ -19,6 +20,7 @@ public class GameManager : Singleton<GameManager>
     public DataManager DataManager => _dataManager;
     public EffectManager EffectManager => _effectManager;
     public AudioManager AudioManager => _audioManager;
+    public OptionManager OptionManager => _optionManager;
     public PlayerData PlayerData => _playerData;
     public LoadingUI LoadingUI => _loadingUI;
 
@@ -30,12 +32,13 @@ public class GameManager : Singleton<GameManager>
         _poolManager = gameObject.GetOrAddComponent<PoolManager>();
         _dataManager = gameObject.GetOrAddComponent<DataManager>();
         _effectManager = gameObject.GetOrAddComponent<EffectManager>();
+        _optionManager = gameObject.GetComponent<OptionManager>();
+        _playerData = gameObject.GetOrAddComponent<PlayerData>();
 
         _poolManager.Initialize(_resourceManager);
         _dataManager.Initialize();
         _effectManager.Initialize();
-
-        _playerData = gameObject.GetOrAddComponent<PlayerData>();
+        _optionManager.Initialize();
         _playerData.Initialize(0, 3);
 
         GameObject loadingUIPrefab = Resources.Load<GameObject>("UI/LoadingUI");
