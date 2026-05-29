@@ -58,7 +58,18 @@ public class ItemPickup : MonoBehaviour
             }
         }
 
-        _pickupUI.SetActive(_nearestItem != null);
+        // 줍기 단축키 띄우기
+        if (_nearestItem != null)
+        {
+            _pickupUI.transform.SetParent(_nearestItem.transform); // 해당 아이템에 붙이기
+            _pickupUI.transform.localPosition = Vector3.up * 2f;
+            _pickupUI.SetActive(true);
+        }
+        else
+        {
+            _pickupUI.transform.SetParent(transform); // 복귀
+            _pickupUI.SetActive(false);
+        }
     }
 
     /// <summary>
