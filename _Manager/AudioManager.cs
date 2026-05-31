@@ -6,6 +6,7 @@ public enum BgmType
 }
 public enum SfxType
 {
+    StageStart, // 한번만 나옴 (flac)
 }
 
 /// <summary>
