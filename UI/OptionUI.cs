@@ -25,11 +25,6 @@ public class OptionUI : MonoBehaviour
 
     OptionManager _optionManager;
 
-    void Awake()
-    {
-        _optionManager = GameManager.Instance.OptionManager;
-    }
-
     void OnEnable()
     {
         InitUI();
@@ -47,6 +42,8 @@ public class OptionUI : MonoBehaviour
     /// </summary>
     void InitUI()
     {
+        if (_optionManager == null) _optionManager = GameManager.Instance.OptionManager;
+
         OptionData data = _optionManager.OptionData;
 
         // 해상도 드롭다운 옵션 생성

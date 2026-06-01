@@ -13,6 +13,10 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     [Header("----- 컴포넌트(TankBase) -----")]
     [SerializeField] Transform _firePoint; // 포탄 생성 위치
     [SerializeField] LoopEffect _engineEffect; // 엔진 이펙트
+    [Header("----- 사운드 -----")]
+    [SerializeField] AudioSource _audioSource;
+    [SerializeField] AudioClip _shootClip; // 포 발사 소리
+    [SerializeField] AudioClip _moveClip; // 움직이는 소리
 
     BushGroup _currentBush; // 현재 들어가있는 풀숲그룹
     int _bushEnterCount; // 풀 경계선에서 꼬이는거 방지
@@ -50,6 +54,9 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         {
             shell.Initialize(_model, gameObject.layer, this);
         }
+
+        // 포 쏘는 소리
+        _audioSource.PlayOneShot(_shootClip);
     }
 
     /// <summary>
@@ -59,20 +66,32 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     {
         if (_engineEffect == null) return;
 
-
+        // 저격 모드엔 엔진 이펙트 안 보이게 함
         if (ShowEffects == false)
         {
             _engineEffect.Stop();
             return;
         }
 
+        // 엔진 연기 재생
         if (isMoving)
         {
             _engineEffect.Play();
         }
-        else if (isMoving == false)
+        else
         {
             _engineEffect.Stop();
+        }
+
+        // 움직이는 소리
+        if (isMoving && _audioSource.isPlaying == false)
+        {
+            _audioSource.clip = _moveClip;
+            _audioSource.Play();
+        }
+        else if (isMoving == false)
+        {
+            _audioSource.Stop();
         }
     }
 

@@ -21,7 +21,7 @@ public class OptionManager : MonoBehaviour
     {
         _resolutions = Screen.resolutions;
         _optionData.Load();
-        Apply();
+        //Apply(); HACK:AudioMixer 어떻게 만드는지 모름
     }
 
     /// <summary>

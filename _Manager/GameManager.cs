@@ -32,7 +32,7 @@ public class GameManager : Singleton<GameManager>
         _poolManager = gameObject.GetOrAddComponent<PoolManager>();
         _dataManager = gameObject.GetOrAddComponent<DataManager>();
         _effectManager = gameObject.GetOrAddComponent<EffectManager>();
-        _optionManager = gameObject.GetComponent<OptionManager>();
+        _optionManager = gameObject.GetOrAddComponent<OptionManager>();
         _playerData = gameObject.GetOrAddComponent<PlayerData>();
 
         _poolManager.Initialize(_resourceManager);
@@ -41,11 +41,12 @@ public class GameManager : Singleton<GameManager>
         _optionManager.Initialize();
         _playerData.Initialize(0, 3);
 
-        // 오디오 매니저 프리팹 생성
+        //* 오디오 매니저 프리팹 생성
         GameObject audioManagerPrefab = Resources.Load<GameObject>("AudioManager");
         GameObject audioManagerGo = Instantiate(audioManagerPrefab);
         DontDestroyOnLoad(audioManagerGo);
         _audioManager = audioManagerGo.GetComponent<AudioManager>();
+        //*/
 
         // 로딩 UI 프리팹 생성
         GameObject loadingUIPrefab = Resources.Load<GameObject>("UI/LoadingUI");

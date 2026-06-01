@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 옵션 설정값 저장/불러오기
 /// </summary>
-public class OptionData : MonoBehaviour
+public class OptionData
 {
     const string KEY_LANGUAGE = "Language";
     const string KEY_MASTER_VOLUME = "MasterVolume";
