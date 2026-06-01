@@ -42,7 +42,7 @@ public class GameManager : Singleton<GameManager>
         _playerData.Initialize(0, 3);
 
         //* 오디오 매니저 프리팹 생성
-        GameObject audioManagerPrefab = Resources.Load<GameObject>("AudioManager");
+        GameObject audioManagerPrefab = Resources.Load<GameObject>("Audio/AudioManager");
         GameObject audioManagerGo = Instantiate(audioManagerPrefab);
         DontDestroyOnLoad(audioManagerGo);
         _audioManager = audioManagerGo.GetComponent<AudioManager>();

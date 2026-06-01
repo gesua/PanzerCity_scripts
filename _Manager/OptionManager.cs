@@ -7,7 +7,7 @@ using UnityEngine.Localization.Settings;
 /// </summary>
 public class OptionManager : MonoBehaviour
 {
-    [SerializeField] AudioMixer _audioMixer;
+    AudioMixer _audioMixer;
 
     OptionData _optionData = new OptionData();
 
@@ -19,9 +19,10 @@ public class OptionManager : MonoBehaviour
 
     public void Initialize()
     {
+        _audioMixer = Resources.Load<AudioMixer>("Audio/AudioMixer");
         _resolutions = Screen.resolutions;
         _optionData.Load();
-        //Apply(); HACK:AudioMixer 어떻게 만드는지 모름
+        Apply();
     }
 
     /// <summary>
@@ -62,7 +63,7 @@ public class OptionManager : MonoBehaviour
     public void ApplyMasterVolume(float value)
     {
         _optionData.SetMasterVolume(value);
-        _audioMixer.SetFloat("MasterVolume", Mathf.Log10(value) * 20f);
+        _audioMixer.SetFloat("Master", Mathf.Log10(value) * 20f);
     }
 
     /// <summary>
@@ -71,7 +72,7 @@ public class OptionManager : MonoBehaviour
     public void ApplyBGMVolume(float value)
     {
         _optionData.SetBGMVolume(value);
-        _audioMixer.SetFloat("BGMVolume", Mathf.Log10(value) * 20f);
+        _audioMixer.SetFloat("BGM", Mathf.Log10(value) * 20f);
     }
 
     /// <summary>
@@ -80,7 +81,7 @@ public class OptionManager : MonoBehaviour
     public void ApplySFXVolume(float value)
     {
         _optionData.SetSFXVolume(value);
-        _audioMixer.SetFloat("SFXVolume", Mathf.Log10(value) * 20f);
+        _audioMixer.SetFloat("SFX", Mathf.Log10(value) * 20f);
     }
 
     /// <summary>

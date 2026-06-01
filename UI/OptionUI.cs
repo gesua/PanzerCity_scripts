@@ -34,7 +34,6 @@ public class OptionUI : MonoBehaviour
     void OnDisable()
     {
         UnsubscribeEvents();
-        _optionManager.Save();
     }
 
     /// <summary>
@@ -90,7 +89,18 @@ public class OptionUI : MonoBehaviour
 
     void OnLanguageChanged(int index)
     {
-        string language = index == 0 ? "ko" : "en";
+        string language = index == 0 ? "en" : "ko";
         _optionManager.ApplyLanguage(language);
+    }
+
+    public void OnClickSave()
+    {
+        _optionManager.Save();
+        gameObject.SetActive(false);
+    }
+
+    public void OnClickCancel()
+    {
+        gameObject.SetActive(false);
     }
 }
