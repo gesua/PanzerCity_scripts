@@ -30,10 +30,14 @@ public class OptionUI : MonoBehaviour
 
     string language;
 
-    void Start()
+    private void Start()
+    {
+        SubscribeEvents();
+    }
+
+    void OnEnable()
     {
         InitUI();
-        SubscribeEvents();
     }
 
     /// <summary>
@@ -41,8 +45,6 @@ public class OptionUI : MonoBehaviour
     /// </summary>
     void InitUI()
     {
-        Debug.Log("옵션 값 초기화");
-
         if (_optionManager == null) _optionManager = GameManager.Instance.OptionManager;
 
         OptionData data = _optionManager.OptionData;
@@ -61,8 +63,6 @@ public class OptionUI : MonoBehaviour
         {
             _qualityDropdown.options.Add(new TMP_Dropdown.OptionData(quality));
         }
-
-        Debug.Log("Sensitivity 값:" + data.MouseSensitivity);
 
         // 설정 값 가져옴
         _languageDropdown.value = data.Language == "en" ? 0 : 1;
