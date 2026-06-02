@@ -1,6 +1,7 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
+using static Unity.VisualScripting.Icons;
 
 /// <summary>
 /// 옵션 UI
@@ -25,15 +26,12 @@ public class OptionUI : MonoBehaviour
 
     OptionManager _optionManager;
 
+    string language;
+
     void OnEnable()
     {
         InitUI();
         SubscribeEvents();
-    }
-
-    void OnDisable()
-    {
-        UnsubscribeEvents();
     }
 
     /// <summary>
@@ -49,20 +47,34 @@ public class OptionUI : MonoBehaviour
         _resolutionDropdown.ClearOptions();
         Resolution[] resolutions = _optionManager.GetResolutions();
         foreach (Resolution res in resolutions)
+        {
             _resolutionDropdown.options.Add(new TMP_Dropdown.OptionData($"{res.width} x {res.height}"));
+        }
 
-        _languageDropdown.value = data.Language == "ko" ? 0 : 1;
+        // 그래픽 품질 드롭다운 옵션 생성
+        _qualityDropdown.ClearOptions();
+        foreach (string quality in QualitySettings.names)
+        {
+            _qualityDropdown.options.Add(new TMP_Dropdown.OptionData(quality));
+        }
+
+        // 설정 값 가져옴
+        _languageDropdown.value = data.Language == "en" ? 0 : 1;
         _masterVolumeSlider.value = data.MasterVolume;
         _bgmVolumeSlider.value = data.BGMVolume;
         _sfxVolumeSlider.value = data.SFXVolume;
         _resolutionDropdown.value = data.ResolutionIndex;
         _fullscreenToggle.isOn = data.Fullscreen;
-        _qualityDropdown.value = data.QualityIndex;
+        _qualityDropdown.value = _optionManager.OptionData.QualityIndex;
         _mouseSensitivitySlider.value = data.MouseSensitivity;
 
         _resolutionDropdown.RefreshShownValue();
+        _qualityDropdown.RefreshShownValue();
     }
 
+    /// <summary>
+    /// 이벤트 연결
+    /// </summary>
     void SubscribeEvents()
     {
         _languageDropdown.onValueChanged.AddListener(OnLanguageChanged);
@@ -75,6 +87,9 @@ public class OptionUI : MonoBehaviour
         _mouseSensitivitySlider.onValueChanged.AddListener(_optionManager.ApplyMouseSensitivity);
     }
 
+    /// <summary>
+    /// 이벤트 연결 해제
+    /// </summary>
     void UnsubscribeEvents()
     {
         _languageDropdown.onValueChanged.RemoveListener(OnLanguageChanged);
@@ -89,18 +104,27 @@ public class OptionUI : MonoBehaviour
 
     void OnLanguageChanged(int index)
     {
-        string language = index == 0 ? "en" : "ko";
-        _optionManager.ApplyLanguage(language);
+        language = (index == 0) ? "en" : "ko";
     }
 
+    /// <summary>
+    /// 적용
+    /// </summary>
     public void OnClickSave()
     {
+        _optionManager.ApplyLanguage(language);
         _optionManager.Save();
         gameObject.SetActive(false);
     }
 
+    /// <summary>
+    /// 취소
+    /// </summary>
     public void OnClickCancel()
     {
+        // 원래 값으로 복구
+        _optionManager.OptionData.Load();
+        _optionManager.Apply();
         gameObject.SetActive(false);
     }
 }

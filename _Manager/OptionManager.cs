@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Localization.Settings;
@@ -8,13 +9,12 @@ using UnityEngine.Localization.Settings;
 public class OptionManager : MonoBehaviour
 {
     AudioMixer _audioMixer;
-
     OptionData _optionData = new OptionData();
-
-    public OptionData OptionData => _optionData;
-
     Resolution[] _resolutions;
 
+    public event Action<float> OnMouseSensitivityChanged;
+
+    public OptionData OptionData => _optionData;
     public Resolution[] GetResolutions() => _resolutions;
 
     public void Initialize()
@@ -120,6 +120,7 @@ public class OptionManager : MonoBehaviour
     public void ApplyMouseSensitivity(float value)
     {
         _optionData.SetMouseSensitivity(value);
+        OnMouseSensitivityChanged?.Invoke(value);
     }
 
     /// <summary>

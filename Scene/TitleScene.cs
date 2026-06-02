@@ -10,6 +10,7 @@ public class TitleScene : MonoBehaviour
 {
     [SerializeField] AudioListener _audioListener;
     [SerializeField] UnityEngine.EventSystems.EventSystem _eventSystem;
+    [SerializeField] GameObject option;
 
     AsyncOperation _gameSceneLoad; // Game씬 동기화용
     bool _isStart;
@@ -62,5 +63,10 @@ public class TitleScene : MonoBehaviour
 
         SceneManager.UnloadSceneAsync("Title");
         loadingUI.Hide();
+    }
+
+    public void OnClickOption()
+    {
+        option.SetActive(true);
     }
 }
