@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class PauseUI : MonoBehaviour
 {
+    [SerializeField] GameObject _option;
+
     public event Action OnResumeClicked;    // 전투재개
     public event Action OnRestartClicked;   // 재도전
     public event Action OnMainMenuClicked;  // 메인메뉴
@@ -16,6 +18,11 @@ public class PauseUI : MonoBehaviour
     public void OnClickRestart()
     {
         OnRestartClicked?.Invoke();
+    }
+
+    public void OnClickOptions()
+    {
+        _option.SetActive(true);
     }
 
     public void OnClickMainMenu()

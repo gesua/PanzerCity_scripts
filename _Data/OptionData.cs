@@ -34,7 +34,7 @@ public class OptionData
         SFXVolume = PlayerPrefs.GetFloat(KEY_SFX_VOLUME, 1f);
         ResolutionIndex = PlayerPrefs.GetInt(KEY_RESOLUTION_INDEX, 0);
         Fullscreen = PlayerPrefs.GetInt(KEY_FULLSCREEN, 1) == 1;
-        QualityIndex = PlayerPrefs.GetInt(KEY_QUALITY_INDEX, 2);
+        QualityIndex = PlayerPrefs.GetInt(KEY_QUALITY_INDEX, 1);
         MouseSensitivity = PlayerPrefs.GetFloat(KEY_MOUSE_SENSITIVITY, 0.1f);
     }
 

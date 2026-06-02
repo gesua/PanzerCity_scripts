@@ -131,4 +131,13 @@ public class CameraTarget : MonoBehaviour
         _yaw = 0f;
         transform.rotation = Quaternion.identity;
     }
+
+    /// <summary>
+    /// 마우스 감도 변경
+    /// </summary>
+    public void SetSensitivity(float value)
+    {
+        _pitchSense = value;
+        _yawSense = value;
+    }
 }
