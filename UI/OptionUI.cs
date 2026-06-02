@@ -79,26 +79,6 @@ public class OptionUI : MonoBehaviour
         _qualityDropdown.RefreshShownValue();
     }
 
-    //* HACK:값 바꿔주는거 테스트
-    [SerializeField] bool _test;
-
-    private void Update()
-    {
-        if (_test)
-        {
-            TEST();
-            _test= false;
-        }
-    }
-
-    void TEST()
-    {
-        float value = 0.5f;
-        _valueText.text = value.ToString("F2");
-        _mouseSensitivitySlider.value = value;
-    }
-    //*/
-
     /// <summary>
     /// 이벤트 연결
     /// </summary>
