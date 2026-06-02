@@ -66,13 +66,15 @@ public class CameraTarget : MonoBehaviour
         rotInput.x = Mathf.Clamp(rotInput.x, -30f, 30f);
         rotInput.y = Mathf.Clamp(rotInput.y, -30f, 30f);
 
-        _pitch -= rotInput.y * _pitchSense;
-        _yaw += rotInput.x * _yawSense;
+        // FOV 비율만큼 마우스 감도 보정
+        float fovRatio = (_isSniperMode) ? _sniperTargetFov / _sniperMaxFov : 1f;
+
+        _pitch -= rotInput.y * _pitchSense * fovRatio;
+        _yaw += rotInput.x * _yawSense * fovRatio;
 
         _pitch = Mathf.Clamp(_pitch, _minPitch, _maxPitch);
 
         Quaternion targetRotation = Quaternion.Euler(_pitch, _yaw, 0f);
-
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _rotDamp * Time.deltaTime);
     }
 

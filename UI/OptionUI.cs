@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static Unity.VisualScripting.Icons;
+using static UnityEngine.Rendering.DebugUI;
 
 /// <summary>
 /// 옵션 UI
@@ -23,12 +24,13 @@ public class OptionUI : MonoBehaviour
 
     [Header("----- 마우스 -----")]
     [SerializeField] Slider _mouseSensitivitySlider;
+    [SerializeField] TMP_Text _valueText;
 
     OptionManager _optionManager;
 
     string language;
 
-    void OnEnable()
+    void Start()
     {
         InitUI();
         SubscribeEvents();
@@ -39,6 +41,8 @@ public class OptionUI : MonoBehaviour
     /// </summary>
     void InitUI()
     {
+        Debug.Log("옵션 값 초기화");
+
         if (_optionManager == null) _optionManager = GameManager.Instance.OptionManager;
 
         OptionData data = _optionManager.OptionData;
@@ -58,6 +62,8 @@ public class OptionUI : MonoBehaviour
             _qualityDropdown.options.Add(new TMP_Dropdown.OptionData(quality));
         }
 
+        Debug.Log("Sensitivity 값:" + data.MouseSensitivity);
+
         // 설정 값 가져옴
         _languageDropdown.value = data.Language == "en" ? 0 : 1;
         _masterVolumeSlider.value = data.MasterVolume;
@@ -67,10 +73,31 @@ public class OptionUI : MonoBehaviour
         _fullscreenToggle.isOn = data.Fullscreen;
         _qualityDropdown.value = _optionManager.OptionData.QualityIndex;
         _mouseSensitivitySlider.value = data.MouseSensitivity;
+        _valueText.text = data.MouseSensitivity.ToString("F2");
 
         _resolutionDropdown.RefreshShownValue();
         _qualityDropdown.RefreshShownValue();
     }
+
+    //* HACK:값 바꿔주는거 테스트
+    [SerializeField] bool _test;
+
+    private void Update()
+    {
+        if (_test)
+        {
+            TEST();
+            _test= false;
+        }
+    }
+
+    void TEST()
+    {
+        float value = 0.5f;
+        _valueText.text = value.ToString("F2");
+        _mouseSensitivitySlider.value = value;
+    }
+    //*/
 
     /// <summary>
     /// 이벤트 연결
@@ -84,7 +111,7 @@ public class OptionUI : MonoBehaviour
         _resolutionDropdown.onValueChanged.AddListener(_optionManager.ApplyResolution);
         _fullscreenToggle.onValueChanged.AddListener(_optionManager.ApplyFullscreen);
         _qualityDropdown.onValueChanged.AddListener(_optionManager.ApplyQuality);
-        _mouseSensitivitySlider.onValueChanged.AddListener(_optionManager.ApplyMouseSensitivity);
+        _mouseSensitivitySlider.onValueChanged.AddListener(OnSensitivityChanged);
     }
 
     /// <summary>
@@ -102,9 +129,21 @@ public class OptionUI : MonoBehaviour
         _mouseSensitivitySlider.onValueChanged.RemoveListener(_optionManager.ApplyMouseSensitivity);
     }
 
+    /// <summary>
+    /// 언어 변경
+    /// </summary>
     void OnLanguageChanged(int index)
     {
         language = (index == 0) ? "en" : "ko";
+    }
+
+    /// <summary>
+    /// 마우스 감도 변경
+    /// </summary>
+    void OnSensitivityChanged(float value)
+    {
+        _valueText.text = value.ToString("F2");
+        _optionManager.ApplyMouseSensitivity(value);
     }
 
     /// <summary>
