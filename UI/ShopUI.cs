@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 상점 UI
 /// </summary>
-public class StoreUI : MonoBehaviour
+public class ShopUI : MonoBehaviour
 {
     [SerializeField] Canvas _shopCanvas;
     [SerializeField] GameInfoUI _gameInfoUI;
@@ -37,12 +37,8 @@ public class StoreUI : MonoBehaviour
 
     void HandleItemClicked(ItemConfig itemConfig)
     {
-        Debug.Log("구매 시도");
-
         // 골드 차감
         if (GameManager.Instance.PlayerData.SpendGold(itemConfig.BuyPrice) == false) return;
-
-        Debug.Log("구매 성공");
 
         // 인벤토리에 추가
         ItemModel item = new ItemModel(itemConfig);

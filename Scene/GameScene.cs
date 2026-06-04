@@ -32,7 +32,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] PauseUI _pauseUI;           // 일시정지 UI
     [SerializeField] InventoryUI _inventoryUI;   // 인벤토리 UI
     [SerializeField] WarningUI _warningUI;       // 경고 UI
-    [SerializeField] StoreUI _storeUI;           // 상점 UI
+    [SerializeField] ShopUI _storeUI;           // 상점 UI
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
@@ -420,6 +420,7 @@ public class GameScene : MonoBehaviour
         _isShopOpen = true;
         _OnCursor = true;
         _storeUI.gameObject.SetActive(true); //SetShopActive(true);
+        _inventoryUI.EnterStore(_storeUI.transform); // 인벤토리 위치 옮김
         _inputSystemHandler.SetInputDisabled(true);
         Cursor.lockState = CursorLockMode.None;
 
@@ -442,6 +443,7 @@ public class GameScene : MonoBehaviour
         _isPaused = false;
         _OnCursor = false;
         _storeUI.gameObject.SetActive(false);// SetShopActive(false);
+        _inventoryUI.ExitStore(); // 인벤토리 위치 복귀
         _inputSystemHandler.SetInputDisabled(_isPaused);
         _pauseUI.SetActive(_isPaused);
         Time.timeScale = 1f;

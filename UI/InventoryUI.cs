@@ -6,6 +6,7 @@ using UnityEngine.UI;
 /// </summary>
 public class InventoryUI : MonoBehaviour
 {
+    [SerializeField] RectTransform _inventoryRect;
     [SerializeField] CanvasGroup _group;
     [SerializeField] DraggingItemUI _draggingItem;
     [SerializeField] InventoryView _inventoryView;
@@ -18,6 +19,10 @@ public class InventoryUI : MonoBehaviour
 
     InventoryModel _inventoryModel;
     InventoryPresenter _inventoryPresenter;
+
+    Transform _orgParent; // 상점 갔다가 돌아올 때
+    bool _isStore; // 상점일 때
+
     public InventoryPresenter Presenter => _inventoryPresenter;
 
     bool _isActive;
@@ -26,6 +31,8 @@ public class InventoryUI : MonoBehaviour
     {
         _inventoryModel = new InventoryModel(_width, _height);
         _inventoryPresenter = new InventoryPresenter(_inventoryModel, _inventoryView, _draggingItem);
+
+        _orgParent = transform.parent;
     }
 
     /// <summary>
@@ -33,6 +40,8 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     public void Toggle()
     {
+        if (_isStore) return; // 상점인 경우 막음
+
         _isActive = !_isActive;
         _group.alpha = _isActive ? 1f : 0f;
         _group.interactable = _isActive;
@@ -41,5 +50,31 @@ public class InventoryUI : MonoBehaviour
         // 가방 이미지 변경
         if (_isActive) _btnImg.sprite = _open;
         else _btnImg.sprite = _close;
+    }
+
+    /// <summary>
+    /// 상점 입장
+    /// </summary>
+    public void EnterStore(Transform storeTr)
+    {
+        _isStore = true;
+        transform.parent = storeTr;
+        _inventoryRect.anchoredPosition = new Vector2(0, -380); // 위치 잡기
+        _group.alpha = 1f;
+        _group.interactable = true;
+        _group.blocksRaycasts = true;
+    }
+
+    /// <summary>
+    /// 상점 퇴장
+    /// </summary>
+    public void ExitStore()
+    {
+        _isStore = false;
+        transform.parent = _orgParent;
+        _inventoryRect.anchoredPosition = Vector2.zero; // 위치 잡기
+        _group.alpha = 0f;
+        _group.interactable = false;
+        _group.blocksRaycasts = false;
     }
 }
