@@ -32,12 +32,14 @@ public class GameScene : MonoBehaviour
     [SerializeField] PauseUI _pauseUI;           // 일시정지 UI
     [SerializeField] InventoryUI _inventoryUI;   // 인벤토리 UI
     [SerializeField] WarningUI _warningUI;       // 경고 UI
+    [SerializeField] StoreUI _storeUI;           // 상점 UI
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
 
     bool _isGameOver;
     bool _isPaused;
+    bool _isShopOpen;
 
     bool _OnCursor; // 마우스 커서 활성화 여부
 
@@ -116,8 +118,11 @@ public class GameScene : MonoBehaviour
         // 목숨 UI 갱신
         _gameInfoUI.UpdateLife(GameManager.Instance.PlayerData.Life);
 
-        // 인벤토리 초기화
+        // 인벤토리 세팅
         _player.ItemPickup.Initialize(_inventoryUI.Presenter);
+
+        // 상점 세팅
+        _storeUI.Initialize(_inventoryUI);
 
         // HACK:카메라 w값 조절(나중에 하기)
         //bool isOpen = _rightPanelUI.IsOpen;
@@ -274,10 +279,11 @@ public class GameScene : MonoBehaviour
         ForceDrop();
 
         _isPaused = !_isPaused;
-        _inputSystemHandler.SetPause(_isPaused);
+        _inputSystemHandler.SetInputDisabled(_isPaused);
         _pauseUI.SetActive(_isPaused);
         Time.timeScale = _isPaused ? 0f : 1f;
 
+        if (_isShopOpen) return; // 상점 열렸을 땐 항상 보이기
         _OnCursor = _isPaused;
         Cursor.lockState = _isPaused ? CursorLockMode.None : CursorLockMode.Locked;
     }
@@ -304,6 +310,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleCursorInput(bool isActive)
     {
+        if (_isShopOpen) return; // 상점 열렸을 땐 항상 보이기
         if (_isPaused) return; // 일시정지 중엔 항상 보이기
 
         _OnCursor = isActive;
@@ -405,8 +412,16 @@ public class GameScene : MonoBehaviour
     void HandleStageClear()
     {
         _stageClearUI.Hide();
-        string nextScene = "Stage" + (_currentStage.StageID - 7100 + 1).ToString("D2");
-        StartCoroutine(LoadStageRoutine(nextScene));
+
+        // 상점 열기
+        _isShopOpen = true;
+        _OnCursor = true;
+        _storeUI.gameObject.SetActive(true);
+        _inputSystemHandler.SetInputDisabled(true);
+        Cursor.lockState = CursorLockMode.None;
+
+        //string nextScene = "Stage" + (_currentStage.StageID - 7100 + 1).ToString("D2");
+        //StartCoroutine(LoadStageRoutine(nextScene));
     }
 
     /// <summary>
@@ -420,8 +435,10 @@ public class GameScene : MonoBehaviour
     IEnumerator LoadStageRoutine(string sceneName)
     {
         // 일시정지 관련 초기화
+        _isShopOpen = false;
         _isPaused = false;
-        _inputSystemHandler.SetPause(_isPaused);
+        _OnCursor = false;
+        _inputSystemHandler.SetInputDisabled(_isPaused);
         _pauseUI.SetActive(_isPaused);
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.Locked;
