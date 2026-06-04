@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 /// <summary>
@@ -5,8 +6,12 @@ using UnityEngine;
 /// </summary>
 public class StoreUI : MonoBehaviour
 {
-    [SerializeField] StoreItemSlot[] _itemSlots;
+    [SerializeField] Canvas _shopCanvas;
+    [SerializeField] GameInfoUI _gameInfoUI;
+    [SerializeField] StoreItemSlot[] _itemSlots; // 상점에서 파는 아이템
     InventoryUI _inventoryUI;
+
+    public GameInfoUI GameInfoUI => _gameInfoUI;
 
     public void Initialize(InventoryUI inventoryUI)
     {
@@ -23,6 +28,11 @@ public class StoreUI : MonoBehaviour
             _itemSlots[i].Initialize(config);
             _itemSlots[i].OnClicked += HandleItemClicked;
         }
+    }
+
+    public void SetShopActive(bool active)
+    {
+        _shopCanvas.enabled = active;
     }
 
     void HandleItemClicked(ItemConfig itemConfig)

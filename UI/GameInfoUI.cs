@@ -26,7 +26,6 @@ public class GameInfoUI : MonoBehaviour
         _lifeText.text = life.ToString();
     }
 
-
     /// <summary>
     /// 골드 UI 세팅
     /// </summary>

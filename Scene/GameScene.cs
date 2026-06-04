@@ -67,6 +67,8 @@ public class GameScene : MonoBehaviour
 
         GameManager.Instance.PlayerData.OnGoldChanged += _gameInfoUI.UpdateGold;
         GameManager.Instance.PlayerData.OnLifeChanged += _gameInfoUI.UpdateLife;
+        GameManager.Instance.PlayerData.OnGoldChanged += _storeUI.GameInfoUI.UpdateGold;
+        GameManager.Instance.PlayerData.OnLifeChanged += _storeUI.GameInfoUI.UpdateLife;
 
         _rightPanelUI.OnPauseClicked += HandlePauseInput;
         _pauseUI.OnResumeClicked += HandlePauseInput;
@@ -117,6 +119,7 @@ public class GameScene : MonoBehaviour
 
         // 목숨 UI 갱신
         _gameInfoUI.UpdateLife(GameManager.Instance.PlayerData.Life);
+        _storeUI.GameInfoUI.UpdateLife(GameManager.Instance.PlayerData.Life);
 
         // 인벤토리 세팅
         _player.ItemPickup.Initialize(_inventoryUI.Presenter);
@@ -149,6 +152,7 @@ public class GameScene : MonoBehaviour
 
         // 스테이지 UI 세팅
         _gameInfoUI.UpdateStage(_currentStage.StageID - 7100); // 스테이지 ID값 빼줌(7100)
+        _storeUI.GameInfoUI.UpdateStage(_currentStage.StageID - 7100);
 
         // 이벤트 구독
         _currentStage.OnHQDestroyed += HandleHQDestroyed; // 아군 기지 파괴
@@ -159,7 +163,6 @@ public class GameScene : MonoBehaviour
         // 적 스폰 UI 연동
         _currentStage.EnemySpawner.OnSpawnListReady += _enemySpawnUI.Initialize;
         _currentStage.EnemySpawner.OnEnemySpawned += _enemySpawnUI.SetEnemySpawn;
-
 
         // 리스폰
         _currentStage.OnStageLoaded += HandleStageLoaded;
@@ -416,7 +419,7 @@ public class GameScene : MonoBehaviour
         // 상점 열기
         _isShopOpen = true;
         _OnCursor = true;
-        _storeUI.gameObject.SetActive(true);
+        _storeUI.gameObject.SetActive(true); //SetShopActive(true);
         _inputSystemHandler.SetInputDisabled(true);
         Cursor.lockState = CursorLockMode.None;
 
@@ -438,6 +441,7 @@ public class GameScene : MonoBehaviour
         _isShopOpen = false;
         _isPaused = false;
         _OnCursor = false;
+        _storeUI.gameObject.SetActive(false);// SetShopActive(false);
         _inputSystemHandler.SetInputDisabled(_isPaused);
         _pauseUI.SetActive(_isPaused);
         Time.timeScale = 1f;
