@@ -32,7 +32,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] PauseUI _pauseUI;           // 일시정지 UI
     [SerializeField] InventoryUI _inventoryUI;   // 인벤토리 UI
     [SerializeField] WarningUI _warningUI;       // 경고 UI
-    [SerializeField] ShopUI _storeUI;           // 상점 UI
+    [SerializeField] ShopUI _shopUI;             // 상점 UI
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
@@ -42,6 +42,8 @@ public class GameScene : MonoBehaviour
     bool _isShopOpen;
 
     bool _OnCursor; // 마우스 커서 활성화 여부
+
+    AsyncOperation _nextStageLoad; // 다음 스테이지 미리 로드할 거
 
     Coroutine _hyperShieldRoutine;
 
@@ -67,8 +69,8 @@ public class GameScene : MonoBehaviour
 
         GameManager.Instance.PlayerData.OnGoldChanged += _gameInfoUI.UpdateGold;
         GameManager.Instance.PlayerData.OnLifeChanged += _gameInfoUI.UpdateLife;
-        GameManager.Instance.PlayerData.OnGoldChanged += _storeUI.GameInfoUI.UpdateGold;
-        GameManager.Instance.PlayerData.OnLifeChanged += _storeUI.GameInfoUI.UpdateLife;
+        GameManager.Instance.PlayerData.OnGoldChanged += _shopUI.GameInfoUI.UpdateGold;
+        GameManager.Instance.PlayerData.OnLifeChanged += _shopUI.GameInfoUI.UpdateLife;
 
         _rightPanelUI.OnPauseClicked += HandlePauseInput;
         _pauseUI.OnResumeClicked += HandlePauseInput;
@@ -79,6 +81,7 @@ public class GameScene : MonoBehaviour
         _gameOverUI.RestartRequested += HandleRestartStage;
         _gameOverUI.TitleRequested += HandleTitleRequested;
         _inventoryUI.Presenter.OnItemUsed += _itemEffectHandler.Use;
+        _shopUI.OnExitClicked += HandleShopExit;
 
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
@@ -119,13 +122,13 @@ public class GameScene : MonoBehaviour
 
         // 목숨 UI 갱신
         _gameInfoUI.UpdateLife(GameManager.Instance.PlayerData.Life);
-        _storeUI.GameInfoUI.UpdateLife(GameManager.Instance.PlayerData.Life);
+        _shopUI.GameInfoUI.UpdateLife(GameManager.Instance.PlayerData.Life);
 
         // 인벤토리 세팅
         _player.ItemPickup.Initialize(_inventoryUI.Presenter);
 
         // 상점 세팅
-        _storeUI.Initialize(_inventoryUI);
+        _shopUI.Initialize(_inventoryUI);
 
         // HACK:카메라 w값 조절(나중에 하기)
         //bool isOpen = _rightPanelUI.IsOpen;
@@ -152,7 +155,7 @@ public class GameScene : MonoBehaviour
 
         // 스테이지 UI 세팅
         _gameInfoUI.UpdateStage(_currentStage.StageID - 7100); // 스테이지 ID값 빼줌(7100)
-        _storeUI.GameInfoUI.UpdateStage(_currentStage.StageID - 7100);
+        _shopUI.GameInfoUI.UpdateStage(_currentStage.StageID - 7100);
 
         // 이벤트 구독
         _currentStage.OnHQDestroyed += HandleHQDestroyed; // 아군 기지 파괴
@@ -416,16 +419,27 @@ public class GameScene : MonoBehaviour
     {
         _stageClearUI.Hide();
 
+        // 다음 스테이지 미리 로드
+        _nextStageLoad = SceneManager.LoadSceneAsync(_currentStage.NextStageName, LoadSceneMode.Additive);
+        _nextStageLoad.allowSceneActivation = false;
+
         // 상점 열기
         _isShopOpen = true;
         _OnCursor = true;
-        _storeUI.SetShopActive(true);
-        _inventoryUI.EnterStore(_storeUI.transform); // 인벤토리 위치 옮김
+        _shopUI.SetShopActive(true);
+        _inventoryUI.EnterStore(_shopUI.transform); // 인벤토리 위치 옮김
         _inputSystemHandler.SetInputDisabled(true);
         Cursor.lockState = CursorLockMode.None;
+    }
 
-        //string nextScene = "Stage" + (_currentStage.StageID - 7100 + 1).ToString("D2");
-        //StartCoroutine(LoadStageRoutine(nextScene));
+    /// <summary>
+    /// 상점 나가기(다음 스테이지)
+    /// </summary>
+    void HandleShopExit()
+    {
+        _shopUI.SetShopActive(false);
+        _inventoryUI.ExitStore(); // 인벤토리 위치 복귀
+        StartCoroutine(LoadStageRoutine(_currentStage.NextStageName));
     }
 
     /// <summary>
@@ -442,8 +456,6 @@ public class GameScene : MonoBehaviour
         _isShopOpen = false;
         _isPaused = false;
         _OnCursor = false;
-        _storeUI.SetShopActive(false);
-        _inventoryUI.ExitStore(); // 인벤토리 위치 복귀
         _inputSystemHandler.SetInputDisabled(_isPaused);
         _pauseUI.SetActive(_isPaused);
         Time.timeScale = 1f;
@@ -462,8 +474,18 @@ public class GameScene : MonoBehaviour
         _currentStage = null;
 
         // 다음 Stage 씬 로드
-        AsyncOperation stageLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-        yield return StartCoroutine(loadingUI.UpdateProgress(stageLoad));
+        AsyncOperation stageLoad;
+        if (_nextStageLoad != null)
+        {
+            // 미리 로드된 씬 활성화
+            stageLoad = _nextStageLoad;
+            stageLoad.allowSceneActivation = true;
+            _nextStageLoad = null;
+        }
+        else
+        {
+            stageLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+        }
 
         // 로딩바 업데이트
         yield return StartCoroutine(loadingUI.UpdateProgress(stageLoad));

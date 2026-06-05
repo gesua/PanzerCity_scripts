@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -11,6 +12,8 @@ public class ShopUI : MonoBehaviour
     [SerializeField] GameInfoUI _gameInfoUI;
     [SerializeField] StoreItemSlot[] _itemSlots; // 상점에서 파는 아이템
     InventoryUI _inventoryUI;
+
+    public event Action OnExitClicked;
 
     public GameInfoUI GameInfoUI => _gameInfoUI;
 
@@ -77,8 +80,8 @@ public class ShopUI : MonoBehaviour
 
     IEnumerator ExitRoutine()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(2f);
         gameObject.SetActive(false);
-        //OnExitClicked?.Invoke();
+        OnExitClicked?.Invoke();
     }
 }

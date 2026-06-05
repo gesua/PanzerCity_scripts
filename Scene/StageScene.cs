@@ -15,12 +15,14 @@ public class StageScene : MonoBehaviour
     [SerializeField] BaseWall _baseWall;
 
     string _sceneName;
+    string _nextStageName;
     List<DroppedItem> _droppedItems = new(); // 씬 전환시 사라질 아이템들
 
     public int StageID => _stageID;
     public EnemySpawner EnemySpawner => _enemySpawner;
     public BaseWall BaseWall => _baseWall;
     public string SceneName => _sceneName;
+    public string NextStageName => _nextStageName;
 
     public event Action OnHQDestroyed; // 아군 기지 파괴
     public event Action<Vector3> OnStageLoaded; // 스폰 위치 전달
@@ -31,6 +33,7 @@ public class StageScene : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         _sceneName = "Stage" + (_stageID - 7100).ToString("D2"); // 현재 Scene이름
+        _nextStageName = "Stage" + (_stageID - 7100 + 1).ToString("D2");
 
         _hq.OnDestroyed += () => OnHQDestroyed?.Invoke();
         OnStageLoaded?.Invoke(_playerSpawnPoint.position);
