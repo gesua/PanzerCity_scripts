@@ -1,8 +1,9 @@
+using System.Collections;
+using System.Linq.Expressions;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Localization;
-using TMPro;
 using UnityEngine.UI;
-using System.Collections;
 
 /// <summary>
 /// 상점 주인 UI
@@ -84,7 +85,7 @@ public class ShopOwnerUI : MonoBehaviour
     /// <summary>
     /// 표정(이미지) 변경
     /// </summary>
-    void SetExpression(string aniID)
+    void SetExpression(string aniID = "Ani_Normal")
     {
         _ownerImage.sprite = aniID switch
         {
@@ -111,15 +112,20 @@ public class ShopOwnerUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 한번에 전부 출력
+    /// 상점 아무 곳이나 누름
     /// </summary>
     public void OnClickDialoguePanel()
     {
+        // 대사 출력 중이면 전부 출력
         if (_typeRoutine != null)
         {
             StopCoroutine(_typeRoutine);
             _typeRoutine = null;
             _dialogueText.text = _currentText;
+        }
+        else // 다 출력됐으면 대사 창 닫음
+        {
+            _dialoguePanel.SetActive(false);
         }
     }
 }
