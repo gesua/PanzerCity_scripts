@@ -419,7 +419,7 @@ public class GameScene : MonoBehaviour
         // 상점 열기
         _isShopOpen = true;
         _OnCursor = true;
-        _storeUI.gameObject.SetActive(true); //SetShopActive(true);
+        _storeUI.SetShopActive(true);
         _inventoryUI.EnterStore(_storeUI.transform); // 인벤토리 위치 옮김
         _inputSystemHandler.SetInputDisabled(true);
         Cursor.lockState = CursorLockMode.None;
@@ -442,7 +442,7 @@ public class GameScene : MonoBehaviour
         _isShopOpen = false;
         _isPaused = false;
         _OnCursor = false;
-        _storeUI.gameObject.SetActive(false);// SetShopActive(false);
+        _storeUI.SetShopActive(false);
         _inventoryUI.ExitStore(); // 인벤토리 위치 복귀
         _inputSystemHandler.SetInputDisabled(_isPaused);
         _pauseUI.SetActive(_isPaused);

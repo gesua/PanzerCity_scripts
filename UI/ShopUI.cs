@@ -1,4 +1,4 @@
-using TMPro;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -7,6 +7,7 @@ using UnityEngine;
 public class ShopUI : MonoBehaviour
 {
     [SerializeField] Canvas _shopCanvas;
+    [SerializeField] ShopOwnerUI _shopOwnerUI; // 상점 주인 대화
     [SerializeField] GameInfoUI _gameInfoUI;
     [SerializeField] StoreItemSlot[] _itemSlots; // 상점에서 파는 아이템
     InventoryUI _inventoryUI;
@@ -32,16 +33,52 @@ public class ShopUI : MonoBehaviour
 
     public void SetShopActive(bool active)
     {
-        _shopCanvas.enabled = active;
+        gameObject.SetActive(active);
+        //_shopCanvas.enabled = active;
+
+        if (active)
+        {
+            _shopOwnerUI.ShowWelcome(); // 인사
+        }
     }
 
     void HandleItemClicked(ItemConfig itemConfig)
     {
         // 골드 차감
-        if (GameManager.Instance.PlayerData.SpendGold(itemConfig.BuyPrice) == false) return;
+        if (GameManager.Instance.PlayerData.SpendGold(itemConfig.BuyPrice) == false)
+        {
+            // 골드 부족
+            _shopOwnerUI.ShowBuyFailGold();
+            return;
+        }
 
         // 인벤토리에 추가
         ItemModel item = new ItemModel(itemConfig);
-        _inventoryUI.Presenter.AddItem(item);
+        if (_inventoryUI.Presenter.AddItem(item) == false)
+        {
+            // 공간 부족
+            GameManager.Instance.PlayerData.AddGold(itemConfig.BuyPrice); // 골드 환불
+            _shopOwnerUI.ShowBuyFailSpace();
+            return;
+        }
+
+        _shopOwnerUI.ShowBuySuccess(); // 구입 성공 대사
+    }
+
+    /// <summary>
+    /// 나가기 버튼
+    /// </summary>
+    public void OnClickExit()
+    {
+        _shopOwnerUI.ShowExit(); // 나가기 인사
+        // 잠깐 대기 후 나가기
+        StartCoroutine(ExitRoutine());
+    }
+
+    IEnumerator ExitRoutine()
+    {
+        yield return new WaitForSeconds(1f);
+        gameObject.SetActive(false);
+        //OnExitClicked?.Invoke();
     }
 }
