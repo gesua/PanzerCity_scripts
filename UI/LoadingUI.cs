@@ -12,12 +12,14 @@ public class LoadingUI : MonoBehaviour
 
     public void Show()
     {
-        _canvas.enabled = true;
+        gameObject.SetActive(true);
+        //_canvas.enabled = true;
     }
 
     public void Hide()
     {
-        _canvas.enabled = false;
+        gameObject.SetActive(false);
+        //_canvas.enabled = false;
     }
 
     public IEnumerator UpdateProgress(AsyncOperation op)

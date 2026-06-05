@@ -6,7 +6,7 @@ using UnityEngine.UI;
 /// </summary>
 public class InventoryUI : MonoBehaviour
 {
-    [SerializeField] RectTransform _inventoryRect;
+    [SerializeField] RectTransform _playerStatusRect; // 상점 열릴 때 위치 옮길 UI
     [SerializeField] CanvasGroup _group;
     [SerializeField] DraggingItemUI _draggingItem;
     [SerializeField] InventoryView _inventoryView;
@@ -32,7 +32,7 @@ public class InventoryUI : MonoBehaviour
         _inventoryModel = new InventoryModel(_width, _height);
         _inventoryPresenter = new InventoryPresenter(_inventoryModel, _inventoryView, _draggingItem);
 
-        _orgParent = transform.parent;
+        _orgParent = _playerStatusRect.parent;
     }
 
     /// <summary>
@@ -55,11 +55,11 @@ public class InventoryUI : MonoBehaviour
     /// <summary>
     /// 상점 입장
     /// </summary>
-    public void EnterStore(Transform storeTr)
+    public void EnterStore(Transform shopTr)
     {
         _isStore = true;
-        transform.parent = storeTr;
-        _inventoryRect.anchoredPosition = new Vector2(0, -380); // 위치 잡기
+        _playerStatusRect.SetParent(shopTr, false);
+        _playerStatusRect.anchoredPosition = new Vector2(0, -380); // 위치 잡기
         _group.alpha = 1f;
         _group.interactable = true;
         _group.blocksRaycasts = true;
@@ -71,8 +71,8 @@ public class InventoryUI : MonoBehaviour
     public void ExitStore()
     {
         _isStore = false;
-        transform.parent = _orgParent;
-        _inventoryRect.anchoredPosition = Vector2.zero; // 위치 잡기
+        _playerStatusRect.SetParent(_orgParent, false);
+        _playerStatusRect.anchoredPosition = Vector2.zero; // 위치 잡기
         _group.alpha = 0f;
         _group.interactable = false;
         _group.blocksRaycasts = false;

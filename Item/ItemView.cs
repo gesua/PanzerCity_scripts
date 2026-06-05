@@ -37,6 +37,10 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         // 아이콘 설정
         _icon.sprite = item.Config.IconSprite;
 
+        // 크기 초기화
+        _rectTransform.sizeDelta = Vector2.zero;
+        _rectTransform.localScale = Vector3.one;
+
         // 아이템 크기 설정 (차지하는 셀 수에 맞게)
         Vector2Int[] cells = item.Config.OccupiedCells;
         int maxX = 0, maxY = 0;

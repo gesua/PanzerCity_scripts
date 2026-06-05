@@ -11,6 +11,7 @@ public class GameScene : MonoBehaviour
     [Header("----- 아이템 치트 -----")]
     [SerializeField] int _cheatItemNum;
     [SerializeField] bool _cheatActive;
+    [SerializeField] bool StageClear;
 
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Camera _mainCamera;
@@ -43,7 +44,8 @@ public class GameScene : MonoBehaviour
 
     bool _OnCursor; // 마우스 커서 활성화 여부
 
-    AsyncOperation _nextStageLoad; // 다음 스테이지 미리 로드할 거
+    AsyncOperation _currentStageUnload; // 현재 씬 언로드 할 거
+    AsyncOperation _nextStageLoad; // 다음 스테이지 미리 로드 할 거
 
     Coroutine _hyperShieldRoutine;
 
@@ -420,6 +422,7 @@ public class GameScene : MonoBehaviour
         _stageClearUI.Hide();
 
         // 다음 스테이지 미리 로드
+        _currentStageUnload = SceneManager.UnloadSceneAsync(_currentStage.SceneName);
         _nextStageLoad = SceneManager.LoadSceneAsync(_currentStage.NextStageName, LoadSceneMode.Additive);
         _nextStageLoad.allowSceneActivation = false;
 
@@ -427,7 +430,7 @@ public class GameScene : MonoBehaviour
         _isShopOpen = true;
         _OnCursor = true;
         _shopUI.SetShopActive(true);
-        _inventoryUI.EnterStore(_shopUI.transform); // 인벤토리 위치 옮김
+        _inventoryUI.EnterStore(_shopUI.GameInfoUI.transform); // UI 위치 옮김
         _inputSystemHandler.SetInputDisabled(true);
         Cursor.lockState = CursorLockMode.None;
     }
@@ -438,7 +441,7 @@ public class GameScene : MonoBehaviour
     void HandleShopExit()
     {
         _shopUI.SetShopActive(false);
-        _inventoryUI.ExitStore(); // 인벤토리 위치 복귀
+        _inventoryUI.ExitStore(); // UI 위치 복귀
         StartCoroutine(LoadStageRoutine(_currentStage.NextStageName));
     }
 
@@ -469,8 +472,20 @@ public class GameScene : MonoBehaviour
         UnsubscribeStage();
 
         // 현재 Stage 씬 언로드
-        yield return SceneManager.UnloadSceneAsync(_currentStage.SceneName);
-
+        if (_currentStageUnload != null)
+        {
+            yield return _currentStageUnload;
+            _currentStageUnload = null;
+        }
+        else
+        {
+            AsyncOperation operation = SceneManager.UnloadSceneAsync(_currentStage.SceneName);
+            while (operation.isDone == false)
+            {
+                Debug.Log("언로드중");
+                yield return null;
+            }
+        }
         _currentStage = null;
 
         // 다음 Stage 씬 로드
@@ -487,7 +502,7 @@ public class GameScene : MonoBehaviour
             stageLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
         }
 
-        // 로딩바 업데이트
+        // 로딩바 업데이트 HACK:언로드도 같이 진행도 보여줘야함
         yield return StartCoroutine(loadingUI.UpdateProgress(stageLoad));
 
         // 카메라 초기화
@@ -537,6 +552,11 @@ public class GameScene : MonoBehaviour
         {
             AddCheatItem(_cheatItemNum);
             _cheatActive = false;
+        }
+        if (StageClear)
+        {
+            HandleStageClear();
+            StageClear = false;
         }
 #endif
     }
