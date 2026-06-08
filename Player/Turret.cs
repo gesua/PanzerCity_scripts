@@ -22,6 +22,8 @@ public class Turret : MonoBehaviour
 
     [SerializeField] LayerMask _aimLayerMask = 1 << 6 | 1 << 9;
 
+    public CameraTarget CameraTarget => _cameraTarget;
+
     float _rotSpeed;
     bool _isSniping;
     bool _aimLocked;

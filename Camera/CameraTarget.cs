@@ -31,10 +31,14 @@ public class CameraTarget : MonoBehaviour
     float _pitch;
     float _yaw;
 
+    Vector3 _orgDamping; // 원래 덤핑값
+
     bool _isSniperMode;
 
     private void Awake()
     {
+        _orgDamping = _thirdPersonFollow.Damping;
+
         _thirdTargetDistance = _thirdPersonFollow.CameraDistance;
         _sniperTargetFov = _sniperCam.Lens.FieldOfView;
     }
@@ -127,11 +131,30 @@ public class CameraTarget : MonoBehaviour
         transform.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
     }
 
+    /// <summary>
+    /// 카메라 회전값 초기화
+    /// </summary>
     public void ResetRotation()
     {
         _pitch = 0f;
         _yaw = 0f;
         transform.rotation = Quaternion.identity;
+    }
+
+    /// <summary>
+    /// 덤핑 값 없애서 즉시 이동
+    /// </summary>
+    public void DisableDamping()
+    {
+        _thirdPersonFollow.Damping = Vector3.zero;
+    }
+
+    /// <summary>
+    /// 원래 덤핑 값으로 복구
+    /// </summary>
+    public void ResetDamping()
+    {
+        _thirdPersonFollow.Damping = _orgDamping;
     }
 
     /// <summary>

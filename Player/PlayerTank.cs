@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Unity.Cinemachine;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -202,12 +203,12 @@ public class PlayerTank : TankBase
     /// <summary>
     /// 리스폰
     /// </summary>
-    public void Respawn(Vector3 spawnPos)
+    public void Respawn(Vector3 spawnPos, CinemachineBrain brain)
     {
-        StartCoroutine(RespawnRoutine(spawnPos));
+        StartCoroutine(RespawnRoutine(spawnPos, brain));
     }
 
-    IEnumerator RespawnRoutine(Vector3 spawnPos)
+    IEnumerator RespawnRoutine(Vector3 spawnPos, CinemachineBrain brain)
     {
         // 전차장 초기화
         _commander.CommanderRoot.SetParent(TurretTr);
@@ -221,12 +222,15 @@ public class PlayerTank : TankBase
         _destroyedVisual.SetActive(false); // 파괴된 모델 비활성화
         _miniMapTankIcon.Hide(); // 미니맵 아이콘 숨기기
         _isAttack = false; // 공격 버튼 끄기
+        _turret.CameraTarget.DisableDamping(); // 카메라 즉시 이동
 
         // 반짝 이펙트
         GameManager.Instance.EffectManager.SpawnEffect(EffectType.Twinkle, spawnPos);
 
         // 이펙트 지속시간 대기
         yield return new WaitForSeconds(1f);
+
+        _turret.CameraTarget.ResetDamping(); // 카메라 덤핑 값 복구
 
         // 탱크 생성
         _isDead = false; // 살았음
@@ -278,5 +282,15 @@ public class PlayerTank : TankBase
         _shieldRenderer.trailMaterial.color = color;
         var main = _shieldParticle.main;
         main.startColor = color;
+
+        
+    }
+
+    /// <summary>
+    /// 중력 설정
+    /// </summary>
+    public void SetPlayerGravity(bool enable)
+    {
+        _mover.SetGravity(enable);
     }
 }

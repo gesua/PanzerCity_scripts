@@ -146,4 +146,12 @@ public class Mover : MonoBehaviour
         _currentSpeed = 0f;
         _targetSpeed = 0f;
     }
+
+    /// <summary>
+    /// 중력 설정
+    /// </summary>
+    public void SetGravity(bool enable)
+    {
+        _rigid.useGravity = enable;
+    }
 }

@@ -193,7 +193,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleStageLoaded(Vector3 pos)
     {
-        _player.Respawn(_playerSpawnPoint = pos);
+        _player.Respawn(_playerSpawnPoint = pos, _cinemachineBrain);
     }
 
     /// <summary>
@@ -365,7 +365,7 @@ public class GameScene : MonoBehaviour
             GameManager.Instance.PlayerData.SpendLife(1);
 
             // 리스폰
-            _player.Respawn(_playerSpawnPoint);
+            _player.Respawn(_playerSpawnPoint, _cinemachineBrain);
             _cameraTarget.ResetRotation();
         }
         else
@@ -433,6 +433,8 @@ public class GameScene : MonoBehaviour
         _inventoryUI.EnterStore(_shopUI.GameInfoUI.transform); // UI 위치 옮김
         _inputSystemHandler.SetInputDisabled(true);
         Cursor.lockState = CursorLockMode.None;
+
+        _player.SetPlayerGravity(false); // 중력 설정(씬 전환시 자유낙하 방지)
     }
 
     /// <summary>
@@ -479,10 +481,9 @@ public class GameScene : MonoBehaviour
         }
         else
         {
-            AsyncOperation operation = SceneManager.UnloadSceneAsync(_currentStage.SceneName);
-            while (operation.isDone == false)
+            AsyncOperation stageUnload = SceneManager.UnloadSceneAsync(_currentStage.SceneName);
+            while (stageUnload.isDone == false)
             {
-                Debug.Log("언로드중");
                 yield return null;
             }
         }
@@ -504,6 +505,8 @@ public class GameScene : MonoBehaviour
 
         // 로딩바 업데이트 HACK:언로드도 같이 진행도 보여줘야함
         yield return StartCoroutine(loadingUI.UpdateProgress(stageLoad));
+
+        _player.SetPlayerGravity(true); // 중력 복구
 
         // 카메라 초기화
         _cameraTarget.ResetRotation();
