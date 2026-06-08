@@ -48,7 +48,8 @@ public class TitleScene : MonoBehaviour
         stageLoad.allowSceneActivation = false;
 
         // 로드 완료까지 진행도 업데이트
-        yield return StartCoroutine(loadingUI.UpdateProgress(_gameSceneLoad, stageLoad));
+        StartCoroutine(loadingUI.UpdateProgress(_gameSceneLoad, stageLoad)); // 로딩UI만 따로 움직임
+        yield return new WaitUntil(() => _gameSceneLoad.progress >= 0.9f && stageLoad.progress >= 0.9f); // 실제로 기다리는 거
 
         // 씬 전환될 때 그대로 두면 2개라고 에러 뜸
         _audioListener.enabled = false;
