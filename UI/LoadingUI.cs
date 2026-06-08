@@ -7,19 +7,16 @@ using UnityEngine.UI;
 /// </summary>
 public class LoadingUI : MonoBehaviour
 {
-    [SerializeField] Canvas _canvas;
     [SerializeField] Image _loadingBar;
 
     public void Show()
     {
         gameObject.SetActive(true);
-        //_canvas.enabled = true;
     }
 
     public void Hide()
     {
         gameObject.SetActive(false);
-        //_canvas.enabled = false;
     }
 
     public IEnumerator UpdateProgress(AsyncOperation op)

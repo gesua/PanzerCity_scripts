@@ -7,15 +7,14 @@ using UnityEngine;
 /// </summary>
 public class ShopUI : MonoBehaviour
 {
-    [SerializeField] Canvas _shopCanvas;
+    [SerializeField] Transform _rightPanelTr;
     [SerializeField] ShopOwnerUI _shopOwnerUI; // 상점 주인 대화
-    [SerializeField] GameInfoUI _gameInfoUI;
     [SerializeField] StoreItemSlot[] _itemSlots; // 상점에서 파는 아이템
     InventoryUI _inventoryUI;
 
-    public event Action OnExitClicked;
+    public Transform RightPanelTr => _rightPanelTr;
 
-    public GameInfoUI GameInfoUI => _gameInfoUI;
+    public event Action OnExitClicked;
 
     public void Initialize(InventoryUI inventoryUI)
     {
@@ -37,7 +36,6 @@ public class ShopUI : MonoBehaviour
     public void SetShopActive(bool active)
     {
         gameObject.SetActive(active);
-        //_shopCanvas.enabled = active;
 
         if (active)
         {

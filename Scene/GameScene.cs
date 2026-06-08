@@ -71,8 +71,6 @@ public class GameScene : MonoBehaviour
 
         GameManager.Instance.PlayerData.OnGoldChanged += _gameInfoUI.UpdateGold;
         GameManager.Instance.PlayerData.OnLifeChanged += _gameInfoUI.UpdateLife;
-        GameManager.Instance.PlayerData.OnGoldChanged += _shopUI.GameInfoUI.UpdateGold;
-        GameManager.Instance.PlayerData.OnLifeChanged += _shopUI.GameInfoUI.UpdateLife;
 
         _rightPanelUI.OnPauseClicked += HandlePauseInput;
         _pauseUI.OnResumeClicked += HandlePauseInput;
@@ -124,7 +122,6 @@ public class GameScene : MonoBehaviour
 
         // 목숨 UI 갱신
         _gameInfoUI.UpdateLife(GameManager.Instance.PlayerData.Life);
-        _shopUI.GameInfoUI.UpdateLife(GameManager.Instance.PlayerData.Life);
 
         // 인벤토리 세팅
         _player.ItemPickup.Initialize(_inventoryUI.Presenter);
@@ -157,7 +154,6 @@ public class GameScene : MonoBehaviour
 
         // 스테이지 UI 세팅
         _gameInfoUI.UpdateStage(_currentStage.StageID - 7100); // 스테이지 ID값 빼줌(7100)
-        _shopUI.GameInfoUI.UpdateStage(_currentStage.StageID - 7100);
 
         // 이벤트 구독
         _currentStage.OnHQDestroyed += HandleHQDestroyed; // 아군 기지 파괴
@@ -430,7 +426,7 @@ public class GameScene : MonoBehaviour
         _isShopOpen = true;
         _OnCursor = true;
         _shopUI.SetShopActive(true);
-        _inventoryUI.EnterStore(_shopUI.GameInfoUI.transform); // UI 위치 옮김
+        _inventoryUI.EnterStore(_shopUI.RightPanelTr); // UI 위치 옮김
         _inputSystemHandler.SetInputDisabled(true);
         Cursor.lockState = CursorLockMode.None;
 
