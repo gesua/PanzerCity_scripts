@@ -454,7 +454,7 @@ public class GameScene : MonoBehaviour
     {
         if (_isShopOpen)
         {
-            Debug.Log("상점 열렸을 때는 재시작 막아놓음");
+            Debug.Log("상점 열렸을 때는 재시작 막아놓음"); // 실제로 눌릴 일은 없음
         }
         else
         {
@@ -518,8 +518,9 @@ public class GameScene : MonoBehaviour
             stageLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
         }
 
-        // 로딩바 업데이트 HACK:언로드도 같이 진행도 보여줘야함
-        yield return StartCoroutine(loadingUI.UpdateProgress(stageLoad));
+        // 로딩바 업데이트
+        StartCoroutine(loadingUI.UpdateProgress(stageLoad));
+        yield return new WaitUntil(() => stageLoad.progress >= 0.9f); // 실제로 기다리는 거
 
         _player.SetPlayerGravity(true); // 중력 복구
 

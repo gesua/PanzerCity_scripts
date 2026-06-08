@@ -36,16 +36,21 @@ public class LoadingUI : MonoBehaviour
 
             _loadingBar.fillAmount = currentProgress;
 
-            //_loadingBar.fillAmount = op.progress; 
             yield return null;
         }
 
         // 로딩 완료
-        currentProgress = Mathf.MoveTowards(currentProgress, 0.9f, (1f / _fillTime) * Time.deltaTime);
-
-        if (Mathf.Abs(currentProgress - 0.9f) < 0.001f)
+        while (_loadingBar.fillAmount < 0.9f)
         {
-            _loadingBar.fillAmount = 0.9f;
+            currentProgress = Mathf.MoveTowards(currentProgress, 0.9f, (1f / _fillTime) * Time.deltaTime);
+
+            if (Mathf.Abs(currentProgress - 0.9f) < 0.001f)
+            {
+                _loadingBar.fillAmount = 0.9f;
+            }
+
+            _loadingBar.fillAmount = currentProgress;
+            yield return null;
         }
     }
 
