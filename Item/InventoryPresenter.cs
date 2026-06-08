@@ -13,6 +13,8 @@ public class InventoryPresenter
 
     ItemModel _draggingItemModel;
 
+    bool _isShop; // 상점일 때
+
     public bool IsDragging => _draggingItemModel != null;
 
     public event Action<int> OnItemUsed; // 아이템 사용(ID)
@@ -122,6 +124,8 @@ public class InventoryPresenter
     /// </summary>
     void UseItem(ItemModel item)
     {
+        if (_isShop) return; // 상점에선 아이템 사용 막음
+
         OnItemUsed?.Invoke(item.Config.Id);
         RemoveItem(item);
     }
@@ -139,5 +143,13 @@ public class InventoryPresenter
             maxY = Mathf.Max(maxY, cell.y);
         }
         return new Vector2(_view.CellSize * (maxX + 1), _view.CellSize * (maxY + 1));
+    }
+
+    /// <summary>
+    /// 상점 입장 여부 세팅
+    /// </summary>
+    public void SetShopMode(bool enable)
+    {
+        _isShop = enable;
     }
 }

@@ -21,7 +21,7 @@ public class InventoryUI : MonoBehaviour
     InventoryPresenter _inventoryPresenter;
 
     Transform _orgParent; // 상점 갔다가 돌아올 때
-    bool _isStore; // 상점일 때
+    bool _isShop; // 상점일 때
 
     public InventoryPresenter Presenter => _inventoryPresenter;
 
@@ -40,7 +40,7 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     public void Toggle()
     {
-        if (_isStore) return; // 상점인 경우 막음
+        if (_isShop) return; // 상점인 경우 막음
 
         _isActive = !_isActive;
         _group.alpha = _isActive ? 1f : 0f;
@@ -57,7 +57,8 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     public void EnterStore(Transform shopTr)
     {
-        _isStore = true;
+        _isShop = true;
+        _inventoryPresenter.SetShopMode(_isShop);
         _playerStatusRect.SetParent(shopTr, false);
         _playerStatusRect.anchoredPosition = new Vector2(0, -380); // 위치 잡기
         _group.alpha = 1f;
@@ -70,7 +71,8 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     public void ExitStore()
     {
-        _isStore = false;
+        _isShop = false;
+        _inventoryPresenter.SetShopMode(_isShop);
         _playerStatusRect.SetParent(_orgParent, false);
         _playerStatusRect.anchoredPosition = Vector2.zero; // 위치 잡기
         _group.alpha = 0f;
