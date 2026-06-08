@@ -4,6 +4,9 @@ using UnityEngine;
 public class PauseUI : MonoBehaviour
 {
     [SerializeField] GameObject _option;
+    [SerializeField] GameObject _retryBtn;
+
+    public GameObject RetryBtn => _retryBtn;
 
     public event Action OnResumeClicked;    // 전투재개
     public event Action OnRestartClicked;   // 재도전

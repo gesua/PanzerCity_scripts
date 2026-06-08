@@ -430,6 +430,9 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.SetInputDisabled(true);
         Cursor.lockState = CursorLockMode.None;
 
+        // 상점 열렸을 땐 재시작 막아놓음
+        _pauseUI.RetryBtn.SetActive(false);
+
         _player.SetPlayerGravity(false); // 중력 설정(씬 전환시 자유낙하 방지)
     }
 
@@ -438,8 +441,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleShopExit()
     {
-        _shopUI.SetShopActive(false);
-        _inventoryUI.ExitStore(); // UI 위치 복귀
+        _pauseUI.RetryBtn.SetActive(true);
         StartCoroutine(LoadStageRoutine(_currentStage.NextStageName));
     }
 
@@ -448,19 +450,34 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleRestartStage()
     {
-        StartCoroutine(LoadStageRoutine(_currentStage.SceneName));
+        if (_isShopOpen)
+        {
+            Debug.Log("상점 열렸을 때는 재시작 막아놓음");
+        }
+        else
+        {
+            StartCoroutine(LoadStageRoutine(_currentStage.SceneName));
+        }
     }
 
     IEnumerator LoadStageRoutine(string sceneName)
     {
+
         // 일시정지 관련 초기화
-        _isShopOpen = false;
         _isPaused = false;
         _OnCursor = false;
         _inputSystemHandler.SetInputDisabled(_isPaused);
         _pauseUI.SetActive(_isPaused);
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.Locked;
+
+        // 상점 닫기
+        if (_isShopOpen)
+        {
+            _isShopOpen = false;
+            _shopUI.SetShopActive(false);
+            _inventoryUI.ExitStore(); // UI 위치 복귀
+        }
 
         // 로딩 이미지 띄우기
         LoadingUI loadingUI = GameManager.Instance.LoadingUI;
