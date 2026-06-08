@@ -430,9 +430,10 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.SetInputDisabled(true);
         Cursor.lockState = CursorLockMode.None;
 
-        // 상점 열렸을 땐 재시작 막아놓음
+        // 상점 열렸을 땐 재도전 막아놓음
         _pauseUI.RetryBtn.SetActive(false);
 
+        _player.EquipViewMod(true); // 장착 모드 활성화
         _player.SetPlayerGravity(false); // 중력 설정(씬 전환시 자유낙하 방지)
     }
 
@@ -442,6 +443,7 @@ public class GameScene : MonoBehaviour
     void HandleShopExit()
     {
         _pauseUI.RetryBtn.SetActive(true);
+        _player.EquipViewMod(false); // 장착 모드 비활성화
         StartCoroutine(LoadStageRoutine(_currentStage.NextStageName));
     }
 

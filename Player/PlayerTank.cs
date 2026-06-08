@@ -293,4 +293,20 @@ public class PlayerTank : TankBase
     {
         _mover.SetGravity(enable);
     }
+
+    /// <summary>
+    /// 장착 뷰 모드
+    /// </summary>
+    public void EquipViewMod(bool enable)
+    {
+        if (enable)
+        {
+            _turret.ResetRotation();
+            _turret.enabled = false;
+        }
+        else
+        {
+            _turret.enabled = true;
+        }
+    }
 }
