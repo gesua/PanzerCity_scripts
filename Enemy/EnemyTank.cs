@@ -91,6 +91,15 @@ public class EnemyTank : TankBase
     EnemyState _currentState;
 
     public Transform Target => _target;
+    public virtual bool CanAimWhileMoving => true;
+    public virtual bool UsesBodyAim => false;
+
+    protected NavMeshAgent Agent => _agent;
+    protected Rigidbody Rigid => _rigid;
+    protected Transform Turret => _turret;
+    protected float StoppingDistance => _stoppingDistance;
+    protected virtual Vector3 AimOrigin => _turret != null ? _turret.position : transform.position;
+    protected virtual Vector3 AimForward => _turret != null ? _turret.forward : transform.forward;
 
     protected override void Awake()
     {
@@ -285,10 +294,10 @@ public class EnemyTank : TankBase
     /// <summary>
     /// 플레이어 감지
     /// </summary>
-    public bool CanSeePlayer()
+    public virtual bool CanSeePlayer()
     {
         // 원형 범위 체크
-        Collider[] colliders = Physics.OverlapSphere(_turret.position, _detectionRange, _playerLayer);
+        Collider[] colliders = Physics.OverlapSphere(AimOrigin, _detectionRange, _playerLayer);
         if (colliders.Length == 0)
         {
             return false;
@@ -305,14 +314,12 @@ public class EnemyTank : TankBase
             if (col.TryGetComponent(out Turret turret) == false) continue;
             Vector3 playerPos = turret.TurretTr.position;
 
-            // 부채꼴 체크 (포탑 전방 기준)
-            Vector3 dirToPlayer = (playerPos - _turret.position).normalized;
-            float angle = Vector3.Angle(_turret.forward, dirToPlayer);
+            // 부채꼴 체크. 포탑형은 포탑 전방, 구축전차는 차체 전방을 기준으로 본다.
+            float angle = GetAimAngleTo(playerPos);
             if (angle > _detectionAngle) continue;
 
             // 시야 차단 체크 (벽에 가려져 있으면 감지 안 됨)
-            float distance = Vector3.Distance(_turret.position, playerPos);
-            if (Physics.Raycast(_turret.position, dirToPlayer, distance, _visionObstacleLayer)) continue;
+            if (HasClearVisionTo(playerPos) == false) continue;
 
             // 풀숲 체크 (플레이어와 같은 풀숲이어야 감지)
             if (col.TryGetComponent(out PlayerTank player))
@@ -331,8 +338,10 @@ public class EnemyTank : TankBase
     /// <summary>
     /// 포탑을 타겟 방향으로 회전
     /// </summary>
-    public void AimAtTarget()
+    public virtual void AimAtTarget()
     {
+        if (_turret == null) return;
+
         Quaternion targetRotation;
 
         if (_target == null) // 타겟 없으면 정면 보기
@@ -399,14 +408,10 @@ public class EnemyTank : TankBase
     /// <summary>
     /// 차체를 타겟 방향으로 회전
     /// </summary>
-    public void RotateBodyToTarget()
+    public virtual void RotateBodyToTarget()
     {
         if (_target == null) return;
-        Vector3 dir = (_target.position - transform.position);
-        dir.y = 0f;
-        if (dir.sqrMagnitude < Mathf.Epsilon) return;
-        Quaternion targetRotation = Quaternion.LookRotation(dir);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _model.RotSpeed * Time.deltaTime);
+        RotateBodyToward(_target.position, Time.deltaTime);
     }
 
     /// <summary>
@@ -481,14 +486,9 @@ public class EnemyTank : TankBase
     /// <summary>
     /// NavMesh 방향으로 회전 후 전진
     /// </summary>
-    public void AgentMove()
+    public virtual void AgentMove()
     {
-        if (_agent.pathPending) return;
-
-        // 다음 웨이포인트 방향
-        Vector3 dir = (_agent.steeringTarget - transform.position).normalized;
-        dir.y = 0f;
-        if (dir.sqrMagnitude < Mathf.Epsilon) return;
+        if (TryGetAgentSteeringDirection(out Vector3 dir) == false) return;
 
         // 목표 방향으로 회전
         Quaternion targetRotation = Quaternion.LookRotation(dir);
@@ -498,9 +498,96 @@ public class EnemyTank : TankBase
         float angle = Vector3.Angle(transform.forward, dir);
         if (angle < 10f)
         {
-            Vector3 move = transform.forward * _model.ForwardSpeed * Time.fixedDeltaTime;
-            _rigid.MovePosition(_rigid.position + move);
+            MoveForward();
         }
+    }
+
+    /// <summary>
+    /// 지금 타겟을 향해 발사해도 되는지 확인한다.
+    /// 기본 탱크는 감지 가능하면 바로 발사하고, 구축전차는 더 엄격한 정렬 각도를 사용한다.
+    /// </summary>
+    public virtual bool CanAttackTarget()
+    {
+        return CanSeePlayer();
+    }
+
+    /// <summary>
+    /// y축을 제외한 평면 방향을 구한다.
+    /// 탱크 회전과 조준은 바닥 평면 기준으로 처리하기 때문에 공통 함수로 둔다.
+    /// </summary>
+    protected Vector3 GetFlatDirection(Vector3 from, Vector3 to)
+    {
+        Vector3 dir = to - from;
+        dir.y = 0f;
+        return dir;
+    }
+
+    /// <summary>
+    /// 현재 조준 기준점에서 목표 지점까지의 평면 각도를 구한다.
+    /// 포탑형은 포탑 전방, 구축전차는 차체 전방이 기준이 된다.
+    /// </summary>
+    protected float GetAimAngleTo(Vector3 worldPos)
+    {
+        Vector3 dir = GetFlatDirection(AimOrigin, worldPos);
+        if (dir.sqrMagnitude < Mathf.Epsilon) return 0f;
+
+        Vector3 forward = AimForward;
+        forward.y = 0f;
+        if (forward.sqrMagnitude < Mathf.Epsilon) return 0f;
+
+        return Vector3.Angle(forward, dir);
+    }
+
+    /// <summary>
+    /// 조준 기준점과 목표 지점 사이에 벽이 없는지 확인한다.
+    /// 각도는 보지 않고, 순수하게 시야 차단 여부만 검사한다.
+    /// </summary>
+    protected bool HasClearVisionTo(Vector3 worldPos)
+    {
+        Vector3 dir = worldPos - AimOrigin;
+        if (dir.sqrMagnitude < Mathf.Epsilon) return true;
+
+        float distance = dir.magnitude;
+        return Physics.Raycast(AimOrigin, dir.normalized, distance, _visionObstacleLayer) == false;
+    }
+
+    /// <summary>
+    /// 차체를 목표 지점 쪽으로 회전한다.
+    /// 포탑이 없는 탱크는 이 함수가 조준 회전 역할도 한다.
+    /// </summary>
+    protected void RotateBodyToward(Vector3 worldPos, float deltaTime)
+    {
+        Vector3 dir = GetFlatDirection(transform.position, worldPos);
+        if (dir.sqrMagnitude < Mathf.Epsilon) return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(dir);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _model.RotSpeed * deltaTime);
+    }
+
+    /// <summary>
+    /// 현재 차체 전방으로 전진한다.
+    /// Rigidbody 이동을 한 곳에 모아 자식 탱크도 같은 이동 방식을 쓰게 한다.
+    /// </summary>
+    protected void MoveForward()
+    {
+        Vector3 move = transform.forward * _model.ForwardSpeed * Time.fixedDeltaTime;
+        _rigid.MovePosition(_rigid.position + move);
+    }
+
+    /// <summary>
+    /// NavMeshAgent가 제안한 다음 이동 방향을 평면 방향으로 가져온다.
+    /// 자식 클래스가 경로는 쓰되 회전 방식만 바꾸고 싶을 때 사용한다.
+    /// </summary>
+    protected bool TryGetAgentSteeringDirection(out Vector3 dir)
+    {
+        dir = Vector3.zero;
+        if (_agent == null || _agent.enabled == false || _agent.pathPending) return false;
+
+        dir = GetFlatDirection(transform.position, _agent.steeringTarget);
+        if (dir.sqrMagnitude < Mathf.Epsilon) return false;
+
+        dir.Normalize();
+        return true;
     }
 
     /// <summary>
