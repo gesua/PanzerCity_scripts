@@ -17,14 +17,16 @@ public class ShopUI : MonoBehaviour
 
     public event Action OnExitClicked;
 
-    public void Initialize(InventoryUI inventoryUI)
+    public void Initialize(InventoryUI inventoryUI, EquipmentUI equipmentUI)
     {
         _inventoryUI = inventoryUI;
+        _equipmentUI = equipmentUI;
     }
 
     void Start()
     {
         EquipmentManager equipmentManager = GameManager.Instance.EquipmentManager;
+        
         _equipmentUI.Initialize(equipmentManager, _inventoryUI.Presenter);
 
         // 상점에 배치할 아이템 (항상 똑같음)

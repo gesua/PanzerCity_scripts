@@ -34,6 +34,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] InventoryUI _inventoryUI;   // 인벤토리 UI
     [SerializeField] WarningUI _warningUI;       // 경고 UI
     [SerializeField] ShopUI _shopUI;             // 상점 UI
+    [SerializeField] EquipmentUI _equipmentUI;   // 장비 UI
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
@@ -127,7 +128,7 @@ public class GameScene : MonoBehaviour
         _player.ItemPickup.Initialize(_inventoryUI.Presenter);
 
         // 상점 세팅
-        _shopUI.Initialize(_inventoryUI);
+        _shopUI.Initialize(_inventoryUI, _equipmentUI);
 
         // HACK:카메라 w값 조절(나중에 하기)
         //bool isOpen = _rightPanelUI.IsOpen;
