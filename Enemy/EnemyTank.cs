@@ -119,10 +119,10 @@ public class EnemyTank : TankBase
         ResetBush();
 
         // 성격 랜덤 설정
-        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
+        //_personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        //_personality = EnemyPersonality.Coward;
+        _personality = EnemyPersonality.Aggressive;
 
         // 상태 객체들 생성
         // 방치 상태
@@ -331,7 +331,7 @@ public class EnemyTank : TankBase
     /// <summary>
     /// 포탑을 타겟 방향으로 회전
     /// </summary>
-    public void AimAtTarget()
+    public virtual void AimAtTarget()
     {
         Quaternion targetRotation;
 
