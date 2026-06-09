@@ -10,7 +10,6 @@ using UnityEngine.UI;
 public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
     [SerializeField] Image _icon;
-    [SerializeField] GameObject _dummy;
 
     public Action<Vector2> OnDragBegin; // 드래그 시작
     public Action<Vector2> OnDragging;  // 드래그 중

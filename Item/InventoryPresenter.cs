@@ -96,11 +96,14 @@ public class InventoryPresenter
         // 소모품
         if (item.Config.ItemType == ItemType.Consumable)
         {
+            if (_isShop) return; // 상점에선 소모품 사용 막음
             UseItem(item);
         }
         // 장비
         else if (item.Config.ItemType == ItemType.Equipment)
         {
+            if (_isShop == false) return; // 상점이 아니면 장착 막음
+
             // 장비 장착
             RemoveItem(item);
             ItemModel prevItem = _equipmentManager.Equip(item);
@@ -135,8 +138,6 @@ public class InventoryPresenter
     /// </summary>
     void UseItem(ItemModel item)
     {
-        if (_isShop) return; // 상점에선 아이템 사용 막음
-
         OnItemUsed?.Invoke(item.Config.Id);
         RemoveItem(item);
     }
