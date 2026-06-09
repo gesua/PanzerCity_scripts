@@ -36,6 +36,17 @@ public class ItemConfig : ScriptableObject
     [SerializeField] EquipSlot _equipSlot; // 장착 슬롯 (장비 아이템만)
     [SerializeField] Vector2Int[] _occupiedCells;  // 차지하는 셀 좌표 배열
 
+    [Header("----- 장비 스탯(주포) -----")]
+    [SerializeField] float _shellSpeedBonus;      // 포탄 속력
+    [SerializeField] float _explosionRadiusBonus; // 폭발 범위
+    [SerializeField] float _reloadBonus;          // 최소 장전 시간
+    [SerializeField] int _shellDamageBonus;       // 포탄 대미지
+    [Header("----- 장비 스탯(포탑) -----")]
+    [SerializeField] float _turretRotSpeedBonus;  // 포탑 회전 속력
+    [Header("----- 장비 스탯(차체) -----")]
+    [SerializeField] float _forwardSpeedBonus;    // 최대 전진 속력
+    [SerializeField] float _rotSpeedBonus;        // 차체 회전 속력
+
     // ItemEffect 만들고 작업
     //[Header("----- 소모성 설정 -----")]
     //public ItemEffect _useEffect; // 효과 수치

@@ -14,7 +14,7 @@ public class TankVisualController : MonoBehaviour
     [SerializeField] Transform _destroyedTurretTr; // 파괴된 포탑
     [SerializeField] Transform[] _destroyedTr; // 파괴된 모델 트랜스폼
     [SerializeField] Rigidbody[] _destroyedRigids; // 파괴된 모델의 rigidbody들
-    
+
     Vector3[] _orgPos; // 원래 위치값
     Quaternion[] _orgRot; // 원래 회전값
     float _explosionForce = 5f; // 폭발력
@@ -39,7 +39,7 @@ public class TankVisualController : MonoBehaviour
         _destroyedModel.SetActive(true); // 파괴된 모델 활성화
 
         // 포탑 회전값 동기화
-        _destroyedTurretTr.rotation = _turretTr.rotation;
+        if (_turretTr != null) _destroyedTurretTr.rotation = _turretTr.rotation;
 
         // 자식 rigidbody 전부 날리기
         Rigidbody[] parts = _destroyedModel.GetComponentsInChildren<Rigidbody>();
@@ -54,7 +54,7 @@ public class TankVisualController : MonoBehaviour
     /// </summary>
     public void ResetState()
     {
-        for(int i = 0; i < _destroyedTr.Length; i++)
+        for (int i = 0; i < _destroyedTr.Length; i++)
         {
             _destroyedTr[i].localPosition = _orgPos[i];
             _destroyedTr[i].localRotation = _orgRot[i];
