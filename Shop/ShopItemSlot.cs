@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// <summary>
 /// 상점 아이템 슬롯
 /// </summary>
-public class StoreItemSlot : MonoBehaviour, IPointerClickHandler
+public class ShopItemSlot : MonoBehaviour, IPointerClickHandler
 {
     [SerializeField] Image _icon;
     [SerializeField] TextMeshProUGUI _priceText;

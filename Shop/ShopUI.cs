@@ -9,8 +9,9 @@ public class ShopUI : MonoBehaviour
 {
     [SerializeField] Transform _rightPanelTr;
     [SerializeField] ShopOwnerUI _shopOwnerUI; // 상점 주인 대화
-    [SerializeField] StoreItemSlot[] _itemSlots; // 상점에서 파는 아이템
+    [SerializeField] ShopItemSlot[] _itemSlots; // 상점에서 파는 아이템
     InventoryUI _inventoryUI;
+    EquipmentUI _equipmentUI;
 
     public Transform RightPanelTr => _rightPanelTr;
 
@@ -23,6 +24,9 @@ public class ShopUI : MonoBehaviour
 
     void Start()
     {
+        EquipmentManager equipmentManager = GameManager.Instance.EquipmentManager;
+        _equipmentUI.Initialize(equipmentManager, _inventoryUI.Presenter);
+
         // 상점에 배치할 아이템 (항상 똑같음)
         int[] storeItemIDs = { 1001, 1002, 1003, 1004, 1005 };
         for (int i = 0; i < _itemSlots.Length; i++)

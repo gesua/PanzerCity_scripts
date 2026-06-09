@@ -9,6 +9,7 @@ public class GameManager : Singleton<GameManager>
     ResourceManager _resourceManager;
     PoolManager _poolManager;
     DataManager _dataManager;
+    EquipmentManager _equipmentManager;
     EffectManager _effectManager;
     AudioManager _audioManager;
     OptionManager _optionManager;
@@ -18,6 +19,7 @@ public class GameManager : Singleton<GameManager>
     public ResourceManager ResourceManager => _resourceManager;
     public PoolManager PoolManager => _poolManager;
     public DataManager DataManager => _dataManager;
+    public EquipmentManager EquipmentManager => _equipmentManager;
     public EffectManager EffectManager => _effectManager;
     public AudioManager AudioManager => _audioManager;
     public OptionManager OptionManager => _optionManager;
@@ -31,6 +33,7 @@ public class GameManager : Singleton<GameManager>
         _resourceManager = gameObject.GetOrAddComponent<ResourceManager>();
         _poolManager = gameObject.GetOrAddComponent<PoolManager>();
         _dataManager = gameObject.GetOrAddComponent<DataManager>();
+        _equipmentManager = gameObject.GetOrAddComponent<EquipmentManager>();
         _effectManager = gameObject.GetOrAddComponent<EffectManager>();
         _optionManager = gameObject.GetOrAddComponent<OptionManager>();
         _playerData = gameObject.GetOrAddComponent<PlayerData>();

@@ -46,6 +46,7 @@ public class ItemConfig : ScriptableObject
     public string Desc => _desc;
     public int BuyPrice => _buyPrice;
     public Sprite IconSprite => _iconSprite;
+    public EquipSlot EquipSlot => _equipSlot;
     public Vector2Int[] OccupiedCells => _occupiedCells;
     //public ItemEffect UseEffect => _useEffect;
 }

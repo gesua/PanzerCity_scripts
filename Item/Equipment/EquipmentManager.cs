@@ -6,7 +6,6 @@ using UnityEngine;
 /// </summary>
 public class EquipmentManager : MonoBehaviour
 {
-    /*
     ItemModel _mainGunSlot;
     ItemModel _turretSlot;
     ItemModel _hullSlot;
@@ -15,15 +14,15 @@ public class EquipmentManager : MonoBehaviour
     public ItemModel TurretSlot => _turretSlot;
     public ItemModel HullSlot => _hullSlot;
 
-    public event Action<EquipmentSlot, ItemModel> OnEquipped;   // 장착
-    public event Action<EquipmentSlot, ItemModel> OnUnequipped; // 해제
+    public event Action<EquipSlot, ItemModel> OnEquipped;   // 장착
+    public event Action<EquipSlot, ItemModel> OnUnequipped; // 해제
 
     /// <summary>
     /// 장비 장착
     /// </summary>
     public ItemModel Equip(ItemModel item)
     {
-        EquipmentSlot slot = item.Config.EquipSlot;
+        EquipSlot slot = item.Config.EquipSlot;
         ItemModel prevItem = GetSlot(slot);
 
         SetSlot(slot, item);
@@ -35,7 +34,7 @@ public class EquipmentManager : MonoBehaviour
     /// <summary>
     /// 장비 해제
     /// </summary>
-    public ItemModel Unequip(EquipmentSlot slot)
+    public ItemModel Unequip(EquipSlot slot)
     {
         ItemModel item = GetSlot(slot);
         if (item == null) return null;
@@ -46,25 +45,24 @@ public class EquipmentManager : MonoBehaviour
         return item; // 해제된 아이템 반환
     }
 
-    ItemModel GetSlot(EquipmentSlot slot)
+    ItemModel GetSlot(EquipSlot slot)
     {
         return slot switch
         {
-            EquipmentSlot.MainGun => _mainGunSlot,
-            EquipmentSlot.Turret => _turretSlot,
-            EquipmentSlot.Hull => _hullSlot,
+            EquipSlot.MainGun => _mainGunSlot,
+            EquipSlot.Turret => _turretSlot,
+            EquipSlot.Hull => _hullSlot,
             _ => null
         };
     }
 
-    void SetSlot(EquipmentSlot slot, ItemModel item)
+    void SetSlot(EquipSlot slot, ItemModel item)
     {
         switch (slot)
         {
-            case EquipmentSlot.MainGun: _mainGunSlot = item; break;
-            case EquipmentSlot.Turret: _turretSlot = item; break;
-            case EquipmentSlot.Hull: _hullSlot = item; break;
+            case EquipSlot.MainGun: _mainGunSlot = item; break;
+            case EquipSlot.Turret: _turretSlot = item; break;
+            case EquipSlot.Hull: _hullSlot = item; break;
         }
     }
-    */
 }

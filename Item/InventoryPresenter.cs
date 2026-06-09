@@ -10,8 +10,8 @@ public class InventoryPresenter
     InventoryModel _model;
     InventoryView _view;
     DraggingItemUI _draggingItemUI;
-
     ItemModel _draggingItemModel;
+    EquipmentManager _equipmentManager;
 
     bool _isShop; // 상점일 때
 
@@ -19,11 +19,12 @@ public class InventoryPresenter
 
     public event Action<int> OnItemUsed; // 아이템 사용(ID)
 
-    public InventoryPresenter(InventoryModel model, InventoryView view, DraggingItemUI draggingItem)
+    public InventoryPresenter(InventoryModel model, InventoryView view, DraggingItemUI draggingItem, EquipmentManager equipmentManager)
     {
         _model = model;
         _view = view;
         _draggingItemUI = draggingItem;
+        _equipmentManager = equipmentManager;
 
         _view.Initialize(_model.Width);
         _view.OnDragBegin += HandleDragBegin;
@@ -92,9 +93,19 @@ public class InventoryPresenter
     /// </summary>
     void HandleItemClicked(ItemModel item)
     {
+        // 소모품
         if (item.Config.ItemType == ItemType.Consumable)
         {
             UseItem(item);
+        }
+        // 장비
+        else if (item.Config.ItemType == ItemType.Equipment)
+        {
+            // 장비 장착
+            RemoveItem(item);
+            ItemModel prevItem = _equipmentManager.Equip(item);
+            // 기존 장착 아이템 인벤토리로 반환
+            if (prevItem != null) AddItem(prevItem);
         }
     }
 

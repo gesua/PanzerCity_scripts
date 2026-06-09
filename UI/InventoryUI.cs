@@ -27,10 +27,10 @@ public class InventoryUI : MonoBehaviour
 
     bool _isActive;
 
-    void Awake()
+    private void Awake()
     {
         _inventoryModel = new InventoryModel(_width, _height);
-        _inventoryPresenter = new InventoryPresenter(_inventoryModel, _inventoryView, _draggingItem);
+        _inventoryPresenter = new InventoryPresenter(_inventoryModel, _inventoryView, _draggingItem, GameManager.Instance.EquipmentManager);
 
         _orgParent = _playerStatusRect.parent;
     }
