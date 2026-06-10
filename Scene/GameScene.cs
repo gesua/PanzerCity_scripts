@@ -167,6 +167,9 @@ public class GameScene : MonoBehaviour
         _currentStage.EnemySpawner.OnSpawnListReady += _enemySpawnUI.Initialize;
         _currentStage.EnemySpawner.OnEnemySpawned += _enemySpawnUI.SetEnemySpawn;
 
+        // 플레이어 능력치 다시 세팅(장착한 거 적용)
+        _player.Initialize();
+
         // 리스폰
         _currentStage.OnStageLoaded += HandleStageLoaded;
     }
@@ -571,13 +574,13 @@ public class GameScene : MonoBehaviour
 #if UNITY_EDITOR
         if (_cheatActive)
         {
-            AddCheatItem(_cheatItemNum);
             _cheatActive = false;
+            AddCheatItem(_cheatItemNum);
         }
         if (StageClear)
         {
-            HandleStageClear();
             StageClear = false;
+            HandleStageClear();
         }
 #endif
     }
@@ -588,6 +591,12 @@ public class GameScene : MonoBehaviour
     void AddCheatItem(int itemID)
     {
         ItemConfig config = GameManager.Instance.DataManager.GetItemConfig(itemID);
+        if (config == null)
+        {
+            Debug.Log($"{itemID}는 없는 아이템");
+            return;
+        }
+
         ItemModel item = new ItemModel(config);
         _inventoryUI.Presenter.AddItem(item);
     }
