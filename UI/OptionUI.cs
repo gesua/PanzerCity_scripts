@@ -1,8 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static Unity.VisualScripting.Icons;
-using static UnityEngine.Rendering.DebugUI;
 
 /// <summary>
 /// 옵션 UI
