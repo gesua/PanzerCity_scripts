@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 public class ItemModel
 {
-    [Header("----- 설정 데이터 -----")]
+    [Header("----- 컴포넌트 -----")]
     [SerializeField] ItemConfig _config;
 
     Vector2Int _gridPosition; // 그리드 내 위치
