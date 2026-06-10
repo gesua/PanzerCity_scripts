@@ -91,7 +91,7 @@ public class EnemyTank : TankBase
     EnemyState _currentState;
 
     public Transform Target => _target;
-    public virtual bool CanAimWhileMoving => true;
+    public virtual bool CanAimWhileMoving => true; // 구축전차를 제외한 나머지는 다 true
     public virtual bool UsesBodyAim => false;
 
     protected NavMeshAgent Agent => _agent;
@@ -490,6 +490,7 @@ public class EnemyTank : TankBase
     {
         if (TryGetAgentSteeringDirection(out Vector3 dir) == false) return;
 
+
         // 목표 방향으로 회전
         Quaternion targetRotation = Quaternion.LookRotation(dir);
         transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _model.RotSpeed * Time.fixedDeltaTime);
@@ -587,6 +588,8 @@ public class EnemyTank : TankBase
         if (dir.sqrMagnitude < Mathf.Epsilon) return false;
 
         dir.Normalize();
+        if(dir == Vector3.zero) return false;
+
         return true;
     }
 
