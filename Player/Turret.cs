@@ -16,9 +16,11 @@ public class Turret : MonoBehaviour
     [SerializeField] RectTransform _turretCrosshair;
     [SerializeField] CameraTarget _cameraTarget;
 
-    [Header("----- 주포 각도 제한 -----")]
+    [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _minAngle = -10f;
     [SerializeField] float _maxAngle = 20f;
+    [SerializeField] float _minAimDistance = 10f; // 최소 조준거리
+    [SerializeField] float _fallbackAimDistance = 10f; // 너무 가까울 때 대신 사용할 거리
 
     [SerializeField] LayerMask _aimLayerMask = 1 << 6 | 1 << 9;
 
@@ -110,28 +112,44 @@ public class Turret : MonoBehaviour
     }
 
     /// <summary>
-    /// 포탑 좌우 회전
+    /// 화면 중앙에서 레이캐스트를 쏴서 조준 지점을 구함
     /// </summary>
-    void RotateTurret()
+    Vector3 GetAimPoint()
     {
         float screenY = GetCurrentScreenY();
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, screenY, 0f));
 
-        Vector3 targetPoint;
-
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f, _aimLayerMask))
         {
-            targetPoint = hit.point;
-        }
-        else
-        {
-            targetPoint = ray.origin + ray.direction * 1000f;
+            if (hit.distance >= _minAimDistance)
+            {
+                return hit.point;
+            }
+            else if (_isSniping) // 저격 모드에선 가까워도 제대로 조준
+            {
+                return hit.point;
+            }
+            else // 가까운 물체면 특정 거리 조준(포신이 과하게 들리는 것을 방지)
+            {
+                return ray.origin + ray.direction * _fallbackAimDistance;
+            }
         }
 
+        // 아무것도 안 맞으면 멀리 있는 지점을 기준으로 사용
+        return ray.origin + ray.direction * 1000f;
+    }
+
+    /// <summary>
+    /// 포탑 좌우 회전
+    /// </summary>
+    void RotateTurret()
+    {
+        Vector3 targetPoint = GetAimPoint();
+
+        // 떨림 방지, LookRotation 에러 방지
         Vector3 direction = targetPoint - _turret.position;
         direction.y = 0f;
-
-        if (direction.sqrMagnitude < Mathf.Epsilon)
+        if (direction.sqrMagnitude < Util.Epsilon)
         {
             return;
         }
@@ -154,21 +172,11 @@ public class Turret : MonoBehaviour
     /// </summary>
     void RotateBarrel()
     {
+        // 화면조준점 Y 위치는 현재 모드에 맞게 맞춤
         float screenY = GetCurrentScreenY();
         SetCenterCrosshairScreenY(screenY);
 
-        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, screenY, 0f));
-
-        Vector3 targetPoint;
-
-        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, _aimLayerMask))
-        {
-            targetPoint = hit.point;
-        }
-        else
-        {
-            targetPoint = ray.origin + ray.direction * 1000f;
-        }
+        Vector3 targetPoint = GetAimPoint();
 
         Vector3 direction = targetPoint - _barrel.position;
         Quaternion targetRotation = Quaternion.LookRotation(direction);
@@ -253,7 +261,7 @@ public class Turret : MonoBehaviour
             if (hit.collider.TryGetComponent(out HitZone hitZone))
             {
                 // 실루엣 켜기
-                if(hitZone.Parent.TryGetComponent(out _targetTank))
+                if (hitZone.Parent.TryGetComponent(out _targetTank))
                 {
                     _targetTank.SetSilhouette(true);
                 }
