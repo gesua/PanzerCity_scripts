@@ -34,14 +34,20 @@ public class HitDirectionIndicator : MonoBehaviour
         arrow.localScale = Vector3.one * 0.3f; // 크기 초기화(Pool엔 Canvas가 없어서 Scale이 점점 커짐)
         float elapsed = 0f;
         Image image = arrow.GetComponent<Image>();
+        Vector3 dir = Vector3.zero; // 피격 방향
 
         while (elapsed < _duration)
         {
             elapsed += Time.deltaTime;
 
             // 피격 방향 계산 (카메라 기준)
-            Vector3 dir = atkTank.position - _player.position;
-            dir.y = 0f;
+            if (atkTank != null)
+            {
+                dir = atkTank.position - _player.position;
+                dir.y = 0f;
+            }
+
+            if (dir == Vector3.zero) break;
 
             // 카메라 기준 각도로 변환
             Vector3 camForward = Camera.main.transform.forward;

@@ -8,9 +8,9 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class GameScene : MonoBehaviour
 {
-    [Header("----- 아이템 치트 -----")]
+    [Header("----- 치트 -----")]
     [SerializeField] int _cheatItemNum;
-    [SerializeField] bool _cheatActive;
+    [SerializeField] bool _cheatItemActive;
     [SerializeField] bool StageClear;
 
     [Header("----- 컴포넌트 -----")]
@@ -572,9 +572,9 @@ public class GameScene : MonoBehaviour
     void Update()
     {
 #if UNITY_EDITOR
-        if (_cheatActive)
+        if (_cheatItemActive)
         {
-            _cheatActive = false;
+            _cheatItemActive = false;
             AddCheatItem(_cheatItemNum);
         }
         if (StageClear)
