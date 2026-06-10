@@ -15,6 +15,25 @@ public enum EquipSlot
     MainGun, // 주포
 }
 
+// 에디터 용도
+[System.Serializable]
+public class StatBonus
+{
+    public StatType StatType;
+    public float Value;
+}
+
+public enum StatType
+{
+    ShellDamage,
+    ShellSpeed,
+    ExplosionRadius,
+    Reload,
+    TurretRotSpeed,
+    ForwardSpeed,
+    RotSpeed
+}
+
 /// <summary>
 /// 아이템 설정 데이터
 /// </summary>
@@ -36,16 +55,8 @@ public class ItemConfig : ScriptableObject
     [SerializeField] EquipSlot _equipSlot; // 장착 슬롯 (장비 아이템만)
     [SerializeField] Vector2Int[] _occupiedCells;  // 차지하는 셀 좌표 배열
 
-    [Header("----- 장비 스탯(주포) -----")]
-    [SerializeField] float _shellSpeedBonus;      // 포탄 속력
-    [SerializeField] float _explosionRadiusBonus; // 폭발 범위
-    [SerializeField] float _reloadBonus;          // 최소 장전 시간
-    [SerializeField] int _shellDamageBonus;       // 포탄 대미지
-    [Header("----- 장비 스탯(포탑) -----")]
-    [SerializeField] float _turretRotSpeedBonus;  // 포탑 회전 속력
-    [Header("----- 장비 스탯(차체) -----")]
-    [SerializeField] float _forwardSpeedBonus;    // 최대 전진 속력
-    [SerializeField] float _rotSpeedBonus;        // 차체 회전 속력
+    [Header("----- 장비 스탯 -----")]
+    [SerializeField] List<StatBonus> _statBonuses = new();
 
     public int Id => _id;
     public ItemType ItemType => _itemType;
@@ -56,11 +67,5 @@ public class ItemConfig : ScriptableObject
     public EquipSlot EquipSlot => _equipSlot;
     public Vector2Int[] OccupiedCells => _occupiedCells;
 
-    public float ShellSpeedBonus => _shellSpeedBonus;
-    public float ExplosionRadiusBonus => _explosionRadiusBonus;
-    public float ReloadBonus => _reloadBonus;
-    public int ShellDamageBonus => _shellDamageBonus;
-    public float TurretRotSpeedBonus => _turretRotSpeedBonus;
-    public float ForwardSpeedBonus => _forwardSpeedBonus;
-    public float RotSpeedBonus => _rotSpeedBonus;
+    public List<StatBonus> StatBonuses => _statBonuses;
 }
