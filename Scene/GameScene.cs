@@ -87,6 +87,7 @@ public class GameScene : MonoBehaviour
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
 
+        GameManager.Instance.EquipmentManager.Initialize(_player.Model);
         GameManager.Instance.OptionManager.OnMouseSensitivityChanged += _cameraTarget.SetSensitivity;
 
         // 아이템 효과들

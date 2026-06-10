@@ -47,10 +47,6 @@ public class ItemConfig : ScriptableObject
     [SerializeField] float _forwardSpeedBonus;    // 최대 전진 속력
     [SerializeField] float _rotSpeedBonus;        // 차체 회전 속력
 
-    // ItemEffect 만들고 작업
-    //[Header("----- 소모성 설정 -----")]
-    //public ItemEffect _useEffect; // 효과 수치
-
     public int Id => _id;
     public ItemType ItemType => _itemType;
     public string ItemName => _itemName;
@@ -59,5 +55,12 @@ public class ItemConfig : ScriptableObject
     public Sprite IconSprite => _iconSprite;
     public EquipSlot EquipSlot => _equipSlot;
     public Vector2Int[] OccupiedCells => _occupiedCells;
-    //public ItemEffect UseEffect => _useEffect;
+
+    public float ShellSpeedBonus => _shellSpeedBonus;
+    public float ExplosionRadiusBonus => _explosionRadiusBonus;
+    public float ReloadBonus => _reloadBonus;
+    public int ShellDamageBonus => _shellDamageBonus;
+    public float TurretRotSpeedBonus => _turretRotSpeedBonus;
+    public float ForwardSpeedBonus => _forwardSpeedBonus;
+    public float RotSpeedBonus => _rotSpeedBonus;
 }

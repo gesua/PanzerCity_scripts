@@ -6,6 +6,8 @@ using UnityEngine;
 /// </summary>
 public class EquipmentManager : MonoBehaviour
 {
+    TankModel _playerModel;
+
     ItemModel _mainGunSlot;
     ItemModel _turretSlot;
     ItemModel _hullSlot;
@@ -17,16 +19,22 @@ public class EquipmentManager : MonoBehaviour
     public event Action<EquipSlot, ItemModel> OnEquipped;   // 장착
     public event Action<EquipSlot, ItemModel> OnUnequipped; // 해제
 
+    public void Initialize(TankModel playerModel)
+    {
+        _playerModel = playerModel;
+    }
+
     /// <summary>
     /// 장비 장착
     /// </summary>
     public ItemModel Equip(ItemModel item)
     {
-        EquipSlot slot = item.Config.EquipSlot;
-        ItemModel prevItem = GetSlot(slot);
+        // 기존 장착 해제
+        ItemModel prevItem = Unequip(item.Config.EquipSlot);
 
-        SetSlot(slot, item);
-        OnEquipped?.Invoke(slot, item);
+        SetSlot(item.Config.EquipSlot, item);
+        _playerModel.ApplyEquipment(item.Config, true); // 스탯 적용
+        OnEquipped?.Invoke(item.Config.EquipSlot, item);
 
         return prevItem; // 기존 장착 아이템 반환 (인벤토리로 돌려줄 용도)
     }
@@ -40,6 +48,7 @@ public class EquipmentManager : MonoBehaviour
         if (item == null) return null;
 
         SetSlot(slot, null);
+        _playerModel.ApplyEquipment(item.Config, false); // 스탯 해제
         OnUnequipped?.Invoke(slot, item);
 
         return item; // 해제된 아이템 반환

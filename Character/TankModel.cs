@@ -111,4 +111,16 @@ public class TankModel : MonoBehaviour
     {
         _noDamage = noDamage;
     }
+
+    public void ApplyEquipment(ItemConfig config, bool equip)
+    {
+        int sign = equip ? 1 : -1;
+        _shellSpeed += config.ShellSpeedBonus * sign;
+        _explosionRadius += config.ExplosionRadiusBonus * sign;
+        _minAttackTime += config.ReloadBonus * sign;
+        _shellDamage += config.ShellDamageBonus * sign;
+        _turretRotSpeed += config.TurretRotSpeedBonus * sign;
+        _forwardSpeed += config.ForwardSpeedBonus * sign;
+        _rotSpeed += config.RotSpeedBonus * sign;
+    }
 }
