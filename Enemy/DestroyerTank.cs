@@ -17,6 +17,16 @@ public class DestroyerTank : EnemyTank
     // _turret 오브젝트는 위치 기준점으로만 쓰고, 방향은 차체 정면을 사용한다.
     protected override Vector3 AimForward => transform.forward;
 
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        // 성격은 고정형 또는 공격형만 나오게 함
+        _personality = (UnityEngine.Random.value < 0.5f)
+            ? EnemyPersonality.Stationary
+            : EnemyPersonality.Aggressive;
+    }
+
     /// <summary>
     /// 구축전차는 포탑이 없으므로 차체 전체를 돌려서 조준한다.
     /// </summary>
@@ -52,13 +62,28 @@ public class DestroyerTank : EnemyTank
     }
 
     /// <summary>
-    /// 구축전차는 감지 각도보다 더 좁은 발사 각도를 사용한다.
-    /// 덕분에 차체가 충분히 돌아가기 전에 포탄이 빗나가는 상황을 줄인다.
+    /// 구축전차는 감지 각도보다 더 좁은 발사 각도를 사용
     /// </summary>
     public override bool CanAttackTarget()
     {
         if (CanSeePlayer() == false) return false;
         return GetAimAngleTo(Target.position) <= _fireAngle;
+    }
+
+    /// <summary>
+    /// 발사 하면 무조건 플레이어 방향으로 포탄이 날아가게 함
+    /// </summary>
+    public override void Attack()
+    {
+        if (Target != null)
+        {
+            Vector3 dir = Target.position - _firePoint.position;
+            dir.y = 0f;
+            if (dir.sqrMagnitude > Mathf.Epsilon)
+                _firePoint.rotation = Quaternion.LookRotation(dir);
+        }
+
+        base.Attack();
     }
 
     /// <summary>

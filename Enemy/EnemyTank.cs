@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -47,7 +46,6 @@ public class EnemyTank : TankBase
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _roamSpan = 3f; // 최대 배회 간격
     [SerializeField] float _deadDuration = 5f; // 사망 상태 지속 시간
-    [SerializeField] EnemyPersonality _personality; // AI 성격
     [Header("----- 감지 관련 -----")]
     float _detectionRange = 1000f;                  // 감지 거리(걍 최대치로 할거임)
     [SerializeField] float _detectionAngle = 30f;   // 감지 각도(부채꼴 반각)
@@ -60,6 +58,8 @@ public class EnemyTank : TankBase
     [SerializeField] float _raycastSideOffset; // 좌우 사이드 한번 더 체크(0.6, 0.75)
     [SerializeField] LayerMask _movementObstacleLayer = 1 << 6 | 1 << 7 | 1 << 8 | 1 << 9;  // 이동 차단 레이어(맵, 외곽벽, 플레이어, 적)
     [SerializeField] LayerMask _agentObstacleLayer = 1 << 8 | 1 << 9; // 네브메시에이전트끼리 미는거 방지 레이어
+
+    protected EnemyPersonality _personality; // AI 성격
 
     Transform _target; // 플레이어
     Vector3 _lookDir; // 이동할 방향
@@ -119,7 +119,7 @@ public class EnemyTank : TankBase
         _model.OnDead += HandleDead; // 사망 이벤트 구독
     }
 
-    public void Initialize()
+    public virtual void Initialize()
     {
         _model.Initialize(); // 기본값들 초기화
         _collider.enabled = true;
@@ -389,7 +389,7 @@ public class EnemyTank : TankBase
     {
         if (_target == null) return;
 
-        _lostTargetTimer += Time.deltaTime;
+        _lostTargetTimer += Time.fixedDeltaTime;
         if (_lostTargetTimer >= _lostTargetDuration)
         {
             _lostTargetTimer = 0f;
@@ -585,11 +585,9 @@ public class EnemyTank : TankBase
         if (_agent == null || _agent.enabled == false || _agent.pathPending) return false;
 
         dir = GetFlatDirection(transform.position, _agent.steeringTarget);
-        if (dir.sqrMagnitude < Mathf.Epsilon) return false;
+        if (dir.sqrMagnitude < Util.Epsilon) return false;
 
         dir.Normalize();
-        if(dir == Vector3.zero) return false;
-
         return true;
     }
 
