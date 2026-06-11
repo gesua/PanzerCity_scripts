@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Localization.Settings;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -15,8 +16,29 @@ public class TitleScene : MonoBehaviour
     AsyncOperation _gameSceneLoad; // Game씬 동기화용
     bool _isStart;
 
-    void Start()
+    IEnumerator Start()
     {
+        // 로컬라이제이션 초기화 대기
+        yield return LocalizationSettings.InitializationOperation;
+
+        // 저장된 언어 설정 적용
+        string language = PlayerPrefs.GetString("Language", "");
+
+        // 저장된 언어 없으면 시스템 언어 가져옴
+        if (string.IsNullOrEmpty(language))
+        {
+            language = (Application.systemLanguage == SystemLanguage.Korean) ? "ko" : "en";
+        }
+
+        foreach (var locale in LocalizationSettings.AvailableLocales.Locales)
+        {
+            if (locale.Identifier.Code == language)
+            {
+                LocalizationSettings.SelectedLocale = locale;
+                break;
+            }
+        }
+
         // 게임 씬 미리 로드
         _gameSceneLoad = SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
         _gameSceneLoad.allowSceneActivation = false; // 활성화 보류
