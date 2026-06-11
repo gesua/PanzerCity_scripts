@@ -56,7 +56,7 @@ public class EnemyTank : TankBase
     [SerializeField] float _movementCheckDistance = 0.2f; // 장애물 체크 거리
     [SerializeField] Vector3 _raycastOffset = new Vector3(0f, 0f, 1.2f); // 본인 콜라이더보다 앞쪽에서 Ray쏘기
     [SerializeField] float _raycastSideOffset; // 좌우 사이드 한번 더 체크(0.6, 0.75)
-    [SerializeField] LayerMask _movementObstacleLayer = 1 << 6 | 1 << 7 | 1 << 8 | 1 << 9;  // 이동 차단 레이어(맵, 외곽벽, 플레이어, 적)
+    [SerializeField] LayerMask _movementObstacleLayer = 1 << 4 | 1 << 6 | 1 << 7 | 1 << 8 | 1 << 9;  // 이동 차단 레이어(물, 맵, 외곽벽, 플레이어, 적)
     [SerializeField] LayerMask _agentObstacleLayer = 1 << 8 | 1 << 9; // 네브메시에이전트끼리 미는거 방지 레이어
 
     protected EnemyPersonality _personality; // AI 성격
