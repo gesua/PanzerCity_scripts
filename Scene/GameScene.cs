@@ -281,10 +281,17 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
-    /// 일시정지
+    /// 일시정지(esc키)
     /// </summary>
     void HandlePauseInput()
     {
+        // 옵션창이 열려있으면 옵션창만 닫기
+        if (_pauseUI.IsOptionOpen)
+        {
+            _pauseUI.CloseOption();
+            return;
+        }
+
         ForceDrop();
 
         _isPaused = !_isPaused;
