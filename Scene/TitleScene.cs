@@ -85,10 +85,9 @@ public class TitleScene : MonoBehaviour
         stageLoad.allowSceneActivation = true;
         yield return stageLoad;
 
-        SceneManager.UnloadSceneAsync("Title");
         yield return new WaitForSeconds(0.1f); // 잠깐 기다리기
 
-        loadingUI.Hide();
+        SceneManager.UnloadSceneAsync("Title");
     }
 
     public void OnClickOptions()
@@ -109,14 +108,34 @@ public class TitleScene : MonoBehaviour
     /// </summary>
     IEnumerator RefreshLocalization()
     {
+        Debug.Log("언어 변경 대기중");
+
         // Font Asset 비동기 로드 완료 대기
         yield return LocalizationSettings.InitializationOperation;
+
+        Debug.Log("언어 변경 완료");
         yield return null; // 한 프레임 더 대기
+
+        Debug.Log("언어 변경 대기 완료");
 
         foreach (var localizeEvent in FindObjectsByType<LocalizeStringEvent>(FindObjectsSortMode.None))
         {
             localizeEvent.RefreshString();
         }
+
+        Debug.Log("새로고침까지 완료");
+    }
+
+    /// <summary>
+    /// 게임 종료 버튼
+    /// </summary>
+    public void OnClickQuit()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+    Application.Quit();
+#endif
     }
 
     /// <summary>
@@ -125,5 +144,6 @@ public class TitleScene : MonoBehaviour
     void OnDestroy()
     {
         GameManager.Instance.OptionManager.OnLanguageChanged -= OnLanguageChanged;
+        GameManager.Instance.LoadingUI.Hide();
     }
 }

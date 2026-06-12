@@ -37,6 +37,9 @@ public class OptionManager : MonoBehaviour
 
         foreach (Resolution res in Screen.resolutions)
         {
+            // 16:9 비율만 필터링(1366x768 같은 해상도 대응[오차 0.0119])
+            if (Mathf.Abs((float)res.width / res.height - 16f / 9f) > 0.02f) continue;
+
             var key = (res.width, res.height);
             float hz = (float)res.refreshRateRatio.numerator / res.refreshRateRatio.denominator;
 

@@ -47,6 +47,13 @@ public class OptionUI : MonoBehaviour
 
         OptionData data = _optionManager.OptionData;
 
+        /*/ 모바일에선 해상도와 전체화면이 의미 없음(근데 아직 확인은 안 해봄
+#if UNITY_ANDROID || UNITY_IOS
+    _resolutionDropdown.gameObject.SetActive(false);
+    _fullscreenToggle.gameObject.SetActive(false);
+#endif
+        //*/
+
         // 해상도 드롭다운 옵션 생성
         _resolutionDropdown.ClearOptions();
         Resolution[] resolutions = _optionManager.GetResolutions();

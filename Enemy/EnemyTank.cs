@@ -40,7 +40,7 @@ public class EnemyTank : TankBase
     [SerializeField] Rigidbody _rigid;
     [SerializeField] TankVisualController _destructionEffect; // 파괴 연출
     [SerializeField] BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
-    [SerializeField] GameObject _silhouetteModel; // 조준시 보일 실루엣 HACK:이거 이제 안 쓸거
+    [SerializeField] GameObject _silhouetteModel; // 조준시 보일 실루엣
     [SerializeField] GameObject[] _selectEnemyModel; // 조준시 레이어 바뀔 모델
     [SerializeField] ItemDropper _itemDropper; // 아이템 드랍
     [SerializeField] LoopEffect _empEffect; // 적 멈춤 아이템 사용시 이펙트
@@ -642,11 +642,27 @@ public class EnemyTank : TankBase
     }
 
     /// <summary>
-    /// 실루엣 모델 켜기(가려진 부분만 보임)
+    /// 실루엣 모드 변경(가려진 부분만 보임)
     /// </summary>
-    public void SetSilhouette(bool enable)
+    public void ToggleEnemySilhouette(bool enable)
     {
-        _silhouetteModel.SetActive(enable); // HACK:실루엣 여기만 적용하면 됨
+        // 레이어 변경
+        if (enable)
+        {
+            foreach (GameObject obj in _selectEnemyModel)
+            {
+                if (obj != null) obj.layer = 14; // SelectEnemy 레이어
+            }
+        }
+        else // 레이어 되돌리기
+        {
+            foreach (GameObject obj in _selectEnemyModel)
+            {
+                if (obj != null) obj.layer = 9; // Enemy 레이어
+            }
+        }
+
+        _silhouetteModel.SetActive(enable);
     }
 
     public void SetEMPEffect(bool active)

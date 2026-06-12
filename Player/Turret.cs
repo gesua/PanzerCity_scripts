@@ -243,7 +243,7 @@ public class Turret : MonoBehaviour
         // 이전 타겟 실루엣 끄기
         if (_targetTank != null)
         {
-            _targetTank.SetSilhouette(false);
+            _targetTank.ToggleEnemySilhouette(false);
             _targetTank = null;
         }
 
@@ -263,7 +263,7 @@ public class Turret : MonoBehaviour
                 // 실루엣 켜기
                 if (hitZone.Parent.TryGetComponent(out _targetTank))
                 {
-                    _targetTank.SetSilhouette(true);
+                    _targetTank.ToggleEnemySilhouette(true);
                 }
 
                 // 조준점 색 변경
