@@ -22,7 +22,7 @@ public class Turret : MonoBehaviour
     [SerializeField] float _minAimDistance = 10f; // 최소 조준거리
     [SerializeField] float _fallbackAimDistance = 10f; // 너무 가까울 때 대신 사용할 거리
 
-    [SerializeField] LayerMask _aimLayerMask = 1 << 6 | 1 << 9;
+    [SerializeField] LayerMask _aimLayerMask = 1 << 6 | 1 << 7 | 1 << 9; // 맵, 외곽벽, 적
 
     public CameraTarget CameraTarget => _cameraTarget;
 
@@ -119,19 +119,22 @@ public class Turret : MonoBehaviour
         float screenY = GetCurrentScreenY();
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, screenY, 0f));
 
+        // 카메라와 포탑 사이 거리보다 가까운 히트는 무시 (bedrock이 카메라 뒤에 걸리는 상황 방지)
+        float minDist = Vector3.Distance(Camera.main.transform.position, _barrel.position);
+
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f, _aimLayerMask))
         {
-            if (hit.distance >= _minAimDistance)
+            if (hit.distance >= minDist) // 카메라와 포탑 사이 무시
             {
-                return hit.point;
-            }
-            else if (_isSniping) // 저격 모드에선 가까워도 제대로 조준
-            {
-                return hit.point;
-            }
-            else // 가까운 물체면 특정 거리 조준(포신이 과하게 들리는 것을 방지)
-            {
-                return ray.origin + ray.direction * _fallbackAimDistance;
+                // 저격 모드에선 가까워도 제대로 조준
+                if (hit.distance >= _minAimDistance || _isSniping)
+                {
+                    return hit.point;
+                }
+                else // 가까운 물체면 특정 거리 조준(포신이 과하게 들리는 것을 방지)
+                {
+                    return ray.origin + ray.direction * _fallbackAimDistance;
+                }
             }
         }
 
