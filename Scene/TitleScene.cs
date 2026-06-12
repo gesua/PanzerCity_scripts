@@ -1,8 +1,8 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Localization.Components;
 using UnityEngine.Localization.Settings;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 /// <summary>
 /// 첫 시작화면 관리
@@ -38,6 +38,9 @@ public class TitleScene : MonoBehaviour
                 break;
             }
         }
+
+        // 언어 변경 구독
+        GameManager.Instance.OptionManager.OnLanguageChanged += OnLanguageChanged;
 
         // 게임 씬 미리 로드
         _gameSceneLoad = SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
@@ -82,14 +85,45 @@ public class TitleScene : MonoBehaviour
         stageLoad.allowSceneActivation = true;
         yield return stageLoad;
 
+        SceneManager.UnloadSceneAsync("Title");
         yield return new WaitForSeconds(0.1f); // 잠깐 기다리기
 
-        SceneManager.UnloadSceneAsync("Title");
         loadingUI.Hide();
     }
 
     public void OnClickOptions()
     {
         _option.SetActive(true);
+    }
+
+    /// <summary>
+    /// 언어 변경시 대기
+    /// </summary>
+    void OnLanguageChanged()
+    {
+        StartCoroutine(RefreshLocalization());
+    }
+
+    /// <summary>
+    /// Font Asset이 늦게 바뀌니까 대기
+    /// </summary>
+    IEnumerator RefreshLocalization()
+    {
+        // Font Asset 비동기 로드 완료 대기
+        yield return LocalizationSettings.InitializationOperation;
+        yield return null; // 한 프레임 더 대기
+
+        foreach (var localizeEvent in FindObjectsByType<LocalizeStringEvent>(FindObjectsSortMode.None))
+        {
+            localizeEvent.RefreshString();
+        }
+    }
+
+    /// <summary>
+    /// 구독 해제
+    /// </summary>
+    void OnDestroy()
+    {
+        GameManager.Instance.OptionManager.OnLanguageChanged -= OnLanguageChanged;
     }
 }

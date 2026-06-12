@@ -52,7 +52,8 @@ public class OptionUI : MonoBehaviour
         Resolution[] resolutions = _optionManager.GetResolutions();
         foreach (Resolution res in resolutions)
         {
-            _resolutionDropdown.options.Add(new TMP_Dropdown.OptionData($"{res.width} x {res.height}"));
+            int hz = Mathf.RoundToInt((float)res.refreshRateRatio.numerator / res.refreshRateRatio.denominator);
+            _resolutionDropdown.options.Add(new TMP_Dropdown.OptionData($"{res.width} x {res.height} @ {hz}Hz"));
         }
 
         // 그래픽 품질 드롭다운 옵션 생성

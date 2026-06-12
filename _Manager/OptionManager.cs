@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Localization.Settings;
@@ -13,6 +15,7 @@ public class OptionManager : MonoBehaviour
     Resolution[] _resolutions;
 
     public event Action<float> OnMouseSensitivityChanged;
+    public event Action OnLanguageChanged;
 
     public OptionData OptionData => _optionData;
     public Resolution[] GetResolutions() => _resolutions;
@@ -20,9 +23,40 @@ public class OptionManager : MonoBehaviour
     public void Initialize()
     {
         _audioMixer = Resources.Load<AudioMixer>("Audio/AudioMixer");
-        _resolutions = Screen.resolutions;
+        _resolutions = GetUniqueResolutions();
         _optionData.Load();
         Apply();
+    }
+
+    /// <summary>
+    /// 중복된 해상도를 없애고 가장 높은 Hz만 보여줌
+    /// </summary>
+    Resolution[] GetUniqueResolutions()
+    {
+        var best = new Dictionary<(int, int), Resolution>();
+
+        foreach (Resolution res in Screen.resolutions)
+        {
+            var key = (res.width, res.height);
+            float hz = (float)res.refreshRateRatio.numerator / res.refreshRateRatio.denominator;
+
+            float bestHz = 0f;
+            if (best.ContainsKey(key))
+            {
+                bestHz = (float)best[key].refreshRateRatio.numerator / best[key].refreshRateRatio.denominator;
+            }
+
+            if (best.ContainsKey(key) == false || hz > bestHz)
+            {
+                best[key] = res;
+            }
+        }
+
+        // 높을 순서대로 반환
+        return best.Values
+            .OrderByDescending(r => r.width)
+            .ThenByDescending(r => r.height)
+            .ToArray();
     }
 
     /// <summary>
@@ -46,6 +80,7 @@ public class OptionManager : MonoBehaviour
     public void ApplyLanguage(string language)
     {
         _optionData.SetLanguage(language);
+        
         // Localization 언어 변경
         foreach (var locale in LocalizationSettings.AvailableLocales.Locales)
         {
@@ -55,6 +90,8 @@ public class OptionManager : MonoBehaviour
                 break;
             }
         }
+
+        OnLanguageChanged?.Invoke();
     }
 
     /// <summary>
