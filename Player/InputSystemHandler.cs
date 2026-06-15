@@ -1,5 +1,4 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -20,6 +19,7 @@ public class InputSystemHandler : MonoBehaviour
     public event Action OnInventoryInput;
     public event Action OnInteractInput;
     public event Action<bool> OnCursorInput;
+    public event Action<int> OnQuickSlotInput; // 퀵슬롯 (0~3)
 
     bool _onAttack; // 좌클릭 상태 토글
     bool _isInputDisabled;    // 키입력 막음
@@ -151,5 +151,33 @@ public class InputSystemHandler : MonoBehaviour
     {
         if (context.started) OnCursorInput?.Invoke(true);
         if (context.canceled) OnCursorInput?.Invoke(false);
+    }
+
+    // 1키(퀵슬롯 0번 — 기지 무적)
+    public void HandleQuickSlot1Input(InputAction.CallbackContext context)
+    {
+        if (_isInputDisabled) return;
+        if (context.performed) OnQuickSlotInput?.Invoke(0);
+    }
+
+    // 2키(퀵슬롯 1번 — 나 무적)
+    public void HandleQuickSlot2Input(InputAction.CallbackContext context)
+    {
+        if (_isInputDisabled) return;
+        if (context.performed) OnQuickSlotInput?.Invoke(1);
+    }
+
+    // 3키(퀵슬롯 2번 — 적 멈춤)
+    public void HandleQuickSlot3Input(InputAction.CallbackContext context)
+    {
+        if (_isInputDisabled) return;
+        if (context.performed) OnQuickSlotInput?.Invoke(2);
+    }
+
+    // 4키(퀵슬롯 3번 — 폭탄)
+    public void HandleQuickSlot4Input(InputAction.CallbackContext context)
+    {
+        if (_isInputDisabled) return;
+        if (context.performed) OnQuickSlotInput?.Invoke(3);
     }
 }
