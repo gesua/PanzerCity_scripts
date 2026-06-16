@@ -71,8 +71,8 @@ public class BaseWall : MonoBehaviour
             wall.SetCollidersEnabled(false); // 콜라이더 꺼놓음
         }
 
-        // 흰색 벽 활성화
-        _shieldWalls.SetActive(true);
+        _normalWalls.SetActive(false); // 기본 벽 비활성화
+        _shieldWalls.SetActive(true); // 흰색 벽 활성화
 
         yield return new WaitForSeconds(duration - _blinkStartTime);
 

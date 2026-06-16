@@ -35,6 +35,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] WarningUI _warningUI;       // 경고 UI
     [SerializeField] ShopUI _shopUI;             // 상점 UI
     [SerializeField] EquipmentUI _equipmentUI;   // 장비 UI
+    [SerializeField] QuickSlotUI _quickSlotUI;   // 퀵슬롯 UI
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
@@ -69,6 +70,7 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnInventoryInput += HandleInventoryInput;
         _inputSystemHandler.OnInteractInput += HandleInteractInput;
         _inputSystemHandler.OnCursorInput += HandleCursorInput;
+        _inputSystemHandler.OnQuickSlotInput += HandleQuickSlotInput;
 
         GameManager.Instance.PlayerData.OnGoldChanged += _gameInfoUI.UpdateGold;
         GameManager.Instance.PlayerData.OnLifeChanged += _gameInfoUI.UpdateLife;
@@ -127,6 +129,7 @@ public class GameScene : MonoBehaviour
 
         // 인벤토리 세팅
         _player.ItemPickup.Initialize(_inventoryUI.Presenter);
+        _quickSlotUI.Initialize(_inventoryUI.Presenter);
 
         // 상점 세팅
         _shopUI.Initialize(_inventoryUI, _equipmentUI);
@@ -319,6 +322,16 @@ public class GameScene : MonoBehaviour
     void HandleInteractInput()
     {
         _player.ItemPickup.TryPickup();
+    }
+
+    /// <summary>
+    /// 퀵슬롯
+    /// </summary>
+    void HandleQuickSlotInput(int slotIndex)
+    {
+        if (_OnCursor) return;
+        if (_player.IsDead) return;
+        _quickSlotUI.UseSlot(slotIndex);
     }
 
     /// <summary>

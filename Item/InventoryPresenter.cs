@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -16,8 +17,10 @@ public class InventoryPresenter
     bool _isShop; // 상점일 때
 
     public bool IsDragging => _draggingItemModel != null;
+    public IReadOnlyList<ItemModel> Items => _model.Items;
 
-    public event Action<int> OnItemUsed; // 아이템 사용(ID)
+    public event Action<int> OnItemUsed;      // 아이템 사용(ID)
+    public event Action OnInventoryChanged;   // 인벤토리 변경(퀵슬롯 갱신용)
 
     public InventoryPresenter(InventoryModel model, InventoryView view, DraggingItemUI draggingItem, EquipmentManager equipmentManager)
     {
@@ -121,6 +124,7 @@ public class InventoryPresenter
         if (!_model.TryAddItem(item, pos)) return false;
 
         _view.AddItemView(item);
+        OnInventoryChanged?.Invoke();
         return true;
     }
 
@@ -131,6 +135,7 @@ public class InventoryPresenter
     {
         _model.RemoveItem(item);
         _view.RemoveItemView(item);
+        OnInventoryChanged?.Invoke();
     }
 
     /// <summary>
@@ -139,7 +144,23 @@ public class InventoryPresenter
     void UseItem(ItemModel item)
     {
         OnItemUsed?.Invoke(item.Config.Id);
-        RemoveItem(item);
+        RemoveItem(item); // RemoveItem 안에서 OnInventoryChanged 발행
+    }
+
+    /// <summary>
+    /// 퀵슬롯용 — ID로 아이템 찾아서 사용
+    /// </summary>
+    public bool TryUseItemById(int itemID)
+    {
+        foreach (ItemModel item in _model.Items)
+        {
+            if (item.Config.Id == itemID)
+            {
+                UseItem(item);
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>
