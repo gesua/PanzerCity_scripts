@@ -325,7 +325,8 @@ public class EnemyTank : TankBase
             // 풀숲 체크 (플레이어와 같은 풀숲이어야 감지)
             if (col.TryGetComponent(out PlayerTank player))
             {
-                if (player.CurrentBush != CurrentBush) continue;
+                if (player.CurrentBush != null && // 플레이어가 풀숲 밖
+                    player.CurrentBush != CurrentBush) continue;
             }
 
             _lostTargetTimer = 0f; // 타이머 초기화
