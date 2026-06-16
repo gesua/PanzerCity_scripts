@@ -16,6 +16,10 @@ public class DataManager : MonoBehaviour
     Dictionary<int, ItemMasterData> _itemMasterDict = new();
     Dictionary<int, List<ItemDropGroupData>> _itemDropGroupDict = new();
     Dictionary<int, ItemConfig> _itemConfigDict = new();
+    
+    int _lastStageID;
+
+    public int LastStageID => _lastStageID;
 
     public void Initialize()
     {
@@ -66,6 +70,9 @@ public class DataManager : MonoBehaviour
         {
             if (_spawnDataDict.ContainsKey(data.StageID) == false) _spawnDataDict[data.StageID] = new List<int>();
             _spawnDataDict[data.StageID].Add(data.TankID);
+
+            // HACK:현재 25스테이지 다 안 들어가서 이상할거임
+            if (data.StageID > _lastStageID) _lastStageID = data.StageID; // 마지막 스테이지 입력
         }
     }
 

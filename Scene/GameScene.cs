@@ -32,6 +32,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] EnemySpawnUI _enemySpawnUI; // 적 스폰 UI
     [SerializeField] GameOverUI _gameOverUI;     // 게임오버 UI
     [SerializeField] StageClearUI _stageClearUI; // 스테이지 클리어 UI
+    [SerializeField] GameClearUI _gameClearUI;   // 게임 클리어 UI
     [SerializeField] PauseUI _pauseUI;           // 일시정지 UI
     [SerializeField] InventoryUI _inventoryUI;   // 인벤토리 UI
     [SerializeField] WarningUI _warningUI;       // 경고 UI
@@ -85,6 +86,7 @@ public class GameScene : MonoBehaviour
 
         _gameOverUI.RestartRequested += HandleRestartStage;
         _gameOverUI.TitleRequested += HandleTitleRequested;
+        _gameClearUI.TitleRequested += HandleTitleRequested;
         _inventoryUI.Presenter.OnItemUsed += _itemEffectHandler.Use;
         _shopUI.OnExitClicked += HandleShopExit;
 
@@ -446,6 +448,18 @@ public class GameScene : MonoBehaviour
 
         // 다음 스테이지 미리 로드
         _currentStageUnload = SceneManager.UnloadSceneAsync(_currentStage.SceneName);
+
+        // 마지막 스테이지면 상점 없이 게임 클리어 UI 표시
+        // HACK:게임 클리어에서 이어하기 하면 상점 나오게 할거임
+        if (_currentStage.StageID == GameManager.Instance.DataManager.LastStageID)
+        {
+            _OnCursor = true;
+            _inputSystemHandler.SetInputDisabled(true);
+            _player.SetPlayerGravity(false); // 씬 언로드 중 자유낙하 방지
+            _gameClearUI.Show();
+            return;
+        }
+
         _nextStageLoad = SceneManager.LoadSceneAsync(_currentStage.NextStageName, LoadSceneMode.Additive);
         _nextStageLoad.allowSceneActivation = false;
 
