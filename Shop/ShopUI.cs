@@ -11,8 +11,9 @@ public class ShopUI : MonoBehaviour
     [SerializeField] Transform _rightPanelTr;
     [SerializeField] ShopOwnerUI _shopOwnerUI; // 상점 주인 대화
     [SerializeField] ShopItemSlot[] _itemSlots; // 상점에서 파는 소모품들
-    [SerializeField] ShopItemSlot _equipmentSlot;    // 장비 슬롯 (1개)
-    [SerializeField] GameObject _equipmentSlotRoot;  // 장비 슬롯 + 라벨 등 묶은 부모 오브젝트 (선택)
+    [SerializeField] ShopItemSlot _equipmentSlot;   // 장비 슬롯 (1개)
+    [SerializeField] GameObject _equipmentSlotRoot; // 장비 슬롯 + 라벨 등 묶은 부모 오브젝트 (선택)
+    [SerializeField] TrashCanUI _trashCanUI; // 쓰레기통
 
     InventoryUI _inventoryUI;
     EquipmentUI _equipmentUI;
@@ -34,6 +35,7 @@ public class ShopUI : MonoBehaviour
         EquipmentManager equipmentManager = GameManager.Instance.EquipmentManager;
         
         _equipmentUI.Initialize(equipmentManager, _inventoryUI.Presenter);
+        _trashCanUI.Initialize(_inventoryUI.Presenter);
 
         // 상점에 배치할 아이템 (항상 똑같음)
         int[] storeItemIDs = { 1001, 1002, 1003, 1004, 1005 };

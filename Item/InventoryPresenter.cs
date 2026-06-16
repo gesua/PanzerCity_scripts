@@ -19,8 +19,8 @@ public class InventoryPresenter
     public bool IsDragging => _draggingItemModel != null;
     public IReadOnlyList<ItemModel> Items => _model.Items;
 
-    public event Action<int> OnItemUsed;      // 아이템 사용(ID)
-    public event Action OnInventoryChanged;   // 인벤토리 변경(퀵슬롯 갱신용)
+    public event Action<int> OnItemUsed;    // 아이템 사용(ID)
+    public event Action OnInventoryChanged; // 인벤토리 변경(퀵슬롯 갱신용)
 
     public InventoryPresenter(InventoryModel model, InventoryView view, DraggingItemUI draggingItem, EquipmentManager equipmentManager)
     {
@@ -161,6 +161,22 @@ public class InventoryPresenter
             }
         }
         return false;
+    }
+
+    /// <summary>
+    /// 쓰레기통 드롭 — 아이템 버리기 (상점 전용)
+    /// </summary>
+    public void TrashItem(ItemModel item)
+    {
+        // OnEndDrag → OnDrop 순서이므로 드래그 상태는 이미 정리된 상태.
+        // 혹시 모를 순서 역전에 대비해 null 체크만 넣어둠
+        if (_draggingItemModel != null)
+        {
+            _draggingItemModel = null;
+            _view.SetItemContainerRaycast(true);
+            _draggingItemUI.Hide();
+        }
+        RemoveItem(item);
     }
 
     /// <summary>

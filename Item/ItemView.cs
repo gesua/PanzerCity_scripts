@@ -22,6 +22,7 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     RectTransform _rectTransform;
     Vector2 _originalPos;
 
+    public ItemModel Item => _item;
 
     void Awake()
     {
@@ -35,6 +36,7 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         // 아이콘 설정
         _icon.sprite = item.Config.IconSprite;
+        _icon.enabled = true;
 
         // 크기 초기화
         _rectTransform.sizeDelta = Vector2.zero;
