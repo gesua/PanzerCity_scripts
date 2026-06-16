@@ -12,6 +12,8 @@ public class GameScene : MonoBehaviour
     [SerializeField] int _cheatItemNum;
     [SerializeField] bool _cheatItemActive;
     [SerializeField] bool StageClear;
+    [SerializeField] int _cheatGoldAmount;
+    [SerializeField] bool _cheatGoldActive;
 
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Camera _mainCamera;
@@ -592,15 +594,20 @@ public class GameScene : MonoBehaviour
     void Update()
     {
 #if UNITY_EDITOR
-        if (_cheatItemActive)
+        if (_cheatItemActive) // 아이템 치트
         {
             _cheatItemActive = false;
             AddCheatItem(_cheatItemNum);
         }
-        if (StageClear)
+        if (StageClear) // 클리어 치트
         {
             StageClear = false;
             HandleStageClear();
+        }
+        if (_cheatGoldActive) // 돈 치트
+        {
+            _cheatGoldActive = false;
+            GameManager.Instance.PlayerData.AddGold(_cheatGoldAmount);
         }
 #endif
     }
