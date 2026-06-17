@@ -74,6 +74,10 @@ public class DataManager : MonoBehaviour
             // HACK:현재 25스테이지 다 안 들어가서 이상할거임
             if (data.StageID > _lastStageID) _lastStageID = data.StageID; // 마지막 스테이지 입력
         }
+
+        // HACK:임시로 마지막 스테이지 변경
+        Debug.Log($"원래 마지막 스테이지:{_lastStageID}");
+        _lastStageID = 7103;
     }
 
     /// <summary>

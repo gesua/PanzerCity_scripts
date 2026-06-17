@@ -446,11 +446,9 @@ public class GameScene : MonoBehaviour
     {
         _stageClearUI.Hide();
 
-        // 다음 스테이지 미리 로드
-        _currentStageUnload = SceneManager.UnloadSceneAsync(_currentStage.SceneName);
-
         // 마지막 스테이지면 상점 없이 게임 클리어 UI 표시
         // HACK:게임 클리어에서 이어하기 하면 상점 나오게 할거임
+        Debug.Log(GameManager.Instance.DataManager.LastStageID);
         if (_currentStage.StageID == GameManager.Instance.DataManager.LastStageID)
         {
             _OnCursor = true;
@@ -460,6 +458,8 @@ public class GameScene : MonoBehaviour
             return;
         }
 
+        // 다음 스테이지 미리 로드
+        _currentStageUnload = SceneManager.UnloadSceneAsync(_currentStage.SceneName);
         _nextStageLoad = SceneManager.LoadSceneAsync(_currentStage.NextStageName, LoadSceneMode.Additive);
         _nextStageLoad.allowSceneActivation = false;
 
