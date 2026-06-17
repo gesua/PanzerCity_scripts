@@ -129,10 +129,10 @@ public class EnemyTank : TankBase
         ResetBush();
 
         // 성격 랜덤 설정
-        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
+        //_personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        //_personality = EnemyPersonality.Coward;
+        _personality = EnemyPersonality.Coward;
 
         // 상태 객체들 생성
         // 방치 상태
@@ -492,7 +492,6 @@ public class EnemyTank : TankBase
     {
         if (TryGetAgentSteeringDirection(out Vector3 dir) == false) return;
 
-
         // 목표 방향으로 회전
         Quaternion targetRotation = Quaternion.LookRotation(dir);
         transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _model.RotSpeed * Time.fixedDeltaTime);
@@ -574,6 +573,15 @@ public class EnemyTank : TankBase
     protected void MoveForward()
     {
         Vector3 move = transform.forward * _model.ForwardSpeed * Time.fixedDeltaTime;
+        _rigid.MovePosition(_rigid.position + move);
+    }
+
+    /// <summary>
+    /// 현재 차체 후방으로 이동(HACK:중전차 후진 해본거)
+    /// </summary>
+    protected void MoveBackward()
+    {
+        Vector3 move = -transform.forward * _model.BackwardSpeed * Time.fixedDeltaTime;
         _rigid.MovePosition(_rigid.position + move);
     }
 

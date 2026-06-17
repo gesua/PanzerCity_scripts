@@ -65,4 +65,35 @@ public class HeavyTank : EnemyTank
         SetTarget(hitData.AtkTank.transform);
         ChangeState(EnemyStateType.Combat);
     }
+
+    /// <summary>
+    /// HACK:도주형 해본거(레이캐스트랑 엔진 연기 등 이렇게 하면 안될듯)
+    /// </summary>
+    public override void AgentMove()
+    {
+        // 도주형만 따로 계산
+        if (_personality != EnemyPersonality.Coward)
+        {
+            base.AgentMove();
+            return;
+        }
+
+        // 도주형일 때 후진으로 도주
+        if (TryGetAgentSteeringDirection(out Vector3 dir) == false) return;
+
+        // 후진하려면 차체 뒤쪽이 경로 방향을 향해야 함
+        Quaternion targetRotation = Quaternion.LookRotation(-dir);
+
+        transform.rotation = Quaternion.RotateTowards(
+            transform.rotation,
+            targetRotation,
+            _model.RotSpeed * Time.fixedDeltaTime);
+
+        float angle = Vector3.Angle(-transform.forward, dir);
+
+        if (angle < 10f)
+        {
+            MoveBackward();
+        }
+    }
 }
