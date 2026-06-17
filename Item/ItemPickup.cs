@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -15,6 +16,8 @@ public class ItemPickup : MonoBehaviour
 
     DroppedItem _nearestItem; // 획득할 가까운 아이템
     InventoryPresenter _inventoryPresenter;
+    
+    public event Action<int> OnAutoUsed; // 즉시 사용 아이템 획득(ID)
 
     public void Initialize(InventoryPresenter inventoryPresenter)
     {
@@ -78,7 +81,18 @@ public class ItemPickup : MonoBehaviour
     public void TryPickup()
     {
         if (_nearestItem == null) return;
+        
+        // 즉시 사용 아이템 — 인벤토리 거치지 않고 바로 효과 발동
+        if (_nearestItem.ItemConfig.AutoUse)
+        {
+            OnAutoUsed?.Invoke(_nearestItem.ItemConfig.Id);
+            _nearestItem.Pickup();
+            _nearestItem = null;
+            _pickupUI.SetActive(false);
+            return;
+        }
 
+        // 일반 아이템 — 인벤토리에 추가
         ItemModel item = new ItemModel(_nearestItem.ItemConfig);
         if (_inventoryPresenter.AddItem(item))
         {

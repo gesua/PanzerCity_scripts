@@ -50,6 +50,7 @@ public class ItemConfig : ScriptableObject
     [SerializeField] string _skill;                 // 아이템 스킬
     [SerializeField] ItemType _itemType;            // 타입
     [SerializeField] Sprite _iconSprite;            // 스프라이트
+    [SerializeField] bool _autoUse;                 // 줍자마자 즉시 사용
 
     [Header("----- 장비 설정 -----")]
     [SerializeField] EquipSlot _equipSlot; // 장착 슬롯 (장비 아이템만)
@@ -64,8 +65,9 @@ public class ItemConfig : ScriptableObject
     public string Desc => _desc;
     public int BuyPrice => _buyPrice;
     public Sprite IconSprite => _iconSprite;
+    public bool AutoUse => _autoUse;
+
     public EquipSlot EquipSlot => _equipSlot;
     public Vector2Int[] OccupiedCells => _occupiedCells;
-
     public List<StatBonus> StatBonuses => _statBonuses;
 }
