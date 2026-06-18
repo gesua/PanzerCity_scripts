@@ -31,17 +31,18 @@ public class HQ : MonoBehaviour, IDamageable
         _iconRenderer.material = _destroyedMaterial;
         OnDestroyed?.Invoke();
 
-        _normalStatue.SetActive(false);
-        _brokenStatue.SetActive(true);
-
-        Invoke(nameof(PlayEffect), 0.1f);
+        Invoke(nameof(TriggerDestructionEffect), 0.1f);
     }
 
     /// <summary>
     /// 폭발 이펙트 재생
     /// </summary>
-    void PlayEffect()
+    void TriggerDestructionEffect()
     {
+        // 조각상 모델 교체
+        _normalStatue.SetActive(false);
+        _brokenStatue.SetActive(true);
+
         GameManager.Instance.EffectManager.SpawnEffect(EffectType.StatueExplosion, transform.position + Vector3.up * 2.5f);
     }
 }

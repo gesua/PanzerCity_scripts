@@ -11,6 +11,7 @@ public class Pool
     Stack<GameObject> _pool;    // 복제본 게임오브젝트 스택
     GameObject _prefab;         // Pooling할 원본 프리팹
     Transform _parent;          // Pooling 게임오브젝트들의 부모 트랜스폼
+    HashSet<GameObject> _activeObjects; // 현재 Pool 밖에 나가있는(사용 중인) 오브젝트 추적
 
     /// <summary>
     /// Pool 생성자
@@ -23,6 +24,7 @@ public class Pool
         _prefab = prefab;
         _parent = parent;
         _pool = new Stack<GameObject>(initSize);
+        _activeObjects = new HashSet<GameObject>();
 
         for (int i = 0; i < initSize; i++)
         {
@@ -74,6 +76,10 @@ public class Pool
 
         GameObject go = _pool.Pop();
         go.SetActive(true);
+
+        // 나가는 오브젝트 추적 등록
+        _activeObjects.Add(go);
+
         return go;
     }
 
@@ -83,8 +89,32 @@ public class Pool
     /// <param name="go"></param>
     public void Push(GameObject go)
     {
+        // 이미 Pool에 반환되어 있는 오브젝트면 무시(중복 반환 방지)
+        if (_activeObjects.Contains(go) == false)
+        {
+            Debug.LogWarning($"{go.name}이 이미 Pool에 반환되어 있음(중복 Push 무시)");
+            return;
+        }
+
+        _activeObjects.Remove(go);
         go.transform.SetParent(_parent);
         go.SetActive(false);
         _pool.Push(go);
+    }
+
+    /// <summary>
+    /// 나가있는 모든 오브젝트를 강제로 Pool에 반환하는 함수
+    /// 스테이지 전환/재시작 시 남아있는 포탄, 아이템 등을 정리할 때 사용
+    /// </summary>
+    public void ReturnAll()
+    {
+        // 순회 중 _activeObjects가 변경되므로 복사해서 순회
+        GameObject[] activeArray = new GameObject[_activeObjects.Count];
+        _activeObjects.CopyTo(activeArray);
+
+        foreach (GameObject go in activeArray)
+        {
+            Push(go);
+        }
     }
 }

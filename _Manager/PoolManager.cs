@@ -62,4 +62,16 @@ public class PoolManager : MonoBehaviour
         if (pool == null) return null;
         return pool.Pop();
     }
+
+    /// <summary>
+    /// 모든 Pool에서 나가있는 오브젝트들을 강제로 반환하는 함수
+    /// 스테이지 전환/재시작 시 호출
+    /// </summary>
+    public void ReturnAllPools()
+    {
+        foreach (Pool pool in _poolMap.Values)
+        {
+            pool.ReturnAll();
+        }
+    }
 }

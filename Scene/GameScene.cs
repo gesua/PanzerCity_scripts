@@ -556,6 +556,9 @@ public class GameScene : MonoBehaviour
         // 스테이지 구독 해제
         UnsubscribeStage();
 
+        // 남아있는 포탄, 아이템 등을 모든 Pool로 강제 반환
+        GameManager.Instance.PoolManager.ReturnAllPools();
+
         // 현재 Stage 씬 언로드
         if (_currentStageUnload != null)
         {
