@@ -66,7 +66,7 @@ public class HeavyTank : EnemyTank
         ChangeState(EnemyStateType.Combat);
     }
 
-    /// <summary>
+    /*// <summary>
     /// HACK:도주형 해본거(레이캐스트랑 엔진 연기 등 이렇게 하면 안될듯)
     /// </summary>
     public override void AgentMove()
@@ -95,5 +95,5 @@ public class HeavyTank : EnemyTank
         {
             MoveBackward();
         }
-    }
+    }*/
 }

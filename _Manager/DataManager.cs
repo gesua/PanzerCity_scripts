@@ -76,8 +76,7 @@ public class DataManager : MonoBehaviour
         }
 
         // HACK:임시로 마지막 스테이지 변경
-        Debug.Log($"원래 마지막 스테이지:{_lastStageID}");
-        _lastStageID = 7103;
+        //_lastStageID = 7103;
     }
 
     /// <summary>
