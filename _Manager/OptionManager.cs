@@ -74,7 +74,7 @@ public class OptionManager : MonoBehaviour
         ApplyResolution(_optionData.ResolutionIndex);
         ApplyFullscreen(_optionData.Fullscreen);
         ApplyQuality(_optionData.QualityIndex);
-        Save();
+        ApplyMouseSensitivity(_optionData.MouseSensitivity);
     }
 
     /// <summary>

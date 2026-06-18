@@ -144,6 +144,9 @@ public class GameScene : MonoBehaviour
         // 상점 세팅
         _shopUI.Initialize(_inventoryUI, _equipmentUI);
 
+        // 마우스 감도 적용
+        _cameraTarget.SetSensitivity(GameManager.Instance.OptionManager.OptionData.MouseSensitivity);
+
         // HACK:카메라 w값 조절(나중에 하기)
         //bool isOpen = _rightPanelUI.IsOpen;
         //UpdateCameraRect(isOpen);
