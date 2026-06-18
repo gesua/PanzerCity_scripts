@@ -87,6 +87,15 @@ public class PlayerTank : TankBase
     }
 
     /// <summary>
+    /// 차체 이동 속도 배율 적용
+    /// </summary>
+    protected override void ApplySpeedMultiplier(float multiplier)
+    {
+        base.ApplySpeedMultiplier(multiplier); // 모델에도 반영(상태 일관성용)
+        _mover.SetSpeedMultiplier(multiplier);
+    }
+
+    /// <summary>
     /// 공격
     /// </summary>
     public override void Attack()

@@ -15,6 +15,7 @@ public class Mover : MonoBehaviour
     float _rotSpeed;        // 회전 속력
     float _acceleration;    // 가속도(속도 증가율)
     float _deceleration;    // 감속도(키를 놓았을 때 천천히 멈추는 속도)
+    float _speedMultiplier = 1f; // 진흙 등 지형 효과로 인한 속도 배율
 
     public event Action<Vector3> OnMoved;
 
@@ -86,11 +87,14 @@ public class Mover : MonoBehaviour
         // 현재 수직(중력) 속도는 유지
         float currentY = _rigid.linearVelocity.y;
 
+        // 진흙 효과로 인한 배율 적용된 목표 속도
+        float scaledSpeed = _targetSpeed * _speedMultiplier;
+
         // 가속/감속을 상황에 따라 다르게 적용 (절대값 기준)
-        float rate = (Mathf.Abs(_targetSpeed) > Mathf.Abs(_currentSpeed)) ? _acceleration : _deceleration;
+        float rate = (Mathf.Abs(scaledSpeed) > Mathf.Abs(_currentSpeed)) ? _acceleration : _deceleration;
 
         // 스칼라 속도를 부드럽게 보간(천천히 멈추기 위해 MoveTowards 사용)
-        _currentSpeed = Mathf.MoveTowards(_currentSpeed, _targetSpeed, rate * Time.fixedDeltaTime);
+        _currentSpeed = Mathf.MoveTowards(_currentSpeed, scaledSpeed, rate * Time.fixedDeltaTime);
 
         // 로컬 forward 방향으로 속도 설정 -> 회전 중일 때 transform.forward가 바뀌면 속도 방향도 따라간다
         _velocity = transform.forward * _currentSpeed;
@@ -101,7 +105,7 @@ public class Mover : MonoBehaviour
         _rigid.linearVelocity = _velocity;
 
         // 회전
-        Quaternion deltaRotation = Quaternion.Euler(Vector3.up * _dirX * _rotSpeed * Time.fixedDeltaTime);
+        Quaternion deltaRotation = Quaternion.Euler(Vector3.up * _dirX * _rotSpeed * _speedMultiplier * Time.fixedDeltaTime);
         _rigid.MoveRotation(_rigid.rotation * deltaRotation);
 
         _dirX = 0f;
@@ -132,6 +136,14 @@ public class Mover : MonoBehaviour
     public void Stop()
     {
         _targetSpeed = 0f;
+    }
+
+    /// <summary>
+    /// 속도 배율 설정(진흙)
+    /// </summary>
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        _speedMultiplier = multiplier;
     }
 
     /// <summary>

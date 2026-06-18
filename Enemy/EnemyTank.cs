@@ -128,6 +128,9 @@ public class EnemyTank : TankBase
         // 풀숲 초기화
         ResetBush();
 
+        // 진흙 초기화
+        ResetMud();
+
         // 성격 랜덤 설정
         _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
@@ -422,6 +425,17 @@ public class EnemyTank : TankBase
     public void EnableAgent(bool enable)
     {
         _agent.enabled = enable;
+    }
+
+    /// <summary>
+    /// 차체 이동 속도 배율 적용
+    /// </summary>
+    protected override void ApplySpeedMultiplier(float multiplier)
+    {
+        base.ApplySpeedMultiplier(multiplier);
+
+        _agent.speed = _model.ForwardSpeed;
+        _agent.angularSpeed = _model.RotSpeed;
     }
 
     /// <summary>

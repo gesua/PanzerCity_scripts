@@ -19,6 +19,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
 
     BushGroup _currentBush; // 현재 들어가있는 풀숲그룹
     int _bushEnterCount; // 풀 경계선에서 꼬이는거 방지
+    int _mudEnterCount; // 진흙 경계선에서 꼬이는거 방지
 
     protected TankModel _model;
     protected TankData _tankData;
@@ -128,5 +129,44 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     {
         _bushEnterCount = 0;
         _currentBush = null;
+    }
+
+    /// <summary>
+    /// 진흙 진입
+    /// </summary>
+    public void OnMudEnter(float speedMultiplier)
+    {
+        _mudEnterCount++;
+        ApplySpeedMultiplier(speedMultiplier);
+    }
+
+    /// <summary>
+    /// 진흙 퇴장
+    /// </summary>
+    public void OnMudExit()
+    {
+        _mudEnterCount--;
+        if (_mudEnterCount <= 0)
+        {
+            _mudEnterCount = 0;
+            ApplySpeedMultiplier(1f);
+        }
+    }
+
+    /// <summary>
+    /// 진흙 상태 초기화
+    /// </summary>
+    public void ResetMud()
+    {
+        _mudEnterCount = 0;
+        ApplySpeedMultiplier(1f);
+    }
+
+    /// <summary>
+    /// 차체 이동 속도 배율 적용(전진/후진/회전 속도, 포탑 회전속도엔 영향 없음)
+    /// </summary>
+    protected virtual void ApplySpeedMultiplier(float multiplier)
+    {
+        _model.SetSpeedMultiplier(multiplier);
     }
 }

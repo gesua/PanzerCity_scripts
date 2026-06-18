@@ -17,6 +17,7 @@ public class TankModel : MonoBehaviour
     [SerializeField] float _rotSpeed = 100f;    // 회전 속력
     [SerializeField] float _acceleration = 10f; // 가속도(속도 증가율)
     [SerializeField] float _deceleration = 5f;  // 감속도(키를 놓았을 때 천천히 멈추는 속도)
+    float _speedMultiplier = 1f; // 차체 이동 속도 배율(진흙 지형 효과)
 
     [Header("----- 포탑 -----")]
     [SerializeField] float _turretRotSpeed = 100f; // 포탑 회전 속력
@@ -33,9 +34,9 @@ public class TankModel : MonoBehaviour
     [SerializeField] float _maxAttackTime = 1.0f; // AI용 최대 재장전 시간
     [SerializeField] LayerMask _hitLayer; // 포탄과 충돌할 레이어(본인 빼고 다 넣으면 됨)
 
-    public float ForwardSpeed => _forwardSpeed;
-    public float BackwardSpeed => _backwardSpeed;
-    public float RotSpeed => _rotSpeed;
+    public float ForwardSpeed => _forwardSpeed * _speedMultiplier;
+    public float BackwardSpeed => _backwardSpeed * _speedMultiplier;
+    public float RotSpeed => _rotSpeed * _speedMultiplier;
     public float Deceleration => _deceleration;
     public float Acceleration => _acceleration;
     public float TurretRotSpeed => _turretRotSpeed;
@@ -62,6 +63,7 @@ public class TankModel : MonoBehaviour
     public void Initialize()
     {
         _currentHp = _maxHp;
+        _speedMultiplier = 1f; // 배율 초기화
         OnHpChanged?.Invoke(_currentHp, _maxHp);
     }
 
@@ -82,6 +84,7 @@ public class TankModel : MonoBehaviour
         _shellDamage = data.ShellDamage;
         _shellSpeed = data.ShellSpeed;
         _explosionRadius = data.ExplosionRadius;
+        _speedMultiplier = 1f; // 배율 초기화
 
         OnHpChanged?.Invoke(_currentHp, _maxHp);
     }
@@ -112,6 +115,17 @@ public class TankModel : MonoBehaviour
         _noDamage = noDamage;
     }
 
+    /// <summary>
+    /// 차체 이동 속도 배율 설정(진흙)
+    /// </summary>
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        _speedMultiplier = multiplier;
+    }
+
+    /// <summary>
+    /// 장비 스탯 적용
+    /// </summary>
     public void ApplyEquipment(ItemConfig config, bool equip)
     {
         int sign = equip ? 1 : -1;
