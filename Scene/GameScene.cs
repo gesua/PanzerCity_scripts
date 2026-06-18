@@ -39,6 +39,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] ShopUI _shopUI;             // 상점 UI
     [SerializeField] EquipmentUI _equipmentUI;   // 장비 UI
     [SerializeField] QuickSlotUI _quickSlotUI;   // 퀵슬롯 UI
+    [SerializeField] DropZoneUI _dropZoneUI;     // 드롭존 UI
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
@@ -93,6 +94,7 @@ public class GameScene : MonoBehaviour
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
         _player.ItemPickup.OnAutoUsed += _itemEffectHandler.Use;
+        _inventoryUI.Presenter.OnItemDropped += HandleItemDropped;
 
         GameManager.Instance.EquipmentManager.Initialize(_player.Model);
         GameManager.Instance.OptionManager.OnMouseSensitivityChanged += _cameraTarget.SetSensitivity;
@@ -135,6 +137,9 @@ public class GameScene : MonoBehaviour
         // 인벤토리 세팅
         _player.ItemPickup.Initialize(_inventoryUI.Presenter);
         _quickSlotUI.Initialize(_inventoryUI.Presenter);
+
+        // 드롭존 세팅
+        _dropZoneUI.Initialize(_inventoryUI.Presenter);
 
         // 상점 세팅
         _shopUI.Initialize(_inventoryUI, _equipmentUI);
@@ -402,6 +407,19 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 인벤토리에서 바닥으로 아이템 드롭
+    /// </summary>
+    void HandleItemDropped(ItemConfig config)
+    {
+        GameObject itemGo = GameManager.Instance.PoolManager.GetFromPool("DroppedItem");
+        itemGo.transform.position = _player.transform.position + _player.transform.forward * 2f + Vector3.up;
+        if (itemGo.TryGetComponent(out DroppedItem droppedItem))
+        {
+            droppedItem.Initialize(config);
+        }
+    }
+
+    /// <summary>
     /// 기지 벽 파괴됨
     /// </summary>
     void HandleBaseWallDestroyed()
@@ -464,6 +482,9 @@ public class GameScene : MonoBehaviour
         _nextStageLoad = SceneManager.LoadSceneAsync(_currentStage.NextStageName, LoadSceneMode.Additive);
         _nextStageLoad.allowSceneActivation = false;
 
+        // 드롭존 비활성화
+        _dropZoneUI.GameObjectActive(false);
+
         // 상점 열기
         _isShopOpen = true;
         _OnCursor = true;
@@ -518,6 +539,8 @@ public class GameScene : MonoBehaviour
         // 상점 닫기
         if (_isShopOpen)
         {
+            _dropZoneUI.GameObjectActive(true); // 드롭존 활성화
+
             _isShopOpen = false;
             _shopUI.SetShopActive(false);
             _inventoryUI.ExitStore(); // UI 위치 복귀

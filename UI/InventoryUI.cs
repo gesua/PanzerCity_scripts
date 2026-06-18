@@ -64,6 +64,7 @@ public class InventoryUI : MonoBehaviour
         _group.alpha = 1f;
         _group.interactable = true;
         _group.blocksRaycasts = true;
+        _btnImg.sprite = _close;
     }
 
     /// <summary>

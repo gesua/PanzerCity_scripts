@@ -21,6 +21,7 @@ public class InventoryPresenter
 
     public event Action<int> OnItemUsed;    // 아이템 사용(ID)
     public event Action OnInventoryChanged; // 인벤토리 변경(퀵슬롯 갱신용)
+    public event Action<ItemConfig> OnItemDropped; // 바닥에 아이템 버림
 
     public InventoryPresenter(InventoryModel model, InventoryView view, DraggingItemUI draggingItem, EquipmentManager equipmentManager)
     {
@@ -176,6 +177,21 @@ public class InventoryPresenter
             _view.SetItemContainerRaycast(true);
             _draggingItemUI.Hide();
         }
+        RemoveItem(item);
+    }
+
+    /// <summary>
+    /// 드롭존 드롭 — 바닥에 아이템 버리기 (스테이지 전용)
+    /// </summary>
+    public void DropItemToGround(ItemModel item)
+    {
+        if (_draggingItemModel != null)
+        {
+            _draggingItemModel = null;
+            _view.SetItemContainerRaycast(true);
+            _draggingItemUI.Hide();
+        }
+        OnItemDropped?.Invoke(item.Config);
         RemoveItem(item);
     }
 
