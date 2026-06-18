@@ -277,22 +277,26 @@ public class EnemyTank : TankBase
     /// 가로막는게 있는지 체크
     /// </summary>
     /// <param name="checkAgentsOnly">탱크만 체크되게 할건지(맵 제외)</param>
+    /// <param name="checkBackward">후진 방향(차체 뒤쪽)을 체크할건지</param>
     /// <returns></returns>
-    public bool IsBlocked(bool checkAgentsOnly = false)
+    public bool IsBlocked(bool checkAgentsOnly = false, bool checkBackward = false)
     {
         LayerMask mask = checkAgentsOnly ? _agentObstacleLayer : _movementObstacleLayer;
 
-        Vector3 startCenter = _turret.position + transform.TransformDirection(_raycastOffset);
+        Vector3 dir = checkBackward ? -transform.forward : transform.forward;
+        Vector3 offset = checkBackward ? -_raycastOffset : _raycastOffset;
+
+        Vector3 startCenter = _turret.position + transform.TransformDirection(offset);
         Vector3 startLeft = startCenter - transform.right * _raycastSideOffset;
         Vector3 startRight = startCenter + transform.right * _raycastSideOffset;
         Vector3 startMidLeft = startCenter - transform.right * (_raycastSideOffset * 0.5f);
         Vector3 startMidRight = startCenter + transform.right * (_raycastSideOffset * 0.5f);
 
-        return Physics.Raycast(startCenter, transform.forward, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
-            || Physics.Raycast(startLeft, transform.forward, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
-            || Physics.Raycast(startRight, transform.forward, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
-            || Physics.Raycast(startMidLeft, transform.forward, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
-            || Physics.Raycast(startMidRight, transform.forward, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore);
+        return Physics.Raycast(startCenter, dir, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startLeft, dir, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startRight, dir, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startMidLeft, dir, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore)
+            || Physics.Raycast(startMidRight, dir, _movementCheckDistance, mask, QueryTriggerInteraction.Ignore);
     }
 
     /// <summary>
@@ -590,14 +594,15 @@ public class EnemyTank : TankBase
         _rigid.MovePosition(_rigid.position + move);
     }
 
-    /*// <summary>
-    /// 현재 차체 후방으로 이동(HACK:중전차 후진 해본거)
+    /// <summary>
+    /// 현재 차체 후방으로 후진한다.
+    /// 도주 중 정면을 유지해야 하는 탱크가 사용한다.
     /// </summary>
     protected void MoveBackward()
     {
         Vector3 move = -transform.forward * _model.BackwardSpeed * Time.fixedDeltaTime;
         _rigid.MovePosition(_rigid.position + move);
-    }*/
+    }
 
     /// <summary>
     /// NavMeshAgent가 제안한 다음 이동 방향을 평면 방향으로 가져온다.
