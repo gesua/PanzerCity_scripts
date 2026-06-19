@@ -244,11 +244,7 @@ public class Turret : MonoBehaviour
     void UpdateCrosshairColor()
     {
         // 이전 타겟 실루엣 끄기
-        if (_targetTank != null)
-        {
-            _targetTank.ToggleEnemySilhouette(false);
-            _targetTank = null;
-        }
+        ClearTargetSilhouette();
 
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, GetCurrentScreenY(), 0f));
         RaycastHit[] hits = Physics.RaycastAll(ray, 1000f, _aimLayerMask);
@@ -285,6 +281,18 @@ public class Turret : MonoBehaviour
         }
 
         _centerCrosshairImage.color = _defaultColor;
+    }
+
+    /// <summary>
+    /// 현재 켜져있는 적 실루엣 끄기(죽었을 때 등 강제 정리용)
+    /// </summary>
+    public void ClearTargetSilhouette()
+    {
+        if (_targetTank != null)
+        {
+            _targetTank.ToggleEnemySilhouette(false);
+            _targetTank = null;
+        }
     }
 
     /// <summary>

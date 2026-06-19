@@ -175,6 +175,8 @@ public class PlayerTank : TankBase
         _turret.enabled = false;
         // 조준점 숨기기
         _turret.SetCrosshairVisible(false);
+        // 켜져있던 적 실루엣 끄기
+        _turret.ClearTargetSilhouette();
         // 서서히 멈추기
         _mover.Stop();
 
