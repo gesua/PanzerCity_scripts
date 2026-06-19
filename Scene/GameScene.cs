@@ -136,7 +136,7 @@ public class GameScene : MonoBehaviour
         _gameInfoUI.UpdateLife(GameManager.Instance.PlayerData.Life);
 
         // 인벤토리 세팅
-        _player.ItemPickup.Initialize(_inventoryUI.Presenter);
+        _player.ItemPickup.Initialize(_inventoryUI.Presenter, () => _player.IsDead);
         _quickSlotUI.Initialize(_inventoryUI.Presenter);
 
         // 드롭존 세팅

@@ -16,12 +16,14 @@ public class ItemPickup : MonoBehaviour
 
     DroppedItem _nearestItem; // 획득할 가까운 아이템
     InventoryPresenter _inventoryPresenter;
-    
-    public event Action<int> OnAutoUsed; // 즉시 사용 아이템 획득(ID)
 
-    public void Initialize(InventoryPresenter inventoryPresenter)
+    public event Action<int> OnAutoUsed; // 즉시 사용 아이템 획득(ID)
+    Func<bool> _isDeadCheck; // 플레이어 죽었는지 넘겨받는 용도
+
+    public void Initialize(InventoryPresenter inventoryPresenter, Func<bool> isDeadCheck)
     {
         _inventoryPresenter = inventoryPresenter;
+        _isDeadCheck = isDeadCheck;
     }
 
     void Update()
@@ -40,6 +42,13 @@ public class ItemPickup : MonoBehaviour
     /// </summary>
     void DetectNearbyItem()
     {
+        if (_isDeadCheck()) // 죽었으면 UI 안 띄움
+        {
+            _pickupUI.transform.SetParent(transform); // 복귀
+            _pickupUI.SetActive(false);
+            return;
+        }
+
         Collider[] colliders = Physics.OverlapSphere(transform.position, _pickupRange, _itemLayer);
 
         if (colliders.Length == 0)
@@ -80,6 +89,7 @@ public class ItemPickup : MonoBehaviour
     /// </summary>
     public void TryPickup()
     {
+        if (_isDeadCheck()) return;
         if (_nearestItem == null) return;
         
         // 즉시 사용 아이템 — 인벤토리 거치지 않고 바로 효과 발동
