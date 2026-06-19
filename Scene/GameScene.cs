@@ -486,7 +486,7 @@ public class GameScene : MonoBehaviour
         _nextStageLoad.allowSceneActivation = false;
 
         // 드롭존 비활성화
-        _dropZoneUI.GameObjectActive(false);
+        _dropZoneUI.SetActiveState(false);
 
         // 상점 열기
         _isShopOpen = true;
@@ -542,7 +542,7 @@ public class GameScene : MonoBehaviour
         // 상점 닫기
         if (_isShopOpen)
         {
-            _dropZoneUI.GameObjectActive(true); // 드롭존 활성화
+            _dropZoneUI.SetActiveState(true); // 드롭존 활성화
 
             _isShopOpen = false;
             _shopUI.SetShopActive(false);

@@ -10,26 +10,19 @@ using UnityEngine;
 public class FragmentCube : MonoBehaviour, IExplosionDamageable
 {
     [SerializeField] Material _transparentMat; // 교체할 머터리얼
+    [SerializeField] MeshRenderer _renderer;
+    [SerializeField] Rigidbody _rigid; // 주변 터질 때 영향 받을거
+
     float _fadeDuration; // 페이드 지속시간
-    MeshRenderer _renderer;
 
     bool _isFading = false;
     float _timer = 0f;
     Color _color;
 
-    // 주변 터질 때 영향 받을거
-    Rigidbody _rigid;
-
     // 기지벽 복구시킬 용도
     Material _originalMat;
     Vector3 _originalPos;
     Quaternion _originalRot;
-
-    void Awake()
-    {
-        _renderer = GetComponent<MeshRenderer>();
-        _rigid = GetComponent<Rigidbody>();
-    }
 
     private void Update()
     {
@@ -41,6 +34,11 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
         }
     }
 
+    public void SetActiveState(bool value)
+    {
+        gameObject.SetActive(value);
+    }
+
     /// <summary>
     /// 페이드 시작
     /// </summary>
@@ -50,6 +48,9 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
         _isFading = true;
         _fadeDuration = fadeDuration;
 
+        // 회전 할 때 크기가 달라져서 부모 위치 변경
+        transform.parent = transform.parent.parent;
+
         _renderer.material = _transparentMat; // 머터리얼 교체
         _color = _renderer.material.color;
         gameObject.layer = 0; // 레이어를 Default로 변경하여 충돌 감지를 방지
@@ -57,6 +58,9 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
 
     public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
+        if (_isFading == false) return; // 활성화 된게 아니면 영향 받지 않음
+
+        _rigid.isKinematic = false;
         _rigid.AddExplosionForce(explosionForce, pos, 1000f, 0f, ForceMode.Impulse);
     }
 
@@ -69,9 +73,14 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
         _originalRot = transform.localRotation;
         _originalMat = _renderer.sharedMaterial;
     }
-
-    public void Reset()
+    
+    /// <summary>
+    /// 원래 값으로 복구
+    /// </summary>
+    public void ResetToDefault(Transform parent)
     {
+        transform.parent = parent; // 부모 복구
+
         _isFading = false;
         _rigid.isKinematic = true;
         transform.localPosition = _originalPos;
@@ -83,6 +92,6 @@ public class FragmentCube : MonoBehaviour, IExplosionDamageable
         _renderer.material.color = _color;
         _renderer.material = _originalMat;
 
-        gameObject.SetActive(true);
+        SetActiveState(true);
     }
 }

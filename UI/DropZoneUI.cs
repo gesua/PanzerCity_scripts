@@ -20,7 +20,7 @@ public class DropZoneUI : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPo
         _presenter = presenter;
     }
 
-    public void GameObjectActive(bool value)
+    public void SetActiveState(bool value)
     {
         gameObject.SetActive(value);
     }

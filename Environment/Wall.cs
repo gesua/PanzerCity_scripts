@@ -9,7 +9,10 @@ using UnityEngine.AI;
 public class Wall : MonoBehaviour, IExplosionDamageable
 {
     [SerializeField] NavMeshObstacle _navMeshObstacle; // 네브메쉬 계산용
-    [SerializeField] Collider _collider;
+    [SerializeField] Collider _collider; // 본인 콜라이더
+    [SerializeField] MeshRenderer _renderer; // 파괴시 사라질 본인 랜더러
+    [SerializeField] GameObject _coverQuad; // 뚜껑 쿼드(UV값 쉐이더 수정 귀찮아서 뚜껑 덮음)
+    [SerializeField] FragmentCube[] _cubes; // 자식 큐브들
 
     bool _isBaseWall; // 기지 벽인지
     float _disappearDelay = 5f; // 사라지는 시간
@@ -18,17 +21,7 @@ public class Wall : MonoBehaviour, IExplosionDamageable
     bool _isDisable;
     float _timer;
 
-    // 자식 큐브들
-    Rigidbody[] _cubeRigids;
-    FragmentCube[] _cubes;
-
     public event Action OnDestroyed;
-
-    void Awake()
-    {
-        _cubeRigids = GetComponentsInChildren<Rigidbody>();
-        _cubes = GetComponentsInChildren<FragmentCube>();
-    }
 
     public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
@@ -36,19 +29,15 @@ public class Wall : MonoBehaviour, IExplosionDamageable
 
         _collider.enabled = false; // 충돌 비활성화
         _navMeshObstacle.enabled = false; // 네브메시 장애물 비활성화
+        _renderer.enabled = false; // 랜더러 비활성화
+        _coverQuad.SetActive(false); // 뚜껑 비활성화
 
-        foreach (Rigidbody rigid in _cubeRigids)
+        // 큐브들 상호작용
+        foreach (FragmentCube cube in _cubes)
         {
-            rigid.isKinematic = false; // 물리 활성화
-
-            // 폭발 방향으로 날리기
-            rigid.AddExplosionForce(explosionForce, pos, 1000f, 0f, ForceMode.Impulse);
-        }
-
-        // 큐브들 페이드 아웃
-        foreach (FragmentCube fadeOut in _cubes)
-        {
-            fadeOut.StartFade(_disappearDelay);
+            cube.SetActiveState(true);
+            cube.StartFade(_disappearDelay);
+            cube.TakeHit(hitData, explosionForce, pos);
         }
 
         OnDestroyed?.Invoke();
@@ -98,13 +87,13 @@ public class Wall : MonoBehaviour, IExplosionDamageable
 
         _collider.enabled = true;
         _navMeshObstacle.enabled = true;
-        foreach (Rigidbody rigid in _cubeRigids)
-        {
-            rigid.isKinematic = true;
-        }
+        _renderer.enabled = true;
+        _coverQuad.SetActive(true);
+
+        // 큐브들 초기화
         foreach (FragmentCube cube in _cubes)
         {
-            cube.Reset();
+            cube.ResetToDefault(transform);
         }
         gameObject.SetActive(true);
     }
