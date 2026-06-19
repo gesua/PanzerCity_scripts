@@ -7,6 +7,13 @@ public enum BgmType
 public enum SfxType
 {
     StageStart, // 한번만 나옴 (flac)
+
+    // 미검수
+    LifeUp,     // +1목숨 추가
+    Pause,      // +일시정지(열릴 때만, 닫을 땐 안 남)
+    GameOver,   // 게임오버(HQ 파괴/목숨 소진 둘 다 동일) <----- flac로 가져오기
+    StageClear, // +스테이지 클리어(적 전멸, 중간 단계)
+    GameClear,  // 게임 클리어(마지막 스테이지) <----- flac로 가져오기
 }
 
 /// <summary>

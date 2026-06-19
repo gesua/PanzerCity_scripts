@@ -105,6 +105,7 @@ public class GameScene : MonoBehaviour
         _itemEffectHandler.OnLifeUp += () =>
         {
             GameManager.Instance.PlayerData.AddLife(1);
+            GameManager.Instance.AudioManager.PlaySfx(SfxType.LifeUp);
         };
         // 기지 무적
         _itemEffectHandler.OnBaseShield += duration =>
@@ -225,6 +226,10 @@ public class GameScene : MonoBehaviour
     void HandleStageLoaded(Vector3 pos)
     {
         _player.Respawn(_playerSpawnPoint = pos, _cinemachineBrain);
+
+        // 스테이지 시작 소리
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);
+
     }
 
     /// <summary>
@@ -321,6 +326,9 @@ public class GameScene : MonoBehaviour
             _pauseUI.CloseOption();
             return;
         }
+
+        // 옵션창 열리는 소리
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.Pause);
 
         ForceDrop();
 
@@ -475,6 +483,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleAllEnemiesDefeated()
     {
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.StageClear);
         StartCoroutine(_stageClearUI.Show());
     }
 

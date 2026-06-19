@@ -85,6 +85,9 @@ public class GameOverUI : MonoBehaviour
         // 마우스 커서 보이게
         Cursor.lockState = CursorLockMode.None;
 
+        // 버튼 나오기 전에 게임오버 소리
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.GameOver);
+
         // 그룹 페이드 인
         yield return FadeCanvasGroupRoutine(_buttonsGroup, _buttonsFadeDuration);
     }
