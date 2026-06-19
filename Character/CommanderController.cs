@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 /// <summary>
 /// 전차장 캐릭터 제어
@@ -106,6 +105,7 @@ public class CommanderController : MonoBehaviour
     public void SetDead()
     {
         _isDead = true;
+        _animator.ResetTrigger("OnHit"); // 밀려있는 피격 트리거 제거(사망 후 표정 덮어쓰기 방지)
     }
 
     /// <summary>
@@ -126,6 +126,7 @@ public class CommanderController : MonoBehaviour
     {
         _isDead = false;
         _lookAtCam = false;
+        _commanderRoot.localRotation = Quaternion.identity; // 회전값 돌아가있는거 초기화
 
         if (_animator.isActiveAndEnabled)
         {

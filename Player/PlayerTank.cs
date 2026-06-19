@@ -73,7 +73,7 @@ public class PlayerTank : TankBase
         _turret.ResetRotation();
         _reloadTimer = 0;
         _isAttack = false;
-        _isDead = false;
+        _isDead = true;
     }
 
     public void Move(Vector3 dir)

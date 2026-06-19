@@ -413,13 +413,14 @@ public class GameScene : MonoBehaviour
             GameManager.Instance.PlayerData.SpendLife(1);
 
             // 리스폰
-            _player.Respawn(_playerSpawnPoint, _cinemachineBrain);
             _cameraTarget.ResetRotation();
+            _player.Respawn(_playerSpawnPoint, _cinemachineBrain);
         }
         else
         {
             // 게임오버
             _gameOverUI.Show(false);
+            _isGameOver = true;
         }
     }
 
@@ -449,6 +450,8 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleHQDestroyed()
     {
+        if (_isGameOver) return; // 이미 게임오버 된 상태에선 또 게임오버 안 됨
+
         _isGameOver = true;
 
         _player.DisablePlayerAndUI(); // 플레이어 움직임 막고, UI 없앰
