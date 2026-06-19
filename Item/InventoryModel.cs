@@ -1,6 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// 스냅샷 저장용
+struct ItemSnapshot
+{
+    public ItemModel Item;
+    public Vector2Int Position;
+    public bool IsRotated;
+}
+
 /// <summary>
 /// 그리드 전체 상태를 관리
 /// 어느 칸이 비어있는지, 아이템 추가/제거/이동 로직을 담당
@@ -15,6 +23,8 @@ public class InventoryModel
     ItemModel[,] _grid;
     // 인벤토리에 있는 아이템 목록
     List<ItemModel> _items = new List<ItemModel>();
+    // 스냅샷 저장용
+    List<ItemSnapshot> _snapshot;
 
     public int Width => _width;
     public IReadOnlyList<ItemModel> Items => _items;
@@ -137,5 +147,47 @@ public class InventoryModel
         }
         result = Vector2Int.zero;
         return false;
+    }
+
+    /// <summary>
+    /// 그리드/아이템 목록 초기화
+    /// </summary>
+    public void Clear()
+    {
+        System.Array.Clear(_grid, 0, _grid.Length);
+        _items.Clear();
+    }
+
+    /// <summary>
+    /// 현재 아이템들의 위치/회전 상태 저장 (스테이지 진입 시점)
+    /// </summary>
+    public void SaveSnapshot()
+    {
+        _snapshot = new List<ItemSnapshot>();
+        foreach (ItemModel item in _items)
+        {
+            _snapshot.Add(new ItemSnapshot
+            {
+                Item = item,
+                Position = item.GridPosition,
+                IsRotated = item.IsRotated
+            });
+        }
+    }
+
+    /// <summary>
+    /// 저장된 스냅샷으로 복구 (재시작 시)
+    /// </summary>
+    public void RestoreSnapshot()
+    {
+        if (_snapshot == null) return;
+
+        Clear();
+
+        foreach (ItemSnapshot snapshot in _snapshot)
+        {
+            snapshot.Item.SetRotated(snapshot.IsRotated);
+            TryAddItem(snapshot.Item, snapshot.Position);
+        }
     }
 }

@@ -150,6 +150,19 @@ public class InventoryView : MonoBehaviour
     }
 
     /// <summary>
+    /// 모든 아이템 뷰 제거 (스냅샷 복구 등 전체 초기화용)
+    /// </summary>
+    public void ClearAllViews()
+    {
+        // 순회 중 _itemViews가 변경되므로 키를 복사해서 순회
+        List<ItemModel> items = new List<ItemModel>(_itemViews.Keys);
+        foreach (ItemModel item in items)
+        {
+            RemoveItemView(item);
+        }
+    }
+
+    /// <summary>
     /// 아이템 뷰 위치 갱신
     /// </summary>
     public void UpdateItemViewPosition(ItemModel item)

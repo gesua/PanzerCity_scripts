@@ -13,9 +13,9 @@ public class ItemModel
     bool _isRotated;          // 90도 회전 여부
                               // HACK:ㄱ,ㅗ 같은거 넣으면 0,90,180,270 다 봐야함
 
-    public Vector2Int GridPosition => _gridPosition;
-
     public ItemConfig Config => _config;
+    public Vector2Int GridPosition => _gridPosition;
+    public bool IsRotated => _isRotated;
 
     public ItemModel(ItemConfig config)
     {
@@ -36,6 +36,14 @@ public class ItemModel
     public void Rotate()
     {
         _isRotated = !_isRotated;
+    }
+
+    /// <summary>
+    /// 회전 상태 직접 세팅 (스냅샷 복구용)
+    /// </summary>
+    public void SetRotated(bool isRotated)
+    {
+        _isRotated = isRotated;
     }
 
     /// <summary>

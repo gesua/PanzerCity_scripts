@@ -47,6 +47,7 @@ public class GameScene : MonoBehaviour
     bool _isGameOver;
     bool _isPaused;
     bool _isShopOpen;
+    bool _isRestarting;
 
     bool _OnCursor; // 마우스 커서 활성화 여부
 
@@ -188,6 +189,19 @@ public class GameScene : MonoBehaviour
 
         // 리스폰
         _currentStage.OnStageLoaded += HandleStageLoaded;
+
+        // 재시작 시 목숨, 인벤토리 복구
+        if (_isRestarting)
+        {
+            GameManager.Instance.PlayerData.RestoreSnapshot();
+            _inventoryUI.Presenter.RestoreSnapshot();
+            _isRestarting = false;
+        }
+        else // 현재 목숨, 인벤토리 저장
+        {
+            GameManager.Instance.PlayerData.SaveSnapshot();
+            _inventoryUI.Presenter.SaveSnapshot();
+        }
     }
 
     /// <summary>
@@ -518,6 +532,8 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleRestartStage()
     {
+        _isRestarting = true;
+
         if (_isShopOpen)
         {
             Debug.Log("상점 열렸을 때는 재시작 막아놓음"); // 실제로 눌릴 일은 없음

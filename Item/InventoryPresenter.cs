@@ -217,4 +217,28 @@ public class InventoryPresenter
     {
         _isShop = enable;
     }
+
+    /// <summary>
+    /// 인벤토리 상태 저장 (스테이지 진입 시점)
+    /// </summary>
+    public void SaveSnapshot()
+    {
+        _model.SaveSnapshot();
+    }
+
+    /// <summary>
+    /// 저장된 상태로 복구 (재시작 시)
+    /// </summary>
+    public void RestoreSnapshot()
+    {
+        _view.ClearAllViews();
+        _model.RestoreSnapshot();
+
+        foreach (ItemModel item in _model.Items)
+        {
+            _view.AddItemView(item);
+        }
+
+        OnInventoryChanged?.Invoke();
+    }
 }

@@ -11,6 +11,10 @@ public class PlayerData : MonoBehaviour
     [SerializeField] int _life;
     [SerializeField] int _maxLife = 99;
 
+    // 스테이지 진입 시점 저장용
+    int _savedLife; // 목숨
+    int _savedGold; // 골드
+
     public int Gold => _gold;
     public int Life => _life;
     public int MaxLife => _maxLife;
@@ -62,5 +66,26 @@ public class PlayerData : MonoBehaviour
         _life -= amount;
         OnLifeChanged?.Invoke(_life);
         return true;
+    }
+
+    /// <summary>
+    /// 스냅샷 저장 (스테이지 진입 시점)
+    /// </summary>
+    public void SaveSnapshot()
+    {
+        _savedLife = _life;
+        _savedGold = _gold;
+    }
+
+    /// <summary>
+    /// 스냅샷 복구 (재시작 시)
+    /// </summary>
+    public void RestoreSnapshot()
+    {
+        _life = _savedLife;
+        OnLifeChanged?.Invoke(_life);
+
+        _gold = _savedGold;
+        OnGoldChanged?.Invoke(_gold);
     }
 }
