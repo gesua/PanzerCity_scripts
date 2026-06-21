@@ -13,9 +13,12 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     [SerializeField] protected Transform _firePoint; // 포탄 생성 위치
     [SerializeField] LoopEffect _engineEffect; // 엔진 이펙트
     [Header("----- 사운드 -----")]
-    [SerializeField] AudioSource _audioSource;
+    [SerializeField] AudioSource _shootAudioSource; // 포 발사 소리 전용
+    [SerializeField] AudioSource _moveAudioSource; // 움직이는 소리 전용
     [SerializeField] AudioClip _shootClip; // 포 발사 소리
     [SerializeField] AudioClip _moveClip; // 움직이는 소리
+
+    bool _prevIsMoving; // 엔진 이펙트 중복 호출 방지
 
     BushGroup _currentBush; // 현재 들어가있는 풀숲그룹
     int _bushEnterCount; // 풀 경계선에서 꼬이는거 방지
@@ -56,7 +59,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         }
 
         // 포 쏘는 소리
-        _audioSource.PlayOneShot(_shootClip);
+        _shootAudioSource.PlayOneShot(_shootClip);
     }
 
     /// <summary>
@@ -65,18 +68,21 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     public void SetEngineEffect(bool isMoving)
     {
         if (_engineEffect == null) return;
+        if (isMoving == _prevIsMoving) return; // 상태 안 바뀌었으면 스킵
+        _prevIsMoving = isMoving;
 
         // 저격 모드엔 엔진 이펙트 안 보이게 함
-        if (ShowEffects == false)
+        if (ShowEffects)
         {
-            _engineEffect.Stop();
-            return;
-        }
-
-        // 엔진 연기 재생
-        if (isMoving)
-        {
-            _engineEffect.Play();
+            // 엔진 연기 재생
+            if (isMoving)
+            {
+                _engineEffect.Play();
+            }
+            else
+            {
+                _engineEffect.Stop();
+            }
         }
         else
         {
@@ -84,14 +90,14 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         }
 
         // 움직이는 소리
-        if (isMoving && _audioSource.isPlaying == false)
+        if (isMoving && _moveAudioSource.isPlaying == false)
         {
-            _audioSource.clip = _moveClip;
-            _audioSource.Play();
+            _moveAudioSource.clip = _moveClip;
+            _moveAudioSource.Play();
         }
         else if (isMoving == false)
         {
-            _audioSource.Stop();
+            _moveAudioSource.Stop();
         }
     }
 

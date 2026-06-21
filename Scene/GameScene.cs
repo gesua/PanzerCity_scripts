@@ -327,9 +327,7 @@ public class GameScene : MonoBehaviour
             return;
         }
 
-        // 옵션창 열리는 소리
-        GameManager.Instance.AudioManager.PlaySfx(SfxType.Pause);
-
+        // 드래그 중인거 강제 드롭
         ForceDrop();
 
         _isPaused = !_isPaused;
@@ -337,7 +335,11 @@ public class GameScene : MonoBehaviour
         _pauseUI.SetActive(_isPaused);
         Time.timeScale = _isPaused ? 0f : 1f;
 
-        if (_isShopOpen) return; // 상점 열렸을 땐 항상 보이기
+        // 일시정지 소리
+        if (_isPaused) GameManager.Instance.AudioManager.PlaySfx(SfxType.Pause);
+
+        // 커서 설정
+        if (_isShopOpen) return; // 상점 열렸을 땐 커서 항상 보이기
         _OnCursor = _isPaused;
         Cursor.lockState = _isPaused ? CursorLockMode.None : CursorLockMode.Locked;
     }
