@@ -202,6 +202,8 @@ public class GameScene : MonoBehaviour
         {
             GameManager.Instance.PlayerData.SaveSnapshot();
             _inventoryUI.Presenter.SaveSnapshot();
+
+            GameManager.Instance.GameStatistics.MarkGameStart(); // 최초 1회만 동작
         }
     }
 
@@ -400,7 +402,7 @@ public class GameScene : MonoBehaviour
     /// <summary>
     /// 플레이어 사망
     /// </summary>
-    void HandlePlayerDead()
+    void HandlePlayerDead(HitData hitData)
     {
         // 저격 모드 중이면 해제
         if (_sniperMode.IsSniper)
@@ -503,7 +505,17 @@ public class GameScene : MonoBehaviour
             _OnCursor = true;
             _inputSystemHandler.SetInputDisabled(true);
             _player.SetPlayerGravity(false); // 씬 언로드 중 자유낙하 방지
-            _gameClearUI.Show();
+
+            // 통계 띄우기
+            GameStatistics stats = GameManager.Instance.GameStatistics;
+            _gameClearUI.Show(
+                stats.TotalGoldEarned,
+                stats.ItemsUsed,
+                stats.ShellKills,
+                stats.DeathCount,
+                _currentStage.StageID - 7100,
+                stats.GetPlayTime()
+            );
             return;
         }
 

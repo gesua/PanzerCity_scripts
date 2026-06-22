@@ -73,7 +73,7 @@ public class PlayerTank : TankBase
         _turret.ResetRotation();
         _reloadTimer = 0;
         _isAttack = false;
-        _isDead = true;
+        _isDead = true; // 리스폰 되기 전에 움직임 막는 용도
     }
 
     public void Move(Vector3 dir)
@@ -167,9 +167,12 @@ public class PlayerTank : TankBase
     /// <summary>
     /// 사망 처리
     /// </summary>
-    void HandleDead()
+    void HandleDead(HitData hitData)
     {
         _isDead = true; // 죽었음
+
+        // 사망 횟수 기록
+        GameManager.Instance.GameStatistics.AddDeath();
 
         // 포탑 끄기
         _turret.enabled = false;

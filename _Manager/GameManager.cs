@@ -15,6 +15,7 @@ public class GameManager : Singleton<GameManager>
     OptionManager _optionManager;
     PlayerData _playerData;
     LoadingUI _loadingUI;
+    GameStatistics _gameStatistics;
 
     public ResourceManager ResourceManager => _resourceManager;
     public PoolManager PoolManager => _poolManager;
@@ -25,6 +26,7 @@ public class GameManager : Singleton<GameManager>
     public OptionManager OptionManager => _optionManager;
     public PlayerData PlayerData => _playerData;
     public LoadingUI LoadingUI => _loadingUI;
+    public GameStatistics GameStatistics => _gameStatistics;
 
     protected override void Awake()
     {
@@ -37,6 +39,7 @@ public class GameManager : Singleton<GameManager>
         _effectManager = gameObject.GetOrAddComponent<EffectManager>();
         _optionManager = gameObject.GetOrAddComponent<OptionManager>();
         _playerData = gameObject.GetOrAddComponent<PlayerData>();
+        _gameStatistics = gameObject.GetOrAddComponent<GameStatistics>();
 
         _poolManager.Initialize(_resourceManager);
         _dataManager.Initialize();

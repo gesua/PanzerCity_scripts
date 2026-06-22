@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.AI;
+using static UnityEngine.Analytics.IAnalytic;
 
 /// <summary>
 /// 적 성격
@@ -623,7 +624,7 @@ public class EnemyTank : TankBase
     /// <summary>
     /// 사망 처리
     /// </summary>
-    protected virtual void HandleDead()
+    protected virtual void HandleDead(HitData hitData)
     {
         // 엔진 끄기
         SetEngineEffect(false);
@@ -643,6 +644,13 @@ public class EnemyTank : TankBase
 
         // 골드 추가
         GameManager.Instance.PlayerData.AddGold(_tankData.RewardGold);
+
+        // 통계 기록
+        GameManager.Instance.GameStatistics.AddGoldEarned(_tankData.RewardGold);
+
+        // 격파 통계(아이템으로 죽었으면 AtkTank가 null)
+        bool isItemKill = (hitData.AtkTank == null);
+        GameManager.Instance.GameStatistics.AddKill(isItemKill);
 
         // 아이템 드랍
         _itemDropper.TryDrop(_tankData.DropChance, _tankData.DropGroupID);

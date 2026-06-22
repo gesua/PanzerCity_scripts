@@ -55,7 +55,7 @@ public class TankModel : MonoBehaviour
     /// </summary>
     public event Action<int, int> OnHpChanged;
     public event Action<HitData> OnHit;
-    public event Action OnDead;
+    public event Action<HitData> OnDead;
 
     /// <summary>
     /// TankData 안 들어가는 기본값들 초기화
@@ -102,7 +102,7 @@ public class TankModel : MonoBehaviour
         if (_infiniteHP && _currentHp < 1) _currentHp = _maxHp; // HP무한 치트
 
         // 사망
-        if (IsAlive == false) OnDead?.Invoke();
+        if (IsAlive == false) OnDead?.Invoke(hitData);
 
         OnHit?.Invoke(hitData);
     }

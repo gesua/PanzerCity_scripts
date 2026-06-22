@@ -145,6 +145,7 @@ public class InventoryPresenter
     void UseItem(ItemModel item)
     {
         OnItemUsed?.Invoke(item.Config.Id);
+        GameManager.Instance.GameStatistics.AddItemUsed(); // 통계 기록
         RemoveItem(item); // RemoveItem 안에서 OnInventoryChanged 발행
     }
 
