@@ -15,6 +15,17 @@ public enum SfxType
     GameOver,   // 게임오버(HQ 파괴/목숨 소진 둘 다 동일) <----- flac로 가져오기
     StageClear, // +스테이지 클리어(적 전멸)
     GameClear,  // 게임 클리어(마지막 스테이지) <----- flac로 가져오기
+    TankHit,    // 탱크 피격음(플레이어/적 공통)
+    TankDestroy, // 탱크 파괴음(플레이어/적 공통)
+    HQDestroy,  // HQ 파괴음
+    ShellExplosion, // 포탄 터지는 소리(3D, 탱크/HQ를 맞춘 경우엔 생략)
+}
+
+[System.Serializable]
+struct BgmEntry
+{
+    public BgmType type;
+    public AudioClip clip;
 }
 
 [System.Serializable]
@@ -33,12 +44,21 @@ public class AudioManager : MonoBehaviour
     [SerializeField] AudioSource _bgmAs; // 배경음악 오디오소스
     [SerializeField] AudioSource _sfxAs; // 효과음 오디오소스
     [Header("----- 리소스 -----")]
-    [SerializeField] AudioClip[] _bgmClips; // 배경음악 클립
-    [SerializeField] SfxEntry[] _sfxEntries; // 인스펙터에서 타입-클립 쌍으로 등록
+    [SerializeField] BgmEntry[] _bgmEntries;
+    [SerializeField] SfxEntry[] _sfxEntries;
     Dictionary<SfxType, AudioClip> _sfxDict;
+    [Header("----- 3D 풀링 SFX -----")]
+    [SerializeField] string _pooledSfxPrefabPath = "Sfx/PooledSfx"; // PooledSfx 컴포넌트가 붙은 프리팹 경로
+    Dictionary<BgmType, AudioClip> _bgmDict;
 
     void Awake()
     {
+        _bgmDict = new Dictionary<BgmType, AudioClip>();
+        foreach (var entry in _bgmEntries)
+        {
+            _bgmDict[entry.type] = entry.clip;
+        }
+
         _sfxDict = new Dictionary<SfxType, AudioClip>();
         foreach (var entry in _sfxEntries)
         {
@@ -46,7 +66,23 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    [ContextMenu("빈 슬롯 자동 채우기")]
+    [ContextMenu("BGM 빈 슬롯 자동 채우기")]
+    void AutoFillBgmEntries()
+    {
+        var existing = new HashSet<BgmType>();
+        foreach (var e in _bgmEntries) existing.Add(e.type);
+
+        foreach (BgmType type in System.Enum.GetValues(typeof(BgmType)))
+        {
+            if (existing.Contains(type) == false)
+            {
+                System.Array.Resize(ref _bgmEntries, _bgmEntries.Length + 1);
+                _bgmEntries[_bgmEntries.Length - 1] = new BgmEntry { type = type };
+            }
+        }
+    }
+
+    [ContextMenu("SFX 빈 슬롯 자동 채우기")]
     void AutoFillSfxEntries()
     {
         var existing = new HashSet<SfxType>();
@@ -67,11 +103,15 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public void PlayBgm(BgmType bgmType)
     {
-        // 배경음악 종류에 맞는 클립 가져오기
-        AudioClip clip = _bgmClips[(int)bgmType];
-
-        _bgmAs.clip = clip;
-        _bgmAs.Play();
+        if (_bgmDict.TryGetValue(bgmType, out AudioClip clip) && clip != null)
+        {
+            _bgmAs.clip = clip;
+            _bgmAs.Play();
+        }
+        else
+        {
+            Debug.LogWarning($"BGM 클립 없음: {bgmType}");
+        }
     }
 
     /// <summary>
@@ -79,13 +119,37 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public void PlaySfx(SfxType sfxType)
     {
-        if (_sfxDict.TryGetValue(sfxType, out AudioClip clip) && clip != null)
+        if (TryGetSfxClip(sfxType, out AudioClip clip))
         {
             _sfxAs.PlayOneShot(clip);
         }
-        else
+    }
+
+    /// <summary>
+    /// 지정 위치에서 3D로 효과음 재생(풀링됨)
+    /// 위치가 매번 다르고 동시에 여러 개 재생될 수 있는 SFX(포탄 터지는 소리 등)에 사용
+    /// </summary>
+    public void PlaySfxAtPoint(SfxType sfxType, Vector3 position)
+    {
+        if (TryGetSfxClip(sfxType, out AudioClip clip) == false) return;
+
+        GameObject sfxGo = GameManager.Instance.PoolManager.GetFromPool(_pooledSfxPrefabPath);
+        if (sfxGo == null) return;
+
+        if (sfxGo.TryGetComponent(out PooledSfx pooledSfx))
         {
-            Debug.LogWarning($"SFX 클립 없음: {sfxType}");
+            pooledSfx.Play(clip, position);
         }
+    }
+
+    /// <summary>
+    /// SfxType에 등록된 클립 조회(없으면 경고 로그)
+    /// </summary>
+    bool TryGetSfxClip(SfxType sfxType, out AudioClip clip)
+    {
+        if (_sfxDict.TryGetValue(sfxType, out clip) && clip != null) return true;
+
+        Debug.LogWarning($"SFX 클립 없음: {sfxType}");
+        return false;
     }
 }

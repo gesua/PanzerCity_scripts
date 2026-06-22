@@ -31,6 +31,7 @@ public class HQ : MonoBehaviour, IDamageable
         _iconRenderer.material = _destroyedMaterial;
         OnDestroyed?.Invoke();
 
+
         Invoke(nameof(TriggerDestructionEffect), 0.1f);
     }
 
@@ -42,6 +43,9 @@ public class HQ : MonoBehaviour, IDamageable
         // 조각상 모델 교체
         _normalStatue.SetActive(false);
         _brokenStatue.SetActive(true);
+
+        // 파괴음 재생
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.HQDestroy);
 
         GameManager.Instance.EffectManager.SpawnEffect(EffectType.StatueExplosion, transform.position + Vector3.up * 2.5f);
     }

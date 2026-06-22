@@ -36,6 +36,27 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         _model = GetComponent<TankModel>();
         _tankData = GameManager.Instance.DataManager.GetTankData(_tankID);
         if (_tankData != null) _model.Initialize(_tankData);
+
+        // 피격음/파괴음 공통 구독
+        _model.OnHit += HandleHitSound;
+        _model.OnDead += HandleDeadSound;
+    }
+
+    /// <summary>
+    /// 피격음 재생
+    /// </summary>
+    void HandleHitSound(HitData hitData)
+    {
+        if (_model.IsAlive == false) return; // 사망 시엔 파괴음만 나야 하므로 스킵
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.TankHit);
+    }
+
+    /// <summary>
+    /// 파괴음 재생
+    /// </summary>
+    void HandleDeadSound(HitData hitData)
+    {
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.TankDestroy);
     }
 
     public virtual void Attack()

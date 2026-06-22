@@ -76,17 +76,26 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
 
         if (other.TryGetComponent(out IDamageable damageable)) damageable.TakeHit(hitData);
 
-        Explode(hitData);
+        // 탱크/HQ를 맞췄으면 각자 전용 피격음/파괴음이 따로 나므로 포탄 터지는 소리는 생략
+        bool hitTankOrHQ = tag == "EnemyHitZone" || tag == "PlayerHitZone" || tag == "HQ";
+        Explode(hitData, hitTankOrHQ);
+
         Remove();
     }
 
     /// <summary>
     /// 폭발 계산
     /// </summary>
-    private void Explode(HitData hitData)
+    private void Explode(HitData hitData, bool hitTankOrHQ)
     {
         // 이펙트 재생
         GameManager.Instance.EffectManager.SpawnEffect(EffectType.CompleteShellExplosion, transform.position);
+
+        // 포탄 터지는 소리
+        if (hitTankOrHQ == false)
+        {
+            GameManager.Instance.AudioManager.PlaySfxAtPoint(SfxType.ShellExplosion, transform.position);
+        }
 
         // 범위 피해
         Collider[] colliders = Physics.OverlapSphere(transform.position, _explosionRadius, _hitLayer);
