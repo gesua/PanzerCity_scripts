@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEngine.Analytics.IAnalytic;
 
 /// <summary>
 /// 적 성격
@@ -34,7 +33,7 @@ public enum Direction
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(TankVisualController))]
-public class EnemyTank : TankBase
+public class EnemyTank : TankBase, IPoolReturnHandler
 {
     [Header("----- 컴포넌트(EnemyTank) -----")]
     [SerializeField] NavMeshAgent _agent;
@@ -661,20 +660,26 @@ public class EnemyTank : TankBase
     /// </summary>
     public void Remove()
     {
-        // 사망 효과 리셋
-        _destructionEffect.ResetState();
-
-        // 자신 제거 이벤트 발행
+        // 자신 제거 이벤트 발행(정상 사망 경로에서만 스포너에 알림)
         OnRemoved?.Invoke(this);
 
-        // 자신 제거 이벤트 전체 구독 해지
-        OnRemoved = null;
+        // 자신 게임오브젝트 제거
+        gameObject.DestroyOrReturnToPool();
+    }
+
+    /// <summary>
+    /// 풀에 반환되기 직전 정리
+    /// </summary>
+    public void OnBeforeReturnToPool()
+    {
+        // 사망 효과 리셋
+        _destructionEffect.ResetState();
 
         // AI 비활성화
         _isAIActive = false;
 
-        // 자신 게임오브젝트 제거
-        gameObject.DestroyOrReturnToPool();
+        // 제거 이벤트 구독 해지(강제 반환 시에도 누수 방지)
+        OnRemoved = null;
     }
 
     /// <summary>

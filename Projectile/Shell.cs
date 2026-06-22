@@ -8,7 +8,7 @@ using UnityEngine.Pool;
 /// 플레이어가 쏜 포탄으로 적 포탄을 없앨 수 있음
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public class Shell : MonoBehaviour
+public class Shell : MonoBehaviour, IPoolReturnHandler
 {
     int _damage;            // 포탄 공격력
     float _speed;           // 포탄 속도
@@ -100,16 +100,22 @@ public class Shell : MonoBehaviour
     }
 
     /// <summary>
-    /// 포탄 없앰
+    /// 풀에 반환되기 직전 정리
     /// </summary>
-    public void Remove()
+    public void OnBeforeReturnToPool()
     {
         _isReleased = true;
 
         // rigidbody 초기화
         _rigid.linearVelocity = Vector3.zero;
         _rigid.angularVelocity = Vector3.zero;
+    }
 
+    /// <summary>
+    /// 포탄 없앰
+    /// </summary>
+    public void Remove()
+    {
         gameObject.DestroyOrReturnToPool();
     }
 }

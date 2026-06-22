@@ -138,12 +138,6 @@ public class InventoryView : MonoBehaviour
     {
         if (_itemViews.TryGetValue(item, out ItemView view))
         {
-            // 구독 해제
-            view.OnClicked = null;
-            view.OnDragBegin = null;
-            view.OnDragging = null;
-            view.OnDragEnded = null;
-            view.OnDragCanceled = null;
             view.gameObject.DestroyOrReturnToPool();
             _itemViews.Remove(item);
         }

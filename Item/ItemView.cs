@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// 개별 아이템
 /// ItemModel을 받아서 아이콘을 UI로 보여줌
 /// </summary>
-public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
+public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler, IPoolReturnHandler
 {
     [SerializeField] Image _icon;
 
@@ -103,5 +103,17 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     public void ResetPosition()
     {
         _rectTransform.anchoredPosition = _originalPos;
+    }
+
+    /// <summary>
+    /// 풀에 반환되기 직전 정리
+    /// </summary>
+    public void OnBeforeReturnToPool()
+    {
+        OnClicked = null;
+        OnDragBegin = null;
+        OnDragging = null;
+        OnDragEnded = null;
+        OnDragCanceled = null;
     }
 }

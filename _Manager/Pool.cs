@@ -95,14 +95,20 @@ public class Pool
             Debug.LogWarning($"{go.name}이 이미 Pool에 반환되어 있음(중복 Push 무시)");
             return;
         }
-
+        // 씬 전환되면서 사라질 때 오류 방지
         if (go == null)
         {
-            Debug.Log("오브젝트가 이미 사라져서 반환 불가");
+            Debug.LogWarning("오브젝트가 이미 사라져서 반환 불가");
             return;
         }
 
         _activeObjects.Remove(go);
+
+        // 반환 직전 정리 콜백(정상/강제 반환 모두 동일하게 호출됨)
+        if (go.TryGetComponent(out IPoolReturnHandler handler))
+        {
+            handler.OnBeforeReturnToPool();
+        }
         go.transform.SetParent(_parent);
         go.SetActive(false);
         _pool.Push(go);
