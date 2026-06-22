@@ -26,16 +26,17 @@ public class OptionUI : MonoBehaviour
 
     OptionManager _optionManager;
 
-    string language;
-
-    private void Start()
-    {
-        SubscribeEvents();
-    }
+    bool _subscribed;
 
     void OnEnable()
     {
         InitUI();
+        SubscribeEvents();
+    }
+
+    void OnDisable()
+    {
+        UnsubscribeEvents();
     }
 
     /// <summary>
@@ -71,7 +72,7 @@ public class OptionUI : MonoBehaviour
         }
 
         // 설정 값 가져옴
-        _languageDropdown.value = data.Language == "en" ? 0 : 1;
+        _languageDropdown.SetValueWithoutNotify(data.Language == "en" ? 0 : 1);
         _masterVolumeSlider.value = data.MasterVolume;
         _bgmVolumeSlider.value = data.BGMVolume;
         _sfxVolumeSlider.value = data.SFXVolume;
@@ -82,6 +83,7 @@ public class OptionUI : MonoBehaviour
         _valueText.text = data.MouseSensitivity.ToString("F2");
 
         _resolutionDropdown.RefreshShownValue();
+        _languageDropdown.RefreshShownValue();
         _qualityDropdown.RefreshShownValue();
     }
 
@@ -90,6 +92,8 @@ public class OptionUI : MonoBehaviour
     /// </summary>
     void SubscribeEvents()
     {
+        if (_subscribed) return;
+
         _languageDropdown.onValueChanged.AddListener(OnLanguageChanged);
         _masterVolumeSlider.onValueChanged.AddListener(_optionManager.ApplyMasterVolume);
         _bgmVolumeSlider.onValueChanged.AddListener(_optionManager.ApplyBGMVolume);
@@ -98,6 +102,8 @@ public class OptionUI : MonoBehaviour
         _fullscreenToggle.onValueChanged.AddListener(_optionManager.ApplyFullscreen);
         _qualityDropdown.onValueChanged.AddListener(_optionManager.ApplyQuality);
         _mouseSensitivitySlider.onValueChanged.AddListener(OnSensitivityChanged);
+
+        _subscribed = true;
     }
 
     /// <summary>
@@ -105,6 +111,8 @@ public class OptionUI : MonoBehaviour
     /// </summary>
     void UnsubscribeEvents()
     {
+        if (_subscribed == false) return;
+
         _languageDropdown.onValueChanged.RemoveListener(OnLanguageChanged);
         _masterVolumeSlider.onValueChanged.RemoveListener(_optionManager.ApplyMasterVolume);
         _bgmVolumeSlider.onValueChanged.RemoveListener(_optionManager.ApplyBGMVolume);
@@ -112,7 +120,9 @@ public class OptionUI : MonoBehaviour
         _resolutionDropdown.onValueChanged.RemoveListener(_optionManager.ApplyResolution);
         _fullscreenToggle.onValueChanged.RemoveListener(_optionManager.ApplyFullscreen);
         _qualityDropdown.onValueChanged.RemoveListener(_optionManager.ApplyQuality);
-        _mouseSensitivitySlider.onValueChanged.RemoveListener(_optionManager.ApplyMouseSensitivity);
+        _mouseSensitivitySlider.onValueChanged.RemoveListener(OnSensitivityChanged);
+
+        _subscribed = false;
     }
 
     /// <summary>
@@ -120,7 +130,8 @@ public class OptionUI : MonoBehaviour
     /// </summary>
     void OnLanguageChanged(int index)
     {
-        language = (index == 0) ? "en" : "ko";
+        string language = (index == 0) ? "en" : "ko";
+        _optionManager.ApplyLanguage(language);
     }
 
     /// <summary>
@@ -137,7 +148,6 @@ public class OptionUI : MonoBehaviour
     /// </summary>
     public void OnClickSave()
     {
-        _optionManager.ApplyLanguage(language);
         _optionManager.Save();
         gameObject.SetActive(false);
     }

@@ -15,7 +15,6 @@ public class OptionManager : MonoBehaviour
     Resolution[] _resolutions;
 
     public event Action<float> OnMouseSensitivityChanged;
-    public event Action OnLanguageChanged;
 
     public OptionData OptionData => _optionData;
     public Resolution[] GetResolutions() => _resolutions;
@@ -82,19 +81,23 @@ public class OptionManager : MonoBehaviour
     /// </summary>
     public void ApplyLanguage(string language)
     {
-        _optionData.SetLanguage(language);
-        
-        // Localization 언어 변경
-        foreach (var locale in LocalizationSettings.AvailableLocales.Locales)
+        if (string.IsNullOrEmpty(language))
         {
-            if (locale.Identifier.Code == language)
-            {
-                LocalizationSettings.SelectedLocale = locale;
-                break;
-            }
+            language = string.IsNullOrEmpty(_optionData.Language) ? "ko" : _optionData.Language;
         }
 
-        OnLanguageChanged?.Invoke();
+        var locale = LocalizationSettings.AvailableLocales.Locales
+            .FirstOrDefault(locale => locale.Identifier.Code == language);
+
+        if (locale == null) return;
+
+        _optionData.SetLanguage(language);
+
+        // Localization 언어 변경
+        if (LocalizationSettings.SelectedLocale != locale)
+        {
+            LocalizationSettings.SelectedLocale = locale;
+        }
     }
 
     /// <summary>
