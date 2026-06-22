@@ -118,6 +118,11 @@ public class BaseWall : MonoBehaviour
                 Vector3 dir = (col.transform.position - _hqCenter.position).normalized;
                 dir.y = 0f;
 
+                // 뒤쪽(-z)으로는 밀지 않음
+                if (dir.z < 0f) dir.z = 0f;
+                if (dir.sqrMagnitude < Util.Epsilon) dir = Vector3.forward;
+                else dir = dir.normalized;
+
                 float dist = Vector3.Distance(col.transform.position, _hqCenter.position);
                 float pushStrength = Mathf.Clamp(10f / dist, 0.5f, 3f);
 

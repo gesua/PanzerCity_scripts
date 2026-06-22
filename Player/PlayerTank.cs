@@ -23,6 +23,10 @@ public class PlayerTank : TankBase
     [SerializeField] ParticleSystem _shieldParticle; // 실드 파티클 색 변경 용도
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
+    [Header("----- 리스폰 밀어내기 -----")]
+    [SerializeField] float _respawnPushRadius = 2f;    // 밀어낼 탱크 감지 반경
+    [SerializeField] float _respawnPushStrength = 2f;  // 밀어내는 강도
+    [SerializeField] LayerMask _respawnPushLayer = 1 << 8 | 1 << 9;      // 밀어낼 대상 레이어(플레이어 + 적)
 
     bool _isAttack; // 좌클릭 누르는 중인지
     bool _isSniperMode; // 저격 모드인지(Shift)
@@ -228,7 +232,8 @@ public class PlayerTank : TankBase
         _commander.transform.localRotation = Quaternion.identity;
         _commander.Reset();
 
-        // 카메라 이동
+        PushOutTanks(spawnPos); // 리스폰 지점 주변 탱크 밀어내기
+
         _mover.Teleport(spawnPos, Quaternion.identity); // 시작 위치로
         _turret.ResetRotation(); // 포탑 초기화
         _normalVisual.SetActive(false); // 모델 비활성화
@@ -295,8 +300,6 @@ public class PlayerTank : TankBase
         _shieldRenderer.trailMaterial.color = color;
         var main = _shieldParticle.main;
         main.startColor = color;
-
-        
     }
 
     /// <summary>
@@ -305,6 +308,35 @@ public class PlayerTank : TankBase
     public void SetPlayerGravity(bool enable)
     {
         _mover.SetGravity(enable);
+    }
+
+    /// <summary>
+    /// 리스폰 지점 주변의 탱크를 밀어냄
+    /// </summary>
+    void PushOutTanks(Vector3 center)
+    {
+        Collider[] colliders = Physics.OverlapSphere(center, _respawnPushRadius, _respawnPushLayer);
+
+        foreach (Collider col in colliders)
+        {
+            // 자기 자신 제외
+            if (col.GetComponentInParent<PlayerTank>() == this) continue;
+
+            Rigidbody rigid = col.attachedRigidbody;
+            if (rigid == null) continue;
+
+            Vector3 dir = (col.transform.position - center).normalized;
+            dir.y = 0f;
+
+            // 리스폰 지점 뒤쪽(-z)으로는 밀지 않음
+            if (dir.z < 0f) dir.z = 0f;
+
+            // 클램프 후 방향이 0이면 기본 방향(앞쪽)으로
+            if (dir.sqrMagnitude < Util.Epsilon) dir = Vector3.forward;
+            else dir = dir.normalized;
+
+            rigid.position = rigid.position + dir * _respawnPushStrength;
+        }
     }
 
     /// <summary>
@@ -322,4 +354,19 @@ public class PlayerTank : TankBase
             _turret.enabled = true;
         }
     }
+
+    private void OnDrawGizmosSelected()
+    {
+        // 리스폰 밀어내기 감지 반경
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, _respawnPushRadius);
+
+        // -z 방향 밀어내기 차단 경계선
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(
+            transform.position + Vector3.left * _respawnPushRadius,
+            transform.position + Vector3.right * _respawnPushRadius
+        );
+    }
+
 }
