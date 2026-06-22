@@ -498,7 +498,6 @@ public class GameScene : MonoBehaviour
 
         // 마지막 스테이지면 상점 없이 게임 클리어 UI 표시
         // HACK:게임 클리어에서 이어하기 하면 상점 나오게 할거임
-        Debug.Log(GameManager.Instance.DataManager.LastStageID);
         if (_currentStage.StageID == GameManager.Instance.DataManager.LastStageID)
         {
             _OnCursor = true;
@@ -515,6 +514,9 @@ public class GameScene : MonoBehaviour
 
         // 드롭존 비활성화
         _dropZoneUI.SetActiveState(false);
+
+        // 남아있는 포탄, 아이템 등을 모든 Pool로 강제 반환
+        GameManager.Instance.PoolManager.ReturnAllPools();
 
         // 상점 열기
         _isShopOpen = true;
@@ -585,9 +587,6 @@ public class GameScene : MonoBehaviour
 
         // 스테이지 구독 해제
         UnsubscribeStage();
-
-        // 남아있는 포탄, 아이템 등을 모든 Pool로 강제 반환
-        GameManager.Instance.PoolManager.ReturnAllPools();
 
         // 현재 Stage 씬 언로드
         if (_currentStageUnload != null)

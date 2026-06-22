@@ -79,8 +79,12 @@ public class GameOverUI : MonoBehaviour
     {
         // 배경 페이드 인
         yield return FadeRoutine(_backgroundImage, _bgFadeDuration);
+
         // 어둡게 페이드 인 (알파 값 200까지만)
         yield return FadeRoutine(_darkOverlay, _darkFadeDuration, 200f / 255f);
+
+        // 남아있는 포탄, 아이템 등을 모든 Pool로 강제 반환
+        GameManager.Instance.PoolManager.ReturnAllPools();
 
         // 마우스 커서 보이게
         Cursor.lockState = CursorLockMode.None;

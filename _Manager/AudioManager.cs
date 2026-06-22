@@ -13,7 +13,7 @@ public enum SfxType
 
     // 미검수
     GameOver,   // 게임오버(HQ 파괴/목숨 소진 둘 다 동일) <----- flac로 가져오기
-    StageClear, // +스테이지 클리어(적 전멸, 중간 단계)
+    StageClear, // +스테이지 클리어(적 전멸)
     GameClear,  // 게임 클리어(마지막 스테이지) <----- flac로 가져오기
 }
 

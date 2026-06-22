@@ -16,7 +16,7 @@ public class QuickSlot : MonoBehaviour
         }
         else // 아이콘 어둡게
         {
-            _icon.color = Color.gray;
+            _icon.color = Color.gray2;
         }
     }
 }

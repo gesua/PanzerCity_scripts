@@ -96,6 +96,12 @@ public class Pool
             return;
         }
 
+        if (go == null)
+        {
+            Debug.Log("오브젝트가 이미 사라져서 반환 불가");
+            return;
+        }
+
         _activeObjects.Remove(go);
         go.transform.SetParent(_parent);
         go.SetActive(false);
