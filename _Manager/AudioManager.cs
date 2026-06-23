@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.EditorTools;
 using UnityEngine;
 
 public enum BgmType
@@ -47,8 +48,8 @@ public class AudioManager : MonoBehaviour
     [SerializeField] BgmEntry[] _bgmEntries;
     [SerializeField] SfxEntry[] _sfxEntries;
     Dictionary<SfxType, AudioClip> _sfxDict;
-    [Header("----- 3D 풀링 SFX -----")]
-    [SerializeField] string _pooledSfxPrefabPath = "Sfx/PooledSfx"; // PooledSfx 컴포넌트가 붙은 프리팹 경로
+
+    string _pooledSfxPrefabPath = "Audio/SFX_Pool"; // PooledSfx 컴포넌트가 붙은 프리팹 경로
     Dictionary<BgmType, AudioClip> _bgmDict;
 
     void Awake()
@@ -64,6 +65,8 @@ public class AudioManager : MonoBehaviour
         {
             _sfxDict[entry.type] = entry.clip;
         }
+
+        GameManager.Instance.PoolManager.GetPool(_pooledSfxPrefabPath); // Pool 미리 만들어놓기
     }
 
     [ContextMenu("BGM 빈 슬롯 자동 채우기")]

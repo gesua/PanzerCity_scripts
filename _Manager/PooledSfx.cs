@@ -7,14 +7,9 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class PooledSfx : MonoBehaviour
 {
-    AudioSource _audioSource;
+    [SerializeField] AudioSource _audioSource;
     float _timer;
     bool _isPlaying;
-
-    void Awake()
-    {
-        _audioSource = GetComponent<AudioSource>();
-    }
 
     /// <summary>
     /// 지정 위치에서 클립 재생 시작
