@@ -132,10 +132,10 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         ResetMud();
 
         // 성격 랜덤 설정
-        _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
+        //_personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        //_personality = EnemyPersonality.Coward;
+        _personality = EnemyPersonality.Coward;
 
         // 상태 객체들 생성
         // 방치 상태
@@ -611,7 +611,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     protected bool TryGetAgentSteeringDirection(out Vector3 dir)
     {
         dir = Vector3.zero;
-        if (_agent == null || _agent.enabled == false || _agent.pathPending) return false;
+        if (_agent == null || _agent.enabled == false) return false;
 
         dir = GetFlatDirection(transform.position, _agent.steeringTarget);
         if (dir.sqrMagnitude < Util.Epsilon) return false;
