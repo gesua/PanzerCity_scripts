@@ -12,10 +12,24 @@ public class SniperModeController : MonoBehaviour
     [SerializeField] CinemachineCamera _sniperCam;  // 저격 모드 카메라
     [SerializeField] Renderer[] _tankRenderers;     // 탱크 렌더러들 (저격 모드에서 비활성화)
     [SerializeField] GameObject _human; // 사람 캐릭터 (저격 모드에서 비활성화)
+    [SerializeField] Transform _mainCameraTr; // 거리 체크용 메인 카메라
+    [SerializeField] Transform _playerTarget; // 카메라와 거리 비교할 기준점
+
+    [Header("----- 카메라 근접 숨김 -----")]
+    [SerializeField] float _hideDistance = 3f; // 이 거리보다 가까우면 모델 숨김
+    [SerializeField] float _showDistance = 3.4f; // 이 거리보다 멀어지면 모델 다시 표시
 
     bool _isSniper;
+    bool _isCameraTooClose;
+    bool _lastVisualHidden;
+    bool _hasAppliedVisual;
 
     public bool IsSniper => _isSniper;
+
+    private void LateUpdate()
+    {
+        UpdateCameraCloseState();
+    }
 
     /// <summary>
     /// 저격 모드 토글
@@ -36,13 +50,48 @@ public class SniperModeController : MonoBehaviour
         _normalCam.Priority = active ? 0 : 10;
         _sniperCam.Priority = active ? 10 : 0;
 
+        ApplyPlayerVisual();
+    }
+
+    /// <summary>
+    /// 카메라가 플레이어 모델에 가까운지 확인
+    /// </summary>
+    void UpdateCameraCloseState()
+    {
+        if (_mainCameraTr == null || _playerTarget == null) return;
+
+        float hideDistance = Mathf.Max(0f, _hideDistance);
+        float showDistance = Mathf.Max(hideDistance, _showDistance);
+        float threshold = (_isCameraTooClose) ? showDistance : hideDistance;
+        float sqrThreshold = threshold * threshold;
+        bool isCameraTooClose = (_mainCameraTr.position - _playerTarget.position).sqrMagnitude < sqrThreshold;
+
+        if (_isCameraTooClose == isCameraTooClose) return;
+
+        _isCameraTooClose = isCameraTooClose;
+        ApplyPlayerVisual();
+    }
+
+    /// <summary>
+    /// 실제 플레이어 모델 표시 상태 적용
+    /// </summary>
+    void ApplyPlayerVisual()
+    {
+        bool shouldHide = _isSniper || _isCameraTooClose;
+
+        if (_hasAppliedVisual && _lastVisualHidden == shouldHide) return;
+
+        _hasAppliedVisual = true;
+        _lastVisualHidden = shouldHide;
+
         // 내 탱크 렌더러들
         foreach (Renderer renderer in _tankRenderers)
         {
-            renderer.enabled = !active;
+            if (renderer == null) continue;
+            renderer.enabled = !shouldHide;
         }
 
         // 사람 캐릭터
-        _human.SetActive(!active);
+        if (_human != null) _human.SetActive(!shouldHide);
     }
 }
