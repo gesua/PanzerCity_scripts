@@ -55,6 +55,7 @@ public class GameScene : MonoBehaviour
     AsyncOperation _nextStageLoad; // 다음 스테이지 미리 로드 할 거
 
     Coroutine _hyperShieldRoutine;
+    Coroutine _respawnShieldRoutine;
 
     // 카메라 w크기 관련
     float _rightPanelPixelWidth = 350f; // 오른쪽 패널 픽셀 너비
@@ -94,6 +95,7 @@ public class GameScene : MonoBehaviour
 
         _player.Model.OnDead += HandlePlayerDead;
         _player.OnPlayerRespawn += HandlePlayerRespawn;
+        _player.OnRespawnComplete += HandleRespawnComplete;
         _player.ItemPickup.OnAutoUsed += _itemEffectHandler.Use;
         _inventoryUI.Presenter.OnItemDropped += HandleItemDropped;
 
@@ -434,6 +436,15 @@ public class GameScene : MonoBehaviour
             _gameOverUI.Show(false);
             _isGameOver = true;
         }
+    }
+
+    /// <summary>
+    /// 리스폰 무적
+    /// </summary>
+    void HandleRespawnComplete(float duration)
+    {
+        if (_respawnShieldRoutine != null) StopCoroutine(_respawnShieldRoutine);
+        _respawnShieldRoutine = StartCoroutine(HyperShieldRoutine(duration));
     }
 
     /// <summary>

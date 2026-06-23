@@ -48,6 +48,7 @@ public class EnemySpawner : MonoBehaviour
 
     Coroutine _spawnEnemyRoutine;
     Coroutine _retryRoutine;
+    Coroutine _empRoutine;
 
     public void Initialize(int stageID)
     {
@@ -264,7 +265,12 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     public void StartEMPField(float duration)
     {
-        StartCoroutine(EMPFieldRoutine(duration));
+        if (_empRoutine != null)
+        {
+            StopCoroutine(_empRoutine);
+            SetAllEnemiesVisible(true); // 깜빡임 도중 꺼진 렌더러 복구
+        }
+        _empRoutine = StartCoroutine(EMPFieldRoutine(duration));
     }
 
     IEnumerator EMPFieldRoutine(float duration)
@@ -288,6 +294,8 @@ public class EnemySpawner : MonoBehaviour
 
         _isEMPActive = false;
         SetAllEnemiesAIActive(true);
+
+        _empRoutine = null;
     }
 
     /// <summary>

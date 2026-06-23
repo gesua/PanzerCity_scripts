@@ -23,9 +23,10 @@ public class PlayerTank : TankBase
     [SerializeField] ParticleSystem _shieldParticle; // 실드 파티클 색 변경 용도
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _deadDuration = 5f; // 사망 상태 지속 시간
+    [SerializeField] float _respawnShieldDuration = 3f; // 리스폰 무적 시간
     [Header("----- 리스폰 밀어내기 -----")]
     [SerializeField] float _respawnPushRadius = 2f; // 밀어낼 탱크 감지 반경
-    [SerializeField] float _respawnPushOffset = 0.5f; // 밀어내기 강도 배율
+    [SerializeField] float _respawnPushOffset = 0.1f; // 밀어내기 강도 배율
     [SerializeField] LayerMask _respawnPushLayer = 1 << 8 | 1 << 9; // 밀어낼 대상 레이어(플레이어 + 적)
 
     bool _isAttack; // 좌클릭 누르는 중인지
@@ -45,7 +46,7 @@ public class PlayerTank : TankBase
     public event Action<int> OnDamaged;   // 대미지 받음<현재 HP>
     public event Action<HitData> OnHit;   // 피격
     public event Action OnPlayerRespawn;  // 리스폰
-
+    public event Action<float> OnRespawnComplete; // 리스폰 완료<무적 지속시간>
 
     protected override void Awake()
     {
@@ -257,6 +258,7 @@ public class PlayerTank : TankBase
         _normalVisual.SetActive(true); // 모델 활성화
         _miniMapTankIcon.Show(); // 미니맵 아이콘 보이기
         _model.Initialize(); // HP 초기화
+        OnRespawnComplete?.Invoke(_respawnShieldDuration); // 리스폰 무적 시작
     }
 
     /// <summary>
