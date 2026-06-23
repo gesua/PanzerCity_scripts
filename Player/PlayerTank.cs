@@ -22,11 +22,11 @@ public class PlayerTank : TankBase
     [SerializeField] LoopEffect _shieldEffect; // 실드 이펙트
     [SerializeField] ParticleSystem _shieldParticle; // 실드 파티클 색 변경 용도
     [Header("----- 런타임 데이터 -----")]
-    [SerializeField] float _deadDuration = 5f;  // 사망 상태 지속 시간
+    [SerializeField] float _deadDuration = 5f; // 사망 상태 지속 시간
     [Header("----- 리스폰 밀어내기 -----")]
-    [SerializeField] float _respawnPushRadius = 2f;    // 밀어낼 탱크 감지 반경
-    [SerializeField] float _respawnPushStrength = 2f;  // 밀어내는 강도
-    [SerializeField] LayerMask _respawnPushLayer = 1 << 8 | 1 << 9;      // 밀어낼 대상 레이어(플레이어 + 적)
+    [SerializeField] float _respawnPushRadius = 2f; // 밀어낼 탱크 감지 반경
+    [SerializeField] float _respawnPushOffset = 0.5f; // 밀어내기 강도 배율
+    [SerializeField] LayerMask _respawnPushLayer = 1 << 8 | 1 << 9; // 밀어낼 대상 레이어(플레이어 + 적)
 
     bool _isAttack; // 좌클릭 누르는 중인지
     bool _isSniperMode; // 저격 모드인지(Shift)
@@ -326,6 +326,7 @@ public class PlayerTank : TankBase
             if (rigid == null) continue;
 
             Vector3 dir = (col.transform.position - center).normalized;
+
             dir.y = 0f;
 
             // 리스폰 지점 뒤쪽(-z)으로는 밀지 않음
@@ -335,7 +336,12 @@ public class PlayerTank : TankBase
             if (dir.sqrMagnitude < Util.Epsilon) dir = Vector3.forward;
             else dir = dir.normalized;
 
-            rigid.position = rigid.position + dir * _respawnPushStrength;
+            // 밀어냄
+            float dist = Vector3.Distance(col.transform.position, center);
+            float pushStrength = Mathf.Clamp(10f / dist, 0.5f, 3f);
+
+            rigid.position = rigid.position + dir * pushStrength * _respawnPushOffset;
+
         }
     }
 
@@ -368,5 +374,4 @@ public class PlayerTank : TankBase
             transform.position + Vector3.right * _respawnPushRadius
         );
     }
-
 }
