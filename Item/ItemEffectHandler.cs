@@ -6,10 +6,6 @@ using UnityEngine;
 /// </summary>
 public class ItemEffectHandler : MonoBehaviour
 {
-    [SerializeField] float _baseShieldDuration = 10f; // 기지 무적 시간
-    [SerializeField] float _hyperShieldDuration = 10f; // 나 무적 시간
-    [SerializeField] float _empFieldDuration = 10f; // 적 멈추는 시간
-
     public event Action OnLifeUp;
     /// <summary>
     /// 기지 무적 [지속시간]
@@ -25,21 +21,21 @@ public class ItemEffectHandler : MonoBehaviour
     public event Action<float> OnEMPField;
     public event Action OnAirSupport;
 
-    public void Use(int itemID)
+    public void Use(ItemConfig config)
     {
-        switch (itemID)
+        switch (config.Id)
         {
             case 1001: // 목숨 증가
                 UseLifeUp();
                 break;
             case 1002: // 기지 무적
-                UseBaseShield();
+                UseBaseShield(config.Duration);
                 break;
             case 1003: // 나 무적
-                UseHyperShield();
+                UseHyperShield(config.Duration);
                 break;
             case 1004: // 적 멈춤
-                UseEMPField();
+                UseEMPField(config.Duration);
                 break;
             case 1005: // 폭탄
                 UseAirSupport();
@@ -58,25 +54,25 @@ public class ItemEffectHandler : MonoBehaviour
     /// <summary>
     /// 기지 무적
     /// </summary>
-    void UseBaseShield()
+    void UseBaseShield(float duration)
     {
-        OnBaseShield?.Invoke(_baseShieldDuration);
+        OnBaseShield?.Invoke(duration);
     }
 
     /// <summary>
     /// 나 무적
     /// </summary>
-    void UseHyperShield()
+    void UseHyperShield(float duration)
     {
-        OnHyperShield?.Invoke(_hyperShieldDuration);
+        OnHyperShield?.Invoke(duration);
     }
 
     /// <summary>
     /// 적 멈춤
     /// </summary>
-    void UseEMPField()
+    void UseEMPField(float duration)
     {
-        OnEMPField?.Invoke(_empFieldDuration);
+        OnEMPField?.Invoke(duration);
     }
 
     /// <summary>

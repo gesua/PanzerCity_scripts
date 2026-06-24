@@ -10,6 +10,7 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] CanvasGroup _group;
     [SerializeField] DraggingItemUI _draggingItem;
     [SerializeField] InventoryView _inventoryView;
+    [SerializeField] ItemTooltipUI _tooltip;          // 아이템 툴팁 UI
     [SerializeField] int _width = 4;
     [SerializeField] int _height = 5;
     [Header("----- 이미지 관련 -----")]
@@ -30,7 +31,7 @@ public class InventoryUI : MonoBehaviour
     private void Awake()
     {
         _inventoryModel = new InventoryModel(_width, _height);
-        _inventoryPresenter = new InventoryPresenter(_inventoryModel, _inventoryView, _draggingItem, GameManager.Instance.EquipmentManager);
+        _inventoryPresenter = new InventoryPresenter(_inventoryModel, _inventoryView, _draggingItem, GameManager.Instance.EquipmentManager, _tooltip);
 
         _orgParent = _playerStatusRect.parent;
     }
@@ -48,8 +49,15 @@ public class InventoryUI : MonoBehaviour
         _group.blocksRaycasts = _isActive;
 
         // 가방 이미지 변경
-        if (_isActive) _btnImg.sprite = _open;
-        else _btnImg.sprite = _close;
+        if (_isActive)
+        {
+            _btnImg.sprite = _open;
+        }
+        else
+        {
+            _btnImg.sprite = _close;
+            _tooltip.Hide(); // 인벤토리 닫을 때 툴팁 숨김
+        }
     }
 
     /// <summary>
@@ -79,5 +87,6 @@ public class InventoryUI : MonoBehaviour
         _group.alpha = 0f;
         _group.interactable = false;
         _group.blocksRaycasts = false;
+        _tooltip.Hide(); // 상점 퇴장 시 툴팁 숨김
     }
 }

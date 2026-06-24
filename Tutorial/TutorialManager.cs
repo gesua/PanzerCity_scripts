@@ -5,7 +5,7 @@ public class TutorialManager : MonoBehaviour
 {
     [SerializeField] GameObject go;
 
-    int _step = 0;
+    //int _step = 0;
     /*
     void Start()
     {

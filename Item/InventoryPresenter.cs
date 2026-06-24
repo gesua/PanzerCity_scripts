@@ -13,22 +13,24 @@ public class InventoryPresenter
     DraggingItemUI _draggingItemUI;
     ItemModel _draggingItemModel;
     EquipmentManager _equipmentManager;
+    ItemTooltipUI _tooltip;
 
     bool _isShop; // 상점일 때
 
     public bool IsDragging => _draggingItemModel != null;
     public IReadOnlyList<ItemModel> Items => _model.Items;
 
-    public event Action<int> OnItemUsed;    // 아이템 사용(ID)
+    public event Action<ItemConfig> OnItemUsed; // 아이템 사용
     public event Action OnInventoryChanged; // 인벤토리 변경(퀵슬롯 갱신용)
     public event Action<ItemConfig> OnItemDropped; // 바닥에 아이템 버림
 
-    public InventoryPresenter(InventoryModel model, InventoryView view, DraggingItemUI draggingItem, EquipmentManager equipmentManager)
+    public InventoryPresenter(InventoryModel model, InventoryView view, DraggingItemUI draggingItem, EquipmentManager equipmentManager, ItemTooltipUI tooltip)
     {
         _model = model;
         _view = view;
         _draggingItemUI = draggingItem;
         _equipmentManager = equipmentManager;
+        _tooltip = tooltip;
 
         _view.Initialize(_model.Width);
         _view.OnDragBegin += HandleDragBegin;
@@ -37,6 +39,8 @@ public class InventoryPresenter
         _view.OnItemMoved += HandleItemMoved;
         _view.OnItemClicked += HandleItemClicked;
         _view.OnCanPlace = (item, pos) => _model.CanPlace(item, pos);
+        _view.OnItemHoverEnter += HandleItemHoverEnter;
+        _view.OnItemHoverExit += HandleItemHoverExit;
     }
 
     /// <summary>
@@ -45,6 +49,7 @@ public class InventoryPresenter
     void HandleDragBegin(ItemModel item, Vector2 screenPos)
     {
         _draggingItemModel = item;
+        _tooltip.Hide(); // 드래그 시작 시 툴팁 숨김
         _view.SetItemContainerRaycast(false);
         _draggingItemUI.Show(item.Config.IconSprite, screenPos, GetItemSize(item));
     }
@@ -117,6 +122,23 @@ public class InventoryPresenter
     }
 
     /// <summary>
+    /// 아이템에 마우스 올림
+    /// </summary>
+    void HandleItemHoverEnter(ItemModel item, Vector3 iconPos)
+    {
+        if (IsDragging) return; // 드래그 중엔 툴팁 표시 안 함
+        _tooltip.Show(item.Config, iconPos);
+    }
+
+    /// <summary>
+    /// 아이템에서 마우스 나감
+    /// </summary>
+    void HandleItemHoverExit()
+    {
+        _tooltip.Hide();
+    }
+
+    /// <summary>
     /// 아이템 추가
     /// </summary>
     public bool AddItem(ItemModel item)
@@ -134,6 +156,7 @@ public class InventoryPresenter
     /// </summary>
     public void RemoveItem(ItemModel item)
     {
+        _tooltip.Hide(); // 아이템 제거 시 툴팁 숨김
         _model.RemoveItem(item);
         _view.RemoveItemView(item);
         OnInventoryChanged?.Invoke();
@@ -144,7 +167,7 @@ public class InventoryPresenter
     /// </summary>
     void UseItem(ItemModel item)
     {
-        OnItemUsed?.Invoke(item.Config.Id);
+        OnItemUsed?.Invoke(item.Config);
         GameManager.Instance.GameStatistics.AddItemUsed(); // 통계 기록
         RemoveItem(item); // RemoveItem 안에서 OnInventoryChanged 발행
     }

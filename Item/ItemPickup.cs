@@ -17,7 +17,7 @@ public class ItemPickup : MonoBehaviour
     DroppedItem _nearestItem; // 획득할 가까운 아이템
     InventoryPresenter _inventoryPresenter;
 
-    public event Action<int> OnAutoUsed; // 즉시 사용 아이템 획득(ID)
+    public event Action<ItemConfig> OnAutoUsed; // 즉시 사용 아이템 획득
     Func<bool> _isDeadCheck; // 플레이어 죽었는지 넘겨받는 용도
 
     public void Initialize(InventoryPresenter inventoryPresenter, Func<bool> isDeadCheck)
@@ -95,7 +95,7 @@ public class ItemPickup : MonoBehaviour
         // 즉시 사용 아이템 — 인벤토리 거치지 않고 바로 효과 발동
         if (_nearestItem.ItemConfig.AutoUse)
         {
-            OnAutoUsed?.Invoke(_nearestItem.ItemConfig.Id);
+            OnAutoUsed?.Invoke(_nearestItem.ItemConfig);
             _nearestItem.Pickup();
             _nearestItem = null;
             _pickupUI.SetActive(false);

@@ -27,6 +27,8 @@ public class InventoryView : MonoBehaviour
     public Action<ItemModel, Vector2Int> OnItemDragging; // 아이템 드래그중
     public Action<ItemModel> OnItemClicked;              // 아이템 클릭
     public Func<ItemModel, Vector2Int, bool> OnCanPlace; // 놓을 수 있는 위치인지 체크
+    public Action<ItemModel, Vector3> OnItemHoverEnter;  // 아이템에 마우스 올림 <아이템, 아이콘 월드 위치>
+    public Action OnItemHoverExit;                       // 아이템에서 마우스 나감
 
     public float CellSize => _cellSize;
 
@@ -126,6 +128,9 @@ public class InventoryView : MonoBehaviour
                 OnDragEnd?.Invoke();
                 ResetCellColors();
             };
+            itemView.OnHoverEnter += (hoveredItem, pos) => OnItemHoverEnter?.Invoke(hoveredItem, pos);
+            itemView.OnHoverExit += () => OnItemHoverExit?.Invoke();
+
             _itemViews[item] = itemView;
             UpdateItemViewPosition(item);
         }

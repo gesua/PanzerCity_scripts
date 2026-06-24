@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// 개별 아이템
 /// ItemModel을 받아서 아이콘을 UI로 보여줌
 /// </summary>
-public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler, IPoolReturnHandler
+public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPoolReturnHandler
 {
     [SerializeField] Image _icon;
 
@@ -16,6 +16,8 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     public Action OnDragEnded;          // 드래그 끝
     public Action OnDragCanceled;       // 드래그 취소
     public Action OnClicked;            // 클릭
+    public Action<ItemModel, Vector3> OnHoverEnter; // 마우스 올림 <아이템, 아이콘 월드 위치>
+    public Action OnHoverExit;          // 마우스 나감
 
     ItemModel _item;
     float _cellSize;
@@ -55,6 +57,7 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        OnHoverExit?.Invoke(); // 드래그 시작 시 마우스 올림 상태 해제
         OnDragBegin?.Invoke(eventData.position);
         _icon.enabled = false;
 
@@ -92,6 +95,17 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         ResetPosition();
     }
 
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (eventData.dragging) return; // 드래그 중엔 무시
+        OnHoverEnter?.Invoke(_item, _rectTransform.position);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        OnHoverExit?.Invoke();
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
         OnClicked?.Invoke();
@@ -115,5 +129,7 @@ public class ItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         OnDragging = null;
         OnDragEnded = null;
         OnDragCanceled = null;
+        OnHoverEnter = null;
+        OnHoverExit = null;
     }
 }

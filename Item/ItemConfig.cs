@@ -51,6 +51,7 @@ public class ItemConfig : ScriptableObject
     [SerializeField] ItemType _itemType;            // 타입
     [SerializeField] Sprite _iconSprite;            // 스프라이트
     [SerializeField] bool _autoUse;                 // 줍자마자 즉시 사용
+    [SerializeField] float _duration;               // 효과 지속시간 (소모성 아이템)
 
     [Header("----- 장비 설정 -----")]
     [SerializeField] EquipSlot _equipSlot; // 장착 슬롯 (장비 아이템만)
@@ -63,6 +64,11 @@ public class ItemConfig : ScriptableObject
     public ItemType ItemType => _itemType;
     public string ItemName => _itemName;
     public string Desc => _desc;
+
+    public string NameKey => _nameKey;
+    public string DescKey => _descKey;
+    public float Duration => _duration;
+
     public int BuyPrice => _buyPrice;
     public Sprite IconSprite => _iconSprite;
     public bool AutoUse => _autoUse;
