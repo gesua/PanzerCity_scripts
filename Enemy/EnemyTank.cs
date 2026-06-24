@@ -625,6 +625,8 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     /// </summary>
     protected virtual void HandleDead(HitData hitData)
     {
+        Debug.Log("탱크 사망");
+
         // 엔진 끄기
         SetEngineEffect(false);
 
