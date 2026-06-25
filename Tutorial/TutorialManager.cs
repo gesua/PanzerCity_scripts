@@ -18,7 +18,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (index >= _steps.Length)
         {
-            Debug.Log("튜토리얼 완료");
+            //Debug.Log("튜토리얼 완료");
             return;
         }
 
@@ -28,13 +28,13 @@ public class TutorialManager : MonoBehaviour
             _steps[i].gameObject.SetActive(i == index);
         }
 
-        Debug.Log($"튜토리얼 스텝 {index + 1} 시작");
+        //Debug.Log($"튜토리얼 스텝 {index + 1} 시작");
         _steps[index].Init(OnStepComplete);
     }
 
     void OnStepComplete()
     {
-        Debug.Log($"튜토리얼 스텝 {_currentIndex + 1} 완료");
+        //Debug.Log($"튜토리얼 스텝 {_currentIndex + 1} 완료");
         _currentIndex++;
         StartStep(_currentIndex);
     }

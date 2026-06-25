@@ -1,14 +1,51 @@
+using System;
 using UnityEngine;
+
+public enum DummyTankMode
+{
+    None,       // 안 움직이고, 안 쏨
+    Stationary, // 안 움직이고, 쏨
+    Roam,       // 움직이고, 안 쏨
+}
 
 /// <summary>
 /// 튜토리얼용 더미 탱크
 /// </summary>
 public class DummyTank : EnemyTank
 {
+    [SerializeField] DummyTankMode _mode;
+
+    public event Action OnDummyDead;
+
+    private void OnEnable()
+    {
+        switch (_mode)
+        {
+            case DummyTankMode.None:
+                break;
+            case DummyTankMode.Stationary:
+                Initialize();
+                _personality = EnemyPersonality.Stationary;
+                StartAI();
+                break;
+            case DummyTankMode.Roam:
+                Initialize();
+                _personality = EnemyPersonality.Ignore;
+                StartAI();
+                break;
+        }
+    }
+
+    public override void ChangeState(EnemyStateType stateType)
+    {
+        // Stationary/Roam 모드에서 Idle 복귀 차단
+        if (_mode != DummyTankMode.None && stateType == EnemyStateType.Idle) return;
+
+        base.ChangeState(stateType);
+    }
+
     protected override void HandleDead(HitData hitData)
     {
-        Debug.Log("더미 탱크 사망");
-
         // 엔진 끄기
         SetEngineEffect(false);
 
@@ -24,5 +61,7 @@ public class DummyTank : EnemyTank
 
         // 사망 효과 재생
         _destructionEffect.Play();
+
+        OnDummyDead?.Invoke();
     }
 }

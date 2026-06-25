@@ -187,7 +187,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     /// 상태 변경
     /// </summary>
     /// <param name="stateType">변경할 상태</param>
-    public void ChangeState(EnemyStateType stateType)
+    public virtual void ChangeState(EnemyStateType stateType)
     {
         if (_currentState == null) return;
 
@@ -625,8 +625,6 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     /// </summary>
     protected virtual void HandleDead(HitData hitData)
     {
-        Debug.Log("탱크 사망");
-
         // 엔진 끄기
         SetEngineEffect(false);
 

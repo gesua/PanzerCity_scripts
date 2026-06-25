@@ -2,17 +2,17 @@ using UnityEngine;
 
 public class KillTutorial : TutorialStep
 {
-    [SerializeField] TankModel[] _dummyTanks;
-    [SerializeField] GameObject _gate; // 문 오브젝트
+    [SerializeField] DummyTank[] _dummyTanks;
+    [SerializeField] GameObject _gate; // 열릴 오브젝트
 
     int _aliveCount;
 
-    private void Awake()
+    private void OnEnable()
     {
         _aliveCount = _dummyTanks.Length;
 
         for (int i = 0; i < _dummyTanks.Length; i++)
-            _dummyTanks[i].OnDead += OnTankDead;
+            _dummyTanks[i].OnDummyDead += OnTankDead;
     }
 
     private void OnDisable()
@@ -21,18 +21,17 @@ public class KillTutorial : TutorialStep
         for (int i = 0; i < _dummyTanks.Length; i++)
         {
             if (_dummyTanks[i] != null)
-                _dummyTanks[i].OnDead -= OnTankDead;
+                _dummyTanks[i].OnDummyDead -= OnTankDead;
         }
     }
 
-    void OnTankDead(HitData hitData)
+    void OnTankDead()
     {
         _aliveCount--;
-        Debug.Log($"적 전차 갯수 감소 {_aliveCount}");
 
         if (_aliveCount <= 0)
         {
-            _gate.SetActive(false);
+            if (_gate != null) _gate.SetActive(false);
             Complete();
         }
     }
