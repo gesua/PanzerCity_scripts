@@ -138,7 +138,6 @@ public class CombatState : EnemyState
     {
         _attackInterval = Random.Range(_minAttackTime, _maxAttackTime);
 
-
         // 네브메시 쓰는 성격은 켜기
         switch (_enemy.Personality)
         {

@@ -14,8 +14,71 @@ public enum DummyTankMode
 public class DummyTank : EnemyTank
 {
     [SerializeField] DummyTankMode _mode;
+    [Header("----- 중전차 관련 -----")]
+    [SerializeField] bool _isHeavy; // 중전차 색상 변화 여부
+    [SerializeField] Renderer[] _renderers; // 색상 바꿀 렌더러들
+
+    // 바뀔 색 (HeavyTank와 동일)
+    Color[] _hpColors =
+    {
+        new Color(0f, 0.5f, 0f),    // 4/4 초록
+        Color.yellow,               // 3/4 노랑
+        new Color(1f, 0.5f, 0f),    // 2/4 주황
+        Color.red                   // 1/4 빨강
+    };
+
 
     public event Action OnDummyDead;
+
+    protected override void Awake()
+    {
+        base.Awake();
+
+        if (_isHeavy)
+        {
+            // 색 변경
+            foreach (Renderer renderer in _renderers)
+            {
+                renderer.material.color = _hpColors[0];
+            }
+
+            _model.OnHpChanged += HandleHpChanged;
+        }
+    }
+
+    void HandleHpChanged(int current, int max)
+    {
+        // current 1~4를 인덱스 3~0으로 변환
+        int colorIndex = max - current;
+        colorIndex = Mathf.Clamp(colorIndex, 0, _hpColors.Length - 1);
+
+        // 색 변경
+        foreach (Renderer renderer in _renderers)
+        {
+            renderer.material.color = _hpColors[colorIndex];
+        }
+    }
+
+    public override void TakeHit(HitData hitData)
+    {
+        if (_isHeavy)
+        {
+            switch (hitData.ZoneType)
+            {
+                case HitZoneType.None:
+                case HitZoneType.Front:
+                    break;
+                case HitZoneType.Side:
+                    hitData.AddDamage(1);
+                    break;
+                case HitZoneType.Rear:
+                    hitData.AddDamage(2);
+                    break;
+            }
+        }
+
+        base.TakeHit(hitData);
+    }
 
     private void OnEnable()
     {
@@ -26,7 +89,7 @@ public class DummyTank : EnemyTank
             case DummyTankMode.Stationary:
                 Initialize();
                 _personality = EnemyPersonality.Stationary;
-                StartAI();
+                StartInState(EnemyStateType.Combat);
                 break;
             case DummyTankMode.Roam:
                 Initialize();
@@ -36,12 +99,12 @@ public class DummyTank : EnemyTank
         }
     }
 
+    /// <summary>
+    /// 튜토리얼에선 상태 변환을 막음
+    /// </summary>
     public override void ChangeState(EnemyStateType stateType)
     {
-        // Stationary/Roam 모드에서 Idle 복귀 차단
-        if (_mode != DummyTankMode.None && stateType == EnemyStateType.Idle) return;
-
-        base.ChangeState(stateType);
+        return;
     }
 
     protected override void HandleDead(HitData hitData)

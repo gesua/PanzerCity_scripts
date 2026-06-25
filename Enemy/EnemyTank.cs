@@ -159,6 +159,17 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     }
 
     /// <summary>
+    /// 지정한 상태로 AI 시작
+    /// </summary>
+    public void StartInState(EnemyStateType stateType)
+    {
+        _currentState = _states[(int)stateType];
+        _currentState.Enter();
+
+        _isAIActive = true;
+    }
+
+    /// <summary>
     /// AI 상태머신 사용여부 세팅
     /// </summary>
     public void SetAIActive(bool active)

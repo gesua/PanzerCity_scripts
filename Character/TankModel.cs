@@ -32,7 +32,7 @@ public class TankModel : MonoBehaviour
     [SerializeField] float _explosionRadius = 1f; // 포탄 폭발 반경
     [SerializeField] float _minAttackTime = 1.0f; // AI용 최소 재장전 시간(플레이어는 이 값만 사용)
     [SerializeField] float _maxAttackTime = 1.0f; // AI용 최대 재장전 시간
-    [SerializeField] LayerMask _hitLayer; // 포탄과 충돌할 레이어(본인 빼고 다 넣으면 됨)
+    [SerializeField] LayerMask _hitLayer; // 포탄과 충돌할 레이어
 
     public float ForwardSpeed => _forwardSpeed * _speedMultiplier;
     public float BackwardSpeed => _backwardSpeed * _speedMultiplier;

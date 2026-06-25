@@ -259,6 +259,9 @@ public class Turret : MonoBehaviour
             // HitZone인지 확인
             if (hit.collider.TryGetComponent(out HitZone hitZone))
             {
+                Debug.Log($"{hitZone}");
+                Debug.Log($"{hitZone.Parent}");
+
                 // 실루엣 켜기
                 if (hitZone.Parent.TryGetComponent(out _targetTank))
                 {
