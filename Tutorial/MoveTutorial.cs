@@ -4,6 +4,7 @@ public class MoveTutorial : TutorialStep
 {
     [SerializeField] Transform _arrow;
     Camera _camera;
+    bool _completed;
 
     private void Start()
     {
@@ -22,13 +23,13 @@ public class MoveTutorial : TutorialStep
 
     private void OnTriggerEnter(Collider other)
     {
-        int playerLayer = LayerMask.NameToLayer("Player");
+        if (_completed) return;
 
-        if (other.gameObject.layer == playerLayer)
+        if (other.CompareTag("PlayerHitZone"))
         {
-            Debug.Log("플레이어가 튜토리얼 트리거에 들어옴!");
+            _completed = true;
 
-            // 중복 실행 방지를 위해 트리거 비활성화
+            // 비활성화
             gameObject.SetActive(false);
 
             Complete();

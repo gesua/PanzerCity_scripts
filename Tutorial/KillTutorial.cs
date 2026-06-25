@@ -28,6 +28,7 @@ public class KillTutorial : TutorialStep
     void OnTankDead(HitData hitData)
     {
         _aliveCount--;
+        Debug.Log($"적 전차 갯수 감소 {_aliveCount}");
 
         if (_aliveCount <= 0)
         {

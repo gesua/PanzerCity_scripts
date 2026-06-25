@@ -38,8 +38,8 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     [Header("----- 컴포넌트(EnemyTank) -----")]
     [SerializeField] NavMeshAgent _agent;
     [SerializeField] Rigidbody _rigid;
-    [SerializeField] TankVisualController _destructionEffect; // 파괴 연출
-    [SerializeField] BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
+    [SerializeField] protected TankVisualController _destructionEffect; // 파괴 연출
+    [SerializeField] protected BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
     [SerializeField] GameObject _silhouetteModel; // 조준시 보일 실루엣
     [SerializeField] GameObject[] _selectEnemyModel; // 조준시 레이어 바뀔 모델
     [SerializeField] ItemDropper _itemDropper; // 아이템 드랍
