@@ -54,6 +54,7 @@ public class ItemPickup : MonoBehaviour
         if (colliders.Length == 0)
         {
             _nearestItem = null;
+            _pickupUI.transform.SetParent(transform); // 복귀
             _pickupUI.SetActive(false);
             return;
         }
@@ -71,7 +72,7 @@ public class ItemPickup : MonoBehaviour
         }
 
         // 줍기 단축키 띄우기
-        if (_nearestItem != null)
+        if (_nearestItem != null && _nearestItem.gameObject != null)
         {
             _pickupUI.transform.SetParent(_nearestItem.transform); // 해당 아이템에 붙이기
             _pickupUI.transform.localPosition = Vector3.up * 2f;
@@ -91,14 +92,17 @@ public class ItemPickup : MonoBehaviour
     {
         if (_isDeadCheck()) return;
         if (_nearestItem == null) return;
-        
+
+        // 아이템 파괴 전에 UI를 먼저 원래 부모로 복귀
+        _pickupUI.transform.SetParent(transform);
+        _pickupUI.SetActive(false);
+
         // 즉시 사용 아이템 — 인벤토리 거치지 않고 바로 효과 발동
         if (_nearestItem.ItemConfig.AutoUse)
         {
             OnAutoUsed?.Invoke(_nearestItem.ItemConfig);
             _nearestItem.Pickup();
             _nearestItem = null;
-            _pickupUI.SetActive(false);
             return;
         }
 
@@ -108,7 +112,6 @@ public class ItemPickup : MonoBehaviour
         {
             _nearestItem.Pickup();
             _nearestItem = null;
-            _pickupUI.SetActive(false);
         }
     }
 }

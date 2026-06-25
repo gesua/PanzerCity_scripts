@@ -8,7 +8,10 @@ public class DroppedItem : MonoBehaviour
 {
     [SerializeField] SpriteRenderer _icon;
     [SerializeField] SpriteRenderer _minimapIcon;
-    
+    [Header("----- 배치용 -----")]
+    [SerializeField] ItemConfig _initialItemConfig; // 씬에 배치할 때 사용(기본 Null)
+    [SerializeField] bool _isTutorial; // 튜토리얼용 : 줍고 나서도 파괴하지 않음
+
     float _iconSize = 1.5f; // 고정 크기
     ItemConfig _itemConfig;
 
@@ -17,6 +20,12 @@ public class DroppedItem : MonoBehaviour
     Coroutine _blinkRoutine;
 
     public ItemConfig ItemConfig => _itemConfig;
+
+    void Awake()
+    {
+        // 씬에 배치된 경우 자동 초기화
+        if (_initialItemConfig != null) Initialize(_initialItemConfig);
+    }
 
     public void Initialize(ItemConfig itemConfig)
     {
@@ -33,6 +42,7 @@ public class DroppedItem : MonoBehaviour
         scale *= 2f; // 미니맵에선 크기 3배
         _minimapIcon.transform.localScale = new Vector3(scale, scale, 1f);
     }
+
     void OnEnable()
     {
         _blinkRoutine = StartCoroutine(BlinkRoutine());
@@ -48,6 +58,9 @@ public class DroppedItem : MonoBehaviour
     /// </summary>
     public void Pickup()
     {
+        // 튜토리얼용 아이템은 파괴하지 않음
+        if (_isTutorial) return;
+
         gameObject.DestroyOrReturnToPool();
     }
 
