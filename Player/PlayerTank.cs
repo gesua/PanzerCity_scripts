@@ -61,6 +61,8 @@ public class PlayerTank : TankBase
 
         // 실드 이펙트 색 변경 용도
         _shieldRenderer = _shieldParticle.GetComponent<ParticleSystemRenderer>();
+        // 원본 메터리얼 훼손 방지용 복제본 생성 후 교체
+        _shieldRenderer.trailMaterial = new Material(_shieldRenderer.trailMaterial);
 
         // 게임 시작 전까지 멈춰놓기
         DisablePlayerAndUI();
