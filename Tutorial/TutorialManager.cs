@@ -6,7 +6,8 @@ using UnityEngine;
 public class TutorialManager : MonoBehaviour
 {
     [SerializeField] TutorialStep[] _steps;
-    [SerializeField] TutorialHintUI _hintUI;
+    [SerializeField] TutorialHintUI _mainHintUI; // 진행도 관련 메시지
+    [SerializeField] TutorialHintUI _tipUI; // 덜 중요한 팁
 
     int _currentIndex = 0;
 
@@ -30,7 +31,7 @@ public class TutorialManager : MonoBehaviour
         }
 
         //Debug.Log($"튜토리얼 스텝 {index + 1} 시작");
-        _steps[index].Init(OnStepComplete, _hintUI);
+        _steps[index].Init(OnStepComplete, _mainHintUI, _tipUI);
     }
 
     void OnStepComplete()

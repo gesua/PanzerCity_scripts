@@ -3,28 +3,32 @@ using UnityEngine;
 
 public abstract class TutorialStep : MonoBehaviour
 {
-    [SerializeField] string _messageKey; // 로컬라이제이션 키 (UI_TUT_01)
+    [SerializeField] string _messageKey; // 진행도 메시지 키
+    [SerializeField] string _tipKey;     // 팁 메시지 키
 
     Action _onComplete;
-    TutorialHintUI _hintUI;
+    TutorialHintUI _mainHintUI;
+    TutorialHintUI _tipUI;
 
     // TutorialManager가 스텝을 시작할 때 호출
-    public void Init(Action onComplete, TutorialHintUI hintUI)
+    public void Init(Action onComplete, TutorialHintUI mainHintUI, TutorialHintUI tipUI)
     {
         _onComplete = onComplete;
-        _hintUI = hintUI;
+        _mainHintUI = mainHintUI;
+        _tipUI = tipUI;
 
-        if (!string.IsNullOrEmpty(_messageKey))
-        {
-            Debug.Log($"{_messageKey} 메시지 출력");
-            _hintUI.Show(_messageKey);
-        }
+        if (string.IsNullOrEmpty(_messageKey) == false)
+            _mainHintUI.Show(_messageKey);
+
+        if (string.IsNullOrEmpty(_tipKey) == false)
+            _tipUI.Show(_tipKey);
     }
 
     // 각 스텝 구현체가 조건 충족 시 호출
     protected void Complete()
     {
-        _hintUI?.Hide();
+        _mainHintUI?.Hide();
+        _tipUI?.Hide();
         _onComplete?.Invoke();
     }
 }

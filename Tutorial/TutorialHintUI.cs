@@ -4,6 +4,7 @@ using UnityEngine.Localization;
 
 /// <summary>
 /// 튜토리얼 힌트 메시지 UI
+/// 진행도에 따라 달라지는 메시지
 /// </summary>
 public class TutorialHintUI : MonoBehaviour
 {
