@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Localization.Components;
 using UnityEngine.Localization.Settings;
 using UnityEngine.SceneManagement;
 
@@ -20,7 +19,7 @@ public class TitleScene : MonoBehaviour
     {
         // 로컬라이제이션 초기화 대기
         yield return LocalizationSettings.InitializationOperation;
-        
+
         GameManager manager = GameManager.Instance;
     }
 
@@ -32,10 +31,21 @@ public class TitleScene : MonoBehaviour
         if (_isStart) return;
         _isStart = true;
 
-        StartCoroutine(StartRoutine());
+        StartCoroutine(StartRoutine("Stage01"));
     }
 
-    IEnumerator StartRoutine()
+    /// <summary>
+    /// 튜토리얼 버튼
+    /// </summary>
+    public void OnClickTutorial()
+    {
+        if (_isStart) return;
+        _isStart = true;
+
+        StartCoroutine(StartRoutine("Stage00"));
+    }
+
+    IEnumerator StartRoutine(string stageName)
     {
         // Pool 미리 만들기
         GameManager.Instance.PoolManager.GetPool("DroppedItem");
@@ -45,14 +55,14 @@ public class TitleScene : MonoBehaviour
 
         loadingUI.Show();
 
-        // Stage01 로드
+        // 스테이지 로드
         _audioListener.enabled = false;
         _eventSystem.gameObject.SetActive(false);
 
         _gameSceneLoad = SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
         yield return _gameSceneLoad;
 
-        AsyncOperation stageLoad = SceneManager.LoadSceneAsync("Stage01", LoadSceneMode.Additive);
+        AsyncOperation stageLoad = SceneManager.LoadSceneAsync(stageName, LoadSceneMode.Additive);
         stageLoad.allowSceneActivation = false;
 
         // 로드 완료까지 진행도 업데이트
