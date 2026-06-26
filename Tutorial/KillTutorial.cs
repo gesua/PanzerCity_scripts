@@ -1,9 +1,11 @@
+using System.Collections;
 using UnityEngine;
 
 public class KillTutorial : TutorialStep
 {
     [SerializeField] DummyTank[] _dummyTanks;
     [SerializeField] GameObject _gate; // 열릴 오브젝트
+    [SerializeField] float _hintDelay = 5f;    // 힌트 표시까지 대기 시간
 
     int _aliveCount;
 
@@ -13,6 +15,8 @@ public class KillTutorial : TutorialStep
 
         for (int i = 0; i < _dummyTanks.Length; i++)
             _dummyTanks[i].OnDummyDead += OnTankDead;
+
+        StartCoroutine(HintRoutine());
     }
 
     private void OnDisable()
@@ -22,6 +26,20 @@ public class KillTutorial : TutorialStep
         {
             if (_dummyTanks[i] != null)
                 _dummyTanks[i].OnDummyDead -= OnTankDead;
+        }
+    }
+
+    /// <summary>
+    /// 일정 시간 후 더미 탱크의 화살표 활성화
+    /// </summary>
+    IEnumerator HintRoutine()
+    {
+        yield return new WaitForSeconds(_hintDelay);
+
+        for (int i = 0; i < _dummyTanks.Length; i++)
+        {
+            if (_dummyTanks[i] != null)
+                _dummyTanks[i].ShowArrow();
         }
     }
 

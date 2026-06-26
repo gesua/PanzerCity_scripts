@@ -14,6 +14,7 @@ public enum DummyTankMode
 public class DummyTank : EnemyTank
 {
     [SerializeField] DummyTankMode _mode;
+    [SerializeField] GameObject _arrow; // 힌트 화살표
     [Header("----- 중전차 관련 -----")]
     [SerializeField] bool _isHeavy; // 중전차 색상 변화 여부
     [SerializeField] Renderer[] _renderers; // 색상 바꿀 렌더러들
@@ -27,8 +28,15 @@ public class DummyTank : EnemyTank
         Color.red                   // 1/4 빨강
     };
 
-
     public event Action OnDummyDead;
+
+    /// <summary>
+    /// 화살표 표시
+    /// </summary>
+    public void ShowArrow()
+    {
+        if (_arrow != null) _arrow.SetActive(true);
+    }
 
     protected override void Awake()
     {
@@ -124,6 +132,9 @@ public class DummyTank : EnemyTank
 
         // 사망 효과 재생
         _destructionEffect.Play();
+
+        // 힌트 화살표 비활성화
+        if (_arrow != null) _arrow.SetActive(false);
 
         OnDummyDead?.Invoke();
     }
