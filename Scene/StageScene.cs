@@ -32,8 +32,8 @@ public class StageScene : MonoBehaviour
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
-        _sceneName = "Stage" + (_stageID - 7100).ToString("D2"); // 현재 Scene이름
-        _nextStageName = "Stage" + (_stageID - 7100 + 1).ToString("D2");
+        _sceneName = GameManager.Instance.DataManager.StageIDToSceneName(_stageID); // 현재 Scene이름
+        _nextStageName = GameManager.Instance.DataManager.StageIDToSceneName(_stageID + 1);
 
         _hq.OnDestroyed += () => OnHQDestroyed?.Invoke();
         OnStageLoaded?.Invoke(_playerSpawnPoint.position);

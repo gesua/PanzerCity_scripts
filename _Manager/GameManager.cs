@@ -16,6 +16,7 @@ public class GameManager : Singleton<GameManager>
     PlayerData _playerData;
     LoadingUI _loadingUI;
     GameStatistics _gameStatistics;
+    SaveManager _saveManager;
 
     public ResourceManager ResourceManager => _resourceManager;
     public PoolManager PoolManager => _poolManager;
@@ -27,6 +28,7 @@ public class GameManager : Singleton<GameManager>
     public PlayerData PlayerData => _playerData;
     public LoadingUI LoadingUI => _loadingUI;
     public GameStatistics GameStatistics => _gameStatistics;
+    public SaveManager SaveManager => _saveManager;
 
     protected override void Awake()
     {
@@ -40,12 +42,14 @@ public class GameManager : Singleton<GameManager>
         _optionManager = gameObject.GetOrAddComponent<OptionManager>();
         _playerData = gameObject.GetOrAddComponent<PlayerData>();
         _gameStatistics = gameObject.GetOrAddComponent<GameStatistics>();
+        _saveManager = gameObject.GetOrAddComponent<SaveManager>();
 
         _poolManager.Initialize(_resourceManager);
         _dataManager.Initialize();
         _effectManager.Initialize();
         _optionManager.Initialize();
         _playerData.Initialize(0, 3);
+        _saveManager.Initialize();
 
         //* 오디오 매니저 프리팹 생성
         GameObject audioManagerPrefab = Resources.Load<GameObject>("Audio/AudioManager");

@@ -266,6 +266,49 @@ public class InventoryPresenter
         OnInventoryChanged?.Invoke();
     }
 
+    /// <summary>
+    /// 인벤토리 상태를 세이브 데이터로 변환
+    /// </summary>
+    public List<ItemSaveData> ToSaveData()
+    {
+        List<ItemSaveData> result = new List<ItemSaveData>();
+        foreach (ItemModel item in _model.Items)
+        {
+            result.Add(new ItemSaveData
+            {
+                ItemID = item.Config.Id,
+                PosX = item.GridPosition.x,
+                PosY = item.GridPosition.y,
+                IsRotated = item.IsRotated
+            });
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// 세이브 데이터로부터 인벤토리 복원 (이어하기 시)
+    /// </summary>
+    public void LoadFromSaveData(List<ItemSaveData> itemSaveDataList)
+    {
+        _view.ClearAllViews();
+        _model.Clear();
+
+        foreach (ItemSaveData itemSaveData in itemSaveDataList)
+        {
+            ItemConfig config = GameManager.Instance.DataManager.GetItemConfig(itemSaveData.ItemID);
+            if (config == null) continue;
+
+            ItemModel item = new ItemModel(config);
+            item.SetRotated(itemSaveData.IsRotated);
+
+            Vector2Int pos = new Vector2Int(itemSaveData.PosX, itemSaveData.PosY);
+            if (_model.TryAddItem(item, pos) == false) continue;
+
+            _view.AddItemView(item);
+        }
+
+        OnInventoryChanged?.Invoke();
+    }
 
     /// <summary>
     /// 인벤토리 전체 비우기

@@ -88,4 +88,16 @@ public class PlayerData : MonoBehaviour
         _gold = _savedGold;
         OnGoldChanged?.Invoke(_gold);
     }
+
+    /// <summary>
+    /// 세이브 데이터로부터 골드/목숨 복원 (이어하기 시)
+    /// </summary>
+    public void LoadFromSaveData(int gold, int life)
+    {
+        _gold = gold;
+        OnGoldChanged?.Invoke(_gold);
+
+        _life = life;
+        OnLifeChanged?.Invoke(_life);
+    }
 }

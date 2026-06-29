@@ -11,12 +11,15 @@ public class TitleScene : MonoBehaviour
     [SerializeField] AudioListener _audioListener;
     [SerializeField] UnityEngine.EventSystems.EventSystem _eventSystem;
     [SerializeField] GameObject _option;
+    [SerializeField] SaveSlotUI _saveSlotUI;
 
     AsyncOperation _gameSceneLoad; // Game씬 동기화용
     bool _isStart;
 
     IEnumerator Start()
     {
+        _saveSlotUI.OnSlotSelected += HandleSlotSelected;
+
         // 로컬라이제이션 초기화 대기
         yield return LocalizationSettings.InitializationOperation;
 
@@ -24,14 +27,41 @@ public class TitleScene : MonoBehaviour
     }
 
     /// <summary>
-    /// 게임시작 버튼
+    /// 게임시작 버튼 — 세이브 슬롯 선택 UI 표시
     /// </summary>
     public void OnClickStart()
     {
         if (_isStart) return;
+
+        _saveSlotUI.Show();
+    }
+
+    /// <summary>
+    /// 세이브 슬롯 선택됨 — 빈 슬롯이면 새 게임, 저장된 슬롯이면 이어하기
+    /// </summary>
+    void HandleSlotSelected(int slotIndex)
+    {
+        if (_isStart) return;
         _isStart = true;
 
-        StartCoroutine(StartRoutine("Stage01"));
+        _saveSlotUI.Hide();
+
+        SaveManager saveManager = GameManager.Instance.SaveManager;
+        SaveData saveData = saveManager.GetSlotData(slotIndex);
+
+        string stageName;
+        if (saveData.IsEmpty)
+        {
+            saveManager.StartNewGame(slotIndex);
+            stageName = "Stage01";
+        }
+        else
+        {
+            saveManager.ContinueGame(slotIndex);
+            stageName = GameManager.Instance.DataManager.StageIDToSceneName(saveData.CurrentStageID);
+        }
+
+        StartCoroutine(StartRoutine(stageName));
     }
 
     /// <summary>
@@ -41,6 +71,9 @@ public class TitleScene : MonoBehaviour
     {
         if (_isStart) return;
         _isStart = true;
+
+        // 튜토리얼 모드
+        GameManager.Instance.SaveManager.SetTutorialMode();
 
         StartCoroutine(StartRoutine("Stage00"));
     }
@@ -105,6 +138,7 @@ public class TitleScene : MonoBehaviour
     /// </summary>
     void OnDestroy()
     {
+        _saveSlotUI.OnSlotSelected -= HandleSlotSelected;
         GameManager.Instance.LoadingUI.Hide();
     }
 }

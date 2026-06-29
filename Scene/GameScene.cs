@@ -86,7 +86,6 @@ public class GameScene : MonoBehaviour
         _pauseUI.OnResumeClicked += HandlePauseInput;
         _pauseUI.OnRestartClicked += HandleRestartStage;
         _pauseUI.OnMainMenuClicked += HandleTitleRequested;
-        //_pauseUI.OnTutorialClicked += HandleTutorial;
 
         _gameOverUI.RestartRequested += HandleRestartStage;
         _gameOverUI.TitleRequested += HandleTitleRequested;
@@ -102,6 +101,17 @@ public class GameScene : MonoBehaviour
 
         GameManager.Instance.EquipmentManager.Initialize(_player.Model);
         GameManager.Instance.OptionManager.OnMouseSensitivityChanged += _cameraTarget.SetSensitivity;
+
+        // 세이브 데이터
+        SaveManager saveManager = GameManager.Instance.SaveManager;
+        if (saveManager.Mode == SaveManager.SaveLoadMode.NewGame) // 새 게임
+        {
+            saveManager.ResetForNewGame(); // 초기화
+        }
+        else if (saveManager.Mode == SaveManager.SaveLoadMode.Continue) // 이어하기
+        {
+            saveManager.ApplyLoadedData(_inventoryUI.Presenter); // 데이터 적용
+        }
 
         // 아이템 효과들
         // 목숨 증가
@@ -207,6 +217,13 @@ public class GameScene : MonoBehaviour
             _inventoryUI.Presenter.SaveSnapshot();
 
             GameManager.Instance.GameStatistics.MarkGameStart(); // 최초 1회만 동작
+
+            // 스테이지 시작 시점 자동저장
+            SaveManager saveManager = GameManager.Instance.SaveManager;
+            if (saveManager.Mode != SaveManager.SaveLoadMode.None)
+            {
+                saveManager.SaveCurrentProgress(_currentStage.StageID, _inventoryUI.Presenter);
+            }
         }
     }
 

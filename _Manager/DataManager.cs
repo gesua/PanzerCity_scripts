@@ -90,6 +90,14 @@ public class DataManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 스테이지 ID를 씬 이름으로 변환 (예: 7101 → "Stage01")
+    /// </summary>
+    public string StageIDToSceneName(int stageID)
+    {
+        return "Stage" + (stageID - 7100).ToString("D2");
+    }
+
+    /// <summary>
     /// 아이템 관련 Json 가져오기
     /// </summary>
     void LoadItemData()
