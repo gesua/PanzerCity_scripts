@@ -574,6 +574,11 @@ public class GameScene : MonoBehaviour
     public void TutorialClear()
     {
         _isTutorial = true;
+
+        // 인벤토리 비우기 + 골드 지급
+        _inventoryUI.Presenter.Clear();
+        GameManager.Instance.PlayerData.AddGold(3000);
+
         HandleStageClear();
     }
 

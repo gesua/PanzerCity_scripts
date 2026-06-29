@@ -265,4 +265,17 @@ public class InventoryPresenter
 
         OnInventoryChanged?.Invoke();
     }
+
+
+    /// <summary>
+    /// 인벤토리 전체 비우기
+    /// </summary>
+    public void Clear()
+    {
+        List<ItemModel> items = new List<ItemModel>(_model.Items);
+        foreach (ItemModel item in items)
+        {
+            RemoveItem(item);
+        }
+    }
 }
