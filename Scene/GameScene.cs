@@ -48,6 +48,7 @@ public class GameScene : MonoBehaviour
     bool _isPaused;
     bool _isShopOpen;
     bool _isRestarting;
+    bool _isTutorial; // 튜토리얼 씬 여부
 
     bool _OnCursor; // 마우스 커서 활성화 여부
 
@@ -531,9 +532,12 @@ public class GameScene : MonoBehaviour
         }
 
         // 다음 스테이지 미리 로드
-        _currentStageUnload = SceneManager.UnloadSceneAsync(_currentStage.SceneName);
-        _nextStageLoad = SceneManager.LoadSceneAsync(_currentStage.NextStageName, LoadSceneMode.Additive);
-        _nextStageLoad.allowSceneActivation = false;
+        if (_isTutorial == false)
+        {
+            _currentStageUnload = SceneManager.UnloadSceneAsync(_currentStage.SceneName);
+            _nextStageLoad = SceneManager.LoadSceneAsync(_currentStage.NextStageName, LoadSceneMode.Additive);
+            _nextStageLoad.allowSceneActivation = false;
+        }
 
         // 드롭존 비활성화
         _dropZoneUI.SetActiveState(false);
@@ -557,12 +561,37 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 튜토리얼 클리어 연출
+    /// </summary>
+    public void ShowTutorialClearEffect()
+    {
+        HandleAllEnemiesDefeated();
+    }
+
+    /// <summary>
+    /// 튜토리얼 클리어 처리
+    /// </summary>
+    public void TutorialClear()
+    {
+        _isTutorial = true;
+        HandleStageClear();
+    }
+
+    /// <summary>
     /// 상점 나가기(다음 스테이지)
     /// </summary>
     void HandleShopExit()
     {
         _pauseUI.RetryBtn.SetActive(true);
         _player.EquipViewMod(false); // 장착 모드 비활성화
+
+        // 튜토리얼이면 타이틀로
+        if (_isTutorial)
+        {
+            HandleTitleRequested();
+            return;
+        }
+
         StartCoroutine(LoadStageRoutine(_currentStage.NextStageName));
     }
 

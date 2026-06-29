@@ -7,8 +7,8 @@ public abstract class TutorialStep : MonoBehaviour
     [SerializeField] string _tipKey;     // 팁 메시지 키
 
     Action _onComplete;
-    TutorialHintUI _mainHintUI;
-    TutorialHintUI _tipUI;
+    protected TutorialHintUI _mainHintUI;
+    protected TutorialHintUI _tipUI;
 
     // TutorialManager가 스텝을 시작할 때 호출
     public void Init(Action onComplete, TutorialHintUI mainHintUI, TutorialHintUI tipUI)
