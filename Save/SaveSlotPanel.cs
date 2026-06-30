@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Localization;
@@ -11,6 +12,7 @@ public class SaveSlotPanel : MonoBehaviour
 {
     const string CreateKey = "UI_BTN_CREATE"; // 빈 슬롯
     const string StartKey = "UI_BTN_START_SLOT";   // 저장된 슬롯
+    const string EmptySlotNameKey = "UI_SAVE_SLOT_NAME"; // 빈 슬롯 이름
 
     [SerializeField] Button _selectButton;
     [SerializeField] Button _nameEditButton;
@@ -33,7 +35,33 @@ public class SaveSlotPanel : MonoBehaviour
     {
         _selectButton.onClick.AddListener(() => OnSelectClicked?.Invoke());
         _deleteButton.onClick.AddListener(() => OnDeleteClicked?.Invoke());
-        _nameInput.onEndEdit.AddListener(newName => OnNameEndEdit?.Invoke(newName));
+    }
+
+    /// <summary>
+    /// 이름 편집 버튼 — 입력 가능하게 풀고 포커스
+    /// </summary>
+    public void OnClickNameEdit()
+    {
+        _nameInput.interactable = true;
+        _nameInput.ActivateInputField();
+    }
+
+    /// <summary>
+    /// 이름 편집 종료(엔터 또는 포커스 벗어남) — 다시 잠금
+    /// </summary>
+    public void OnNameInputEndEdit(string newName)
+    {
+        StartCoroutine(LockNameInputNextFrame());
+        OnNameEndEdit?.Invoke(newName);
+    }
+
+    /// <summary>
+    /// TMP_InputField가 OnDeselect 처리 중에 곧바로 interactable을 끄면 충돌하므로 한 프레임 늦춰서 잠금
+    /// </summary>
+    IEnumerator LockNameInputNextFrame()
+    {
+        yield return null;
+        _nameInput.interactable = false;
     }
 
     /// <summary>
@@ -45,11 +73,18 @@ public class SaveSlotPanel : MonoBehaviour
 
         _hideGroup.SetActive(isEmpty == false);
         _selectButtonImage.sprite = (isEmpty) ? _emptySprite : _filledSprite;
+        _nameInput.interactable = false; // 갱신될 때마다 편집 모드는 잠금 상태로
 
+        // 생성, 시작 글자
         string key = (isEmpty) ? CreateKey : StartKey;
         _selectButtonText.text = new LocalizedString("Localization", key).GetLocalizedString();
 
-        if (isEmpty) return;
+        // 빈 슬롯 이름 채우기
+        if (isEmpty)
+        {
+            _nameInput.SetTextWithoutNotify(new LocalizedString("Localization", EmptySlotNameKey).GetLocalizedString());
+            return;
+        }
 
         _nameInput.SetTextWithoutNotify(data.SaveName);
         _stageText.text = $"{data.CurrentStageID - 7100}";
