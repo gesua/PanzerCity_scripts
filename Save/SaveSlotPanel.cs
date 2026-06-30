@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 
 /// <summary>
@@ -8,10 +9,17 @@ using UnityEngine.UI;
 /// </summary>
 public class SaveSlotPanel : MonoBehaviour
 {
+    const string CreateKey = "UI_BTN_CREATE"; // 빈 슬롯
+    const string StartKey = "UI_BTN_START_SLOT";   // 저장된 슬롯
+
     [SerializeField] Button _selectButton;
     [SerializeField] Button _nameEditButton;
     [SerializeField] Button _deleteButton;
     [SerializeField] GameObject _hideGroup; // 빈 슬롯일 때 꺼놓을 그룹
+    [SerializeField] Image _selectButtonImage; // _selectButton의 Image
+    [SerializeField] Sprite _emptySprite;      // 빈 슬롯용
+    [SerializeField] Sprite _filledSprite;     // 저장된 슬롯용
+    [SerializeField] TextMeshProUGUI _selectButtonText; // _selectButton의 글자("생성"/"시작")
     [SerializeField] TMP_InputField _nameInput;
     [SerializeField] TextMeshProUGUI _stageText;
     [SerializeField] TextMeshProUGUI _lifeText;
@@ -34,7 +42,12 @@ public class SaveSlotPanel : MonoBehaviour
     public void Refresh(SaveData data)
     {
         bool isEmpty = data.IsEmpty;
+
         _hideGroup.SetActive(isEmpty == false);
+        _selectButtonImage.sprite = (isEmpty) ? _emptySprite : _filledSprite;
+
+        string key = (isEmpty) ? CreateKey : StartKey;
+        _selectButtonText.text = new LocalizedString("Localization", key).GetLocalizedString();
 
         if (isEmpty) return;
 
