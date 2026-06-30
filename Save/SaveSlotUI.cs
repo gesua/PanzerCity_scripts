@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// 세이브 슬롯 선택 화면
-/// 빈 슬롯 선택 시 새 게임, 저장된 슬롯 선택 시 이어하기
+/// 빈 슬롯 선택 시 초기값으로 생성, 저장된 슬롯 선택 시 이어하기
 /// </summary>
 public class SaveSlotUI : MonoBehaviour
 {
@@ -54,10 +54,21 @@ public class SaveSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 슬롯 클릭 — 새 게임 또는 이어하기
+    /// 슬롯 클릭 — 빈 슬롯이면 생성만 하고 끝, 저장된 슬롯이면 선택 이벤트 발행
     /// </summary>
     void HandleSlotClicked(int slotIndex)
     {
+        SaveManager saveManager = GameManager.Instance.SaveManager;
+        SaveData saveData = saveManager.GetSlotData(slotIndex);
+
+        if (saveData.IsEmpty)
+        {
+            saveManager.CreateNewSlot(slotIndex);
+            _slots[slotIndex].Refresh(saveManager.GetSlotData(slotIndex));
+            _slots[slotIndex].OnClickNameEdit(); // 생성 직후 바로 이름 수정
+            return;
+        }
+
         OnSlotSelected?.Invoke(slotIndex);
     }
 

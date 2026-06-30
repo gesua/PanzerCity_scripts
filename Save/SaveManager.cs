@@ -9,7 +9,7 @@ public class SaveManager : MonoBehaviour
 {
     const int SLOT_COUNT = 6; // 슬롯 개수
 
-    public enum SaveLoadMode { None, NewGame, Continue } // 현재 플레이 진입 방식(튜토리얼은 None)
+    public enum SaveLoadMode { None, Continue } // 현재 플레이 진입 방식(튜토리얼은 None)
 
     SaveData[] _slotCache; // 슬롯별 데이터 캐시(파일 입출력 최소화)
 
@@ -49,12 +49,27 @@ public class SaveManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 새 게임으로 진입
+    /// 빈 슬롯에 초기값을 채워 즉시 저장 (생성 버튼)
     /// </summary>
-    public void StartNewGame(int slotIndex)
+    public void CreateNewSlot(int slotIndex)
     {
-        CurrentSlotIndex = slotIndex;
-        Mode = SaveLoadMode.NewGame;
+        SaveData data = new SaveData
+        {
+            IsEmpty = false,
+            SaveName = "Save " + (slotIndex + 1),
+            LastPlayedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
+            CurrentStageID = 7101,
+            Gold = 0,
+            Life = 3,
+            TotalGoldEarned = 0,
+            ItemsUsed = 0,
+            ShellKills = 0,
+            DeathCount = 0,
+            PlayTime = 0f
+        };
+
+        _slotCache[slotIndex] = data;
+        WriteSlotToDisk(slotIndex);
     }
 
     /// <summary>
@@ -118,16 +133,6 @@ public class SaveManager : MonoBehaviour
         GameManager.Instance.EquipmentManager.LoadFromSaveData(data.MainGunItemID, data.TurretItemID, data.HullItemID);
         inventoryPresenter.LoadFromSaveData(data.Items);
         GameManager.Instance.GameStatistics.LoadFromSaveData(data.TotalGoldEarned, data.ItemsUsed, data.ShellKills, data.DeathCount, data.PlayTime);
-    }
-
-    /// <summary>
-    /// 새 게임 — 직전 플레이 데이터 초기화(앱을 재시작하지 않고 다른 슬롯으로 새로 시작하는 경우 대비)
-    /// </summary>
-    public void ResetForNewGame()
-    {
-        GameManager.Instance.PlayerData.Initialize(0, 3);
-        GameManager.Instance.EquipmentManager.UnequipAll();
-        GameManager.Instance.GameStatistics.ResetAll();
     }
 
     /// <summary>

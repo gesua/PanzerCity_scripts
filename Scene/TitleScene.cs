@@ -49,17 +49,8 @@ public class TitleScene : MonoBehaviour
         SaveManager saveManager = GameManager.Instance.SaveManager;
         SaveData saveData = saveManager.GetSlotData(slotIndex);
 
-        string stageName;
-        if (saveData.IsEmpty)
-        {
-            saveManager.StartNewGame(slotIndex);
-            stageName = "Stage01";
-        }
-        else
-        {
-            saveManager.ContinueGame(slotIndex);
-            stageName = GameManager.Instance.DataManager.StageIDToSceneName(saveData.CurrentStageID);
-        }
+        saveManager.ContinueGame(slotIndex);
+        string stageName = GameManager.Instance.DataManager.StageIDToSceneName(saveData.CurrentStageID);
 
         StartCoroutine(StartRoutine(stageName));
     }

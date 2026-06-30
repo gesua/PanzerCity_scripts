@@ -75,12 +75,13 @@ public class EquipmentManager : MonoBehaviour
         }
     }
 
-
     /// <summary>
     /// 세이브 데이터로부터 장비 복원 (이어하기 시, 미장착이면 -1)
     /// </summary>
     public void LoadFromSaveData(int mainGunItemID, int turretItemID, int hullItemID)
     {
+        UnequipAll(); // 장착 모두 해제
+
         EquipFromID(mainGunItemID);
         EquipFromID(turretItemID);
         EquipFromID(hullItemID);

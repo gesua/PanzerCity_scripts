@@ -104,13 +104,9 @@ public class GameScene : MonoBehaviour
 
         // 세이브 데이터
         SaveManager saveManager = GameManager.Instance.SaveManager;
-        if (saveManager.Mode == SaveManager.SaveLoadMode.NewGame) // 새 게임
+        if (saveManager.Mode == SaveManager.SaveLoadMode.Continue)
         {
-            saveManager.ResetForNewGame(); // 초기화
-        }
-        else if (saveManager.Mode == SaveManager.SaveLoadMode.Continue) // 이어하기
-        {
-            saveManager.ApplyLoadedData(_inventoryUI.Presenter); // 데이터 적용
+            saveManager.ApplyLoadedData(_inventoryUI.Presenter);
         }
 
         // 아이템 효과들
