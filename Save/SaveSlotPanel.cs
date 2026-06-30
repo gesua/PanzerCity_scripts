@@ -23,7 +23,7 @@ public class SaveSlotPanel : MonoBehaviour
     void Awake()
     {
         _selectButton.onClick.AddListener(() => OnSelectClicked?.Invoke());
-        _deleteButton.onClick.AddListener(() => OnDeleteClicked?.Invoke());
+        //_deleteButton.onClick.AddListener(() => OnDeleteClicked?.Invoke());
         _nameInput.onEndEdit.AddListener(newName => OnNameEndEdit?.Invoke(newName));
     }
 
