@@ -9,12 +9,13 @@ using UnityEngine.UI;
 public class SaveSlotPanel : MonoBehaviour
 {
     [SerializeField] Button _selectButton;
+    [SerializeField] Button _nameEditButton;
     [SerializeField] Button _deleteButton;
+    [SerializeField] GameObject _hideGroup; // 빈 슬롯일 때 꺼놓을 그룹
     [SerializeField] TMP_InputField _nameInput;
     [SerializeField] TextMeshProUGUI _stageText;
-    [SerializeField] TextMeshProUGUI _statsText;
-    [SerializeField] TextMeshProUGUI _dateText;
-    [SerializeField] GameObject _emptyLabel; // "빈 슬롯" 표시용
+    [SerializeField] TextMeshProUGUI _lifeText;
+    [SerializeField] TextMeshProUGUI _playTimeText;
 
     public event Action OnSelectClicked;
     public event Action OnDeleteClicked;
@@ -23,7 +24,7 @@ public class SaveSlotPanel : MonoBehaviour
     void Awake()
     {
         _selectButton.onClick.AddListener(() => OnSelectClicked?.Invoke());
-        //_deleteButton.onClick.AddListener(() => OnDeleteClicked?.Invoke());
+        _deleteButton.onClick.AddListener(() => OnDeleteClicked?.Invoke());
         _nameInput.onEndEdit.AddListener(newName => OnNameEndEdit?.Invoke(newName));
     }
 
@@ -33,19 +34,13 @@ public class SaveSlotPanel : MonoBehaviour
     public void Refresh(SaveData data)
     {
         bool isEmpty = data.IsEmpty;
-
-        _emptyLabel.SetActive(isEmpty);
-        _nameInput.gameObject.SetActive(isEmpty == false);
-        _stageText.gameObject.SetActive(isEmpty == false);
-        _statsText.gameObject.SetActive(isEmpty == false);
-        _dateText.gameObject.SetActive(isEmpty == false);
-        _deleteButton.gameObject.SetActive(isEmpty == false);
+        _hideGroup.SetActive(isEmpty == false);
 
         if (isEmpty) return;
 
         _nameInput.SetTextWithoutNotify(data.SaveName);
-        _stageText.text = $"스테이지 {data.CurrentStageID - 7100}";
-        _statsText.text = $"골드 {data.TotalGoldEarned} / 격파 {data.ShellKills} / 사망 {data.DeathCount}";
-        _dateText.text = data.LastPlayedDate;
+        _stageText.text = $"{data.CurrentStageID - 7100}";
+        _lifeText.text = $"{data.Life}";
+        _playTimeText.text = data.PlayTime.ToTimeString();
     }
 }

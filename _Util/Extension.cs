@@ -58,4 +58,13 @@ public static class Extension
     {
         return (layerMask.value & (1 << layer)) != 0;
     }
+
+    /// <summary>
+    /// 초를 시:분:초 문자열로 변환하는 함수 (예: 76 -> "0:01:16", 94561 -> "26:16:01")
+    /// 시는 24시간이 넘어도 자르지 않고 그대로 누적
+    /// </summary>
+    public static string ToTimeString(this float seconds)
+    {
+        return Util.ToTimeString(seconds);
+    }
 }

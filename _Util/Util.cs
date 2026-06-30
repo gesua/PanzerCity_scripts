@@ -99,4 +99,20 @@ public static class Util
         if (component == null) component = go.AddComponent<T>(); // 없으면 만듦
         return component;
     }
+
+
+    /// <summary>
+    /// 초를 시:분:초 문자열로 변환하는 함수 (예: 76 -> "0:01:16", 94561 -> "26:16:01")
+    /// 시는 24시간이 넘어도 자르지 않고 그대로 누적
+    /// </summary>
+    public static string ToTimeString(float seconds)
+    {
+        int totalSeconds = (int)seconds;
+
+        int hour = totalSeconds / 3600;
+        int minute = (totalSeconds % 3600) / 60;
+        int second = totalSeconds % 60;
+
+        return $"{hour}:{minute:D2}:{second:D2}";
+    }
 }
