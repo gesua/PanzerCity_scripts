@@ -14,7 +14,6 @@ public class TitleScene : MonoBehaviour
     [SerializeField] SaveSlotUI _saveSlotUI;
 
     AsyncOperation _gameSceneLoad; // Game씬 동기화용
-    bool _isStart;
 
     IEnumerator Start()
     {
@@ -31,8 +30,6 @@ public class TitleScene : MonoBehaviour
     /// </summary>
     public void OnClickStart()
     {
-        if (_isStart) return;
-
         _saveSlotUI.Show();
     }
 
@@ -41,9 +38,6 @@ public class TitleScene : MonoBehaviour
     /// </summary>
     void HandleSlotSelected(int slotIndex)
     {
-        if (_isStart) return;
-        _isStart = true;
-
         _saveSlotUI.Hide();
 
         SaveManager saveManager = GameManager.Instance.SaveManager;
@@ -60,13 +54,18 @@ public class TitleScene : MonoBehaviour
     /// </summary>
     public void OnClickTutorial()
     {
-        if (_isStart) return;
-        _isStart = true;
-
         // 튜토리얼 모드
         GameManager.Instance.SaveManager.SetTutorialMode();
 
         StartCoroutine(StartRoutine("Stage00"));
+    }
+
+    /// <summary>
+    /// 멀티플레이 버튼
+    /// </summary>
+    public void OnClickMultiplayer()
+    {
+        StartCoroutine(LoadLobbyRoutine());
     }
 
     IEnumerator StartRoutine(string stageName)
@@ -103,6 +102,16 @@ public class TitleScene : MonoBehaviour
         yield return stageLoad;
 
         yield return new WaitForSeconds(0.1f); // 잠깐 기다리기
+
+        SceneManager.UnloadSceneAsync("Title");
+    }
+
+    IEnumerator LoadLobbyRoutine()
+    {
+        _audioListener.enabled = false;
+        _eventSystem.gameObject.SetActive(false);
+
+        yield return SceneManager.LoadSceneAsync("Lobby");
 
         SceneManager.UnloadSceneAsync("Title");
     }
