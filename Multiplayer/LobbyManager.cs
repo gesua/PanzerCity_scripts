@@ -40,10 +40,12 @@ public class LobbyManager : MonoBehaviour
                                  _currentLobby.HostId == AuthenticationService.Instance.PlayerId;
 
     public event Action<List<Lobby>> OnLobbyListUpdated;
-    public event Action<Lobby> OnLobbyUpdated;   // 룸 상태 갱신
+    public event Action<Lobby> OnLobbyUpdated; // 룸 상태 갱신
     public event Action<string> OnStatusChanged;
-    public event Action OnKicked;          // 강퇴당함
-    public event Action OnGameStart;       // 게임 시작 신호
+    public event Action OnKicked;    // 강퇴당함
+    public event Action OnLeftLobby; // 직접 나감
+    public event Action OnHostLeft;  // 방장이 연결 끊음
+    public event Action OnGameStart; // 게임 시작 신호
 
     void Awake()
     {
@@ -174,7 +176,7 @@ public class LobbyManager : MonoBehaviour
     /// <summary>
     /// 공개 방 생성
     /// </summary>
-    public async Task CreateLobbyAsync(string lobbyName, int maxPlayers = 4)
+    public async Task CreateLobbyAsync(string lobbyName, int maxPlayers = 3)
     {
         try
         {
@@ -206,6 +208,10 @@ public class LobbyManager : MonoBehaviour
 
             NetworkManager.Singleton.StartHost();
 
+            // 연결 끊김 감지 구독 (중복 방지)
+            NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
+            NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
+
             OnStatusChanged?.Invoke($"방 생성 완료: {_currentLobby.Name}");
         }
         catch (Exception e)
@@ -223,12 +229,7 @@ public class LobbyManager : MonoBehaviour
         {
             QueryLobbiesOptions options = new QueryLobbiesOptions
             {
-                Count = 10,
-                Filters = new List<QueryFilter>
-                {
-                    // 빈 자리 1개 이상인 방만 표시
-                    new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT)
-                }
+                Count = 10
             };
 
             QueryResponse response = await LobbyService.Instance.QueryLobbiesAsync(options);
@@ -268,10 +269,16 @@ public class LobbyManager : MonoBehaviour
 
             NetworkManager.Singleton.StartClient();
 
+            // 연결 끊김 감지 구독 (중복 방지)
+            NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
+            NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
+
             OnStatusChanged?.Invoke($"참가 완료: {_currentLobby.Name}");
         }
         catch (Exception e)
         {
+            // 참가 실패 시 _currentLobby 보장
+            _currentLobby = null;
             OnStatusChanged?.Invoke($"참가 실패: {e.Message}");
         }
     }
@@ -342,6 +349,8 @@ public class LobbyManager : MonoBehaviour
         {
             UpdateLobbyOptions options = new UpdateLobbyOptions
             {
+                // 게임 시작 후 신규 입장 차단
+                IsLocked = true,
                 Data = new Dictionary<string, DataObject>
                 {
                     {
@@ -393,17 +402,68 @@ public class LobbyManager : MonoBehaviour
 
         try
         {
-            await LobbyService.Instance.RemovePlayerAsync(
-                _currentLobby.Id,
-                AuthenticationService.Instance.PlayerId
-            );
+            // 구독 해제 — Shutdown 시 HandleClientDisconnect 방지
+            NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
+
+            // 호스트는 로비 자체를 삭제, 클라이언트는 본인만 나감
+            if (IsHost)
+            {
+                await LobbyService.Instance.DeleteLobbyAsync(_currentLobby.Id);
+            }
+            else
+            {
+                await LobbyService.Instance.RemovePlayerAsync(
+                    _currentLobby.Id,
+                    AuthenticationService.Instance.PlayerId
+                );
+            }
+
             _currentLobby = null;
             NetworkManager.Singleton.Shutdown();
+            OnLeftLobby?.Invoke();
         }
         catch (Exception e)
         {
             Debug.LogWarning($"로비 나가기 실패: {e.Message}");
         }
+    }
+
+    /// <summary>
+    /// NetworkManager 연결 끊김 콜백 — 방장 퇴장 감지용
+    /// </summary>
+    void HandleClientDisconnect(ulong clientId)
+    {
+        // 서버 역할이면 클라이언트 연결 끊김으로 무시
+        if (NetworkManager.Singleton.IsServer) return;
+        if (_currentLobby == null) return;
+
+        NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
+
+        _ = HandleHostLeftAsync();
+    }
+
+    /// <summary>
+    /// 방장 퇴장 처리 — 로비 정리 후 이벤트 발행
+    /// </summary>
+    async Task HandleHostLeftAsync()
+    {
+        // 폴링 즉시 중단을 위해 먼저 null 설정 후 ID 보존
+        string lobbyId = _currentLobby.Id;
+        _currentLobby = null;
+
+        try
+        {
+            await LobbyService.Instance.RemovePlayerAsync(
+                lobbyId,
+                AuthenticationService.Instance.PlayerId
+            );
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"호스트 퇴장 후 로비 정리 실패: {e.Message}");
+        }
+
+        OnHostLeft?.Invoke();
     }
 
     /// <summary>
