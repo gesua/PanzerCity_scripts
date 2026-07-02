@@ -15,6 +15,7 @@ public class ShopItemSlot : MonoBehaviour, IPointerClickHandler
 
     ItemConfig _itemConfig;
     bool _isSoldOut;
+    bool _isInteractable = true;
 
     public event Action<ItemConfig> OnClicked;
 
@@ -36,9 +37,18 @@ public class ShopItemSlot : MonoBehaviour, IPointerClickHandler
             _soldOutOverlay.SetActive(isSoldOut);
     }
 
+    /// <summary>
+    /// 상호작용 가능 여부 설정
+    /// </summary>
+    public void SetInteractable(bool isInteractable)
+    {
+        _isInteractable = isInteractable;
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
         if (_isSoldOut) return;
+        if (_isInteractable == false) return;
         OnClicked?.Invoke(_itemConfig);
     }
 }

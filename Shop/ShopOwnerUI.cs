@@ -26,6 +26,7 @@ public class ShopOwnerUI : MonoBehaviour
 
     string _currentText;
     Coroutine _typeRoutine;
+    bool _isInteractable = true; // 상호 작용 가능한 상태인지
 
     public void ShowWelcome()
     {
@@ -53,10 +54,20 @@ public class ShopOwnerUI : MonoBehaviour
     }
 
     /// <summary>
+    /// 상호작용 가능 여부 설정
+    /// </summary>
+    public void SetInteractable(bool isInteractable)
+    {
+        _isInteractable = isInteractable;
+    }
+
+    /// <summary>
     /// 상점 주인 클릭(팁 대사 출력)
     /// </summary>
     public void OnClickOwner()
     {
+        if (_isInteractable == false) return;
+
         string tipKey = _tipKeys[Random.Range(0, _tipKeys.Length)];
         ShowDialogue(tipKey);
     }

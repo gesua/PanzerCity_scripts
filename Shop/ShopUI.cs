@@ -56,6 +56,8 @@ public class ShopUI : MonoBehaviour
 
         if (active)
         {
+            SetInteractable(true); // 상점 열릴 때 상호작용 잠금 해제
+
             _shopOwnerUI.ShowWelcome(); // 인사
             RollEquipmentItem(); // 열릴 때마다 장비 새로 뽑기
         }
@@ -188,10 +190,26 @@ public class ShopUI : MonoBehaviour
     }
 
     /// <summary>
+    /// 아이템 슬롯 및 상점 주인 상호작용 가능 여부 일괄 설정
+    /// </summary>
+    void SetInteractable(bool isInteractable)
+    {
+        foreach (ShopItemSlot itemSlot in _itemSlots)
+        {
+            itemSlot.SetInteractable(isInteractable);
+        }
+
+        _equipmentSlot.SetInteractable(isInteractable);
+        _shopOwnerUI.SetInteractable(isInteractable);
+    }
+
+    /// <summary>
     /// 나가기 버튼
     /// </summary>
     public void OnClickExit()
     {
+        SetInteractable(false); // 나가는 동안 구매/주인 클릭 막기
+
         _shopOwnerUI.ShowExit(); // 나가기 인사
 
         // 잠깐 대기 후 나가기
