@@ -20,7 +20,7 @@ public class LobbyScene : MonoBehaviour
     [SerializeField] Button _createRoomButton;
     [SerializeField] Button _refreshButton;
     [SerializeField] Transform _lobbyListParent;
-    [SerializeField] GameObject _lobbyItemPrefab;  // TMP_Text + Button 조합
+    [SerializeField] GameObject _lobbyItemPrefab;
     [SerializeField] TMP_Text _statusText;
 
     [Header("----- 룸 패널 -----")]
@@ -123,10 +123,10 @@ public class LobbyScene : MonoBehaviour
 
             bool isLocked = lobby.IsLocked;
             bool isFull = lobby.AvailableSlots == 0;
-            bool canJoin = (isLocked == false) && (isFull == false);
+            bool canJoin = (isLocked == false);// && (isFull == false);
 
             // 방 이름 + 인원 + 상태 표시
-            string statusTag = (isLocked) ? " [시작됨]" : ((isFull) ? " [만석]" : "");
+            string statusTag = (isLocked) ? " [시작됨]" : "";
             item.GetComponentInChildren<TMP_Text>().text =
                 $"{lobby.Name} [{lobby.Players.Count}/{lobby.MaxPlayers}]{statusTag}";
 
