@@ -13,11 +13,6 @@ public class PlayerSlotUI : MonoBehaviour
 
     string _playerId;
 
-    void Start()
-    {
-        _kickButton.onClick.AddListener(OnKickClicked);
-    }
-
     /// <summary>
     /// 플레이어 정보 표시
     /// </summary>
@@ -43,7 +38,7 @@ public class PlayerSlotUI : MonoBehaviour
     /// <summary>
     /// 강퇴 버튼
     /// </summary>
-    async void OnKickClicked()
+    public async void OnKickClicked()
     {
         if (_playerId == null) return;
         await LobbyManager.Instance.KickPlayerAsync(_playerId);

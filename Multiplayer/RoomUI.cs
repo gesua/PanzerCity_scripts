@@ -16,16 +16,8 @@ public class RoomUI : MonoBehaviour
     [SerializeField] Button _readyButton;      // 클라이언트용
     [SerializeField] TMP_Text _readyButtonText;
     [SerializeField] Button _startButton;      // 호스트용
-    [SerializeField] Button _leaveButton;
 
     bool _isReady;
-
-    void Start()
-    {
-        _readyButton.onClick.AddListener(OnReadyClicked);
-        _startButton.onClick.AddListener(OnStartClicked);
-        _leaveButton.onClick.AddListener(OnLeaveClicked);
-    }
 
     /// <summary>
     /// 로비 데이터로 UI 갱신
@@ -74,7 +66,7 @@ public class RoomUI : MonoBehaviour
     /// <summary>
     /// 준비/준비 취소 토글
     /// </summary>
-    async void OnReadyClicked()
+    public async void OnReadyClicked()
     {
         _isReady = !_isReady;
         _readyButtonText.text = (_isReady) ? "준비 취소" : "준비";
@@ -84,7 +76,7 @@ public class RoomUI : MonoBehaviour
     /// <summary>
     /// 게임 시작 (호스트 전용)
     /// </summary>
-    async void OnStartClicked()
+    public async void OnStartClicked()
     {
         if (LobbyManager.Instance.IsAllPlayersReady() == false) return;
         await LobbyManager.Instance.StartGameAsync();
@@ -93,7 +85,7 @@ public class RoomUI : MonoBehaviour
     /// <summary>
     /// 로비 나가기
     /// </summary>
-    async void OnLeaveClicked()
+    public async void OnLeaveClicked()
     {
         _isReady = false;
         _readyButtonText.text = "준비";

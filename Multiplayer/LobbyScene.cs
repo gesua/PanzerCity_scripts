@@ -18,13 +18,10 @@ public class LobbyScene : MonoBehaviour
     [Header("----- 닉네임 패널 -----")]
     [SerializeField] GameObject _nicknamePanel;
     [SerializeField] TMP_InputField _nicknameInput;
-    [SerializeField] Button _nicknameConfirmButton;
 
     [Header("----- 로비 패널 -----")]
     [SerializeField] GameObject _lobbyPanel;
     [SerializeField] TMP_InputField _roomNameInput;
-    [SerializeField] Button _createRoomButton;
-    [SerializeField] Button _refreshButton;
     [SerializeField] Transform _lobbyListParent;
     [SerializeField] GameObject _lobbyItemPrefab;
     [SerializeField] TMP_Text _statusText;
@@ -35,10 +32,6 @@ public class LobbyScene : MonoBehaviour
 
     void Start()
     {
-        _nicknameConfirmButton.onClick.AddListener(OnNicknameConfirmed);
-        _createRoomButton.onClick.AddListener(OnCreateRoomClicked);
-        _refreshButton.onClick.AddListener(OnRefreshClicked);
-
         LobbyManager.Instance.OnLobbyListUpdated += RefreshLobbyListUI;
         LobbyManager.Instance.OnStatusChanged += UpdateStatus;
         LobbyManager.Instance.OnLobbyUpdated += HandleLobbyUpdated;
@@ -82,7 +75,7 @@ public class LobbyScene : MonoBehaviour
     /// <summary>
     /// 닉네임 확인 → 로비 패널로
     /// </summary>
-    void OnNicknameConfirmed()
+    public void OnNicknameConfirmed()
     {
         string nickname = _nicknameInput.text.Trim();
         if (nickname == "") return;
@@ -94,7 +87,7 @@ public class LobbyScene : MonoBehaviour
     /// <summary>
     /// 방 만들기 → 룸 패널로
     /// </summary>
-    async void OnCreateRoomClicked()
+    public async void OnCreateRoomClicked()
     {
         string trimmed = _roomNameInput.text.Trim();
         string roomName = (trimmed == "") ?
@@ -108,7 +101,7 @@ public class LobbyScene : MonoBehaviour
     /// <summary>
     /// 로비 목록 새로고침
     /// </summary>
-    async void OnRefreshClicked()
+    public async void OnRefreshClicked()
     {
         await LobbyManager.Instance.RefreshLobbyListAsync();
     }
