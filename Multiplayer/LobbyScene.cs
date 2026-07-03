@@ -1,7 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -9,6 +11,10 @@ using UnityEngine.UI;
 /// </summary>
 public class LobbyScene : MonoBehaviour
 {
+    [Header("----- 씬 -----")]
+    [SerializeField] AudioListener _audioListener;
+    [SerializeField] UnityEngine.EventSystems.EventSystem _eventSystem;
+
     [Header("----- 닉네임 패널 -----")]
     [SerializeField] GameObject _nicknamePanel;
     [SerializeField] TMP_InputField _nicknameInput;
@@ -184,12 +190,44 @@ public class LobbyScene : MonoBehaviour
     }
 
     /// <summary>
-    /// 게임 시작 신호 수신
-    /// TODO: 3단계에서 씬 전환 구현
+    /// 게임 시작 신호 수신 → 씬 전환
     /// </summary>
     void HandleGameStart()
     {
-        Debug.Log("게임 시작 - 3단계에서 씬 전환 구현 예정");
+        LobbyManager.Instance.StartSceneTransition(StartMultiplayerRoutine());
+    }
+
+    IEnumerator StartMultiplayerRoutine()
+    {
+        // Pool 미리 만들기
+        GameManager.Instance.PoolManager.GetPool("DroppedItem");
+        GameManager.Instance.PoolManager.GetPool("Shell");
+
+        LoadingUI loadingUI = GameManager.Instance.LoadingUI;
+        loadingUI.Show();
+
+        if (_audioListener != null) _audioListener.enabled = false;
+        if (_eventSystem != null) _eventSystem.gameObject.SetActive(false);
+
+        // Game 씬 로드
+        AsyncOperation gameSceneLoad = SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
+        yield return gameSceneLoad;
+
+        // Stage 씬 로드 (로딩 완료까지 대기)
+        string stageName = LobbyManager.Instance.FirstStageName;
+        AsyncOperation stageLoad = SceneManager.LoadSceneAsync(stageName, LoadSceneMode.Additive);
+        stageLoad.allowSceneActivation = false;
+
+        StartCoroutine(loadingUI.UpdateProgress(stageLoad));
+        yield return new WaitUntil(() => stageLoad.progress >= 0.9f);
+
+        stageLoad.allowSceneActivation = true;
+        yield return stageLoad;
+
+        yield return new WaitForSeconds(0.1f);
+
+        loadingUI.Hide();
+        SceneManager.UnloadSceneAsync("Lobby");
     }
 
     void UpdateStatus(string message)

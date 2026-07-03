@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
@@ -36,8 +37,10 @@ public class LobbyManager : MonoBehaviour
 
     public Lobby CurrentLobby => _currentLobby;
     public string Nickname => _nickname;
+    public string FirstStageName { get; private set; } = "Stage01"; // 멀티 시작 스테이지
     public bool IsHost => _currentLobby != null &&
         _currentLobby.HostId == AuthenticationService.Instance.PlayerId;
+
 
     public event Action<List<Lobby>> OnLobbyListUpdated;
     public event Action<Lobby> OnLobbyUpdated; // 룸 상태 갱신
@@ -426,6 +429,14 @@ public class LobbyManager : MonoBehaviour
         {
             Debug.LogWarning($"로비 나가기 실패: {e.Message}");
         }
+    }
+
+    /// <summary>
+    /// 씬 전환 코루틴 실행 위임 (DontDestroyOnLoad 오브젝트에서 실행)
+    /// </summary>
+    public void StartSceneTransition(IEnumerator routine)
+    {
+        StartCoroutine(routine);
     }
 
     /// <summary>

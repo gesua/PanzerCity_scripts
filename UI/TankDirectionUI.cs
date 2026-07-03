@@ -9,15 +9,17 @@ public class TankDirectionUI : MonoBehaviour
     [SerializeField] RectTransform _hullDirection;   // 차체 방향
     [SerializeField] RectTransform _turretDirection; // 포탑 방향
     [SerializeField] PlayerTank _player; // 플레이어
-    Transform _cameraTr;
+    [SerializeField] Transform _cameraTr;
 
     private void Awake()
     {
-        _cameraTr = Camera.main.transform;
+        //_cameraTr = Camera.main.transform;
     }
 
     void Update()
     {
+        //if (_cameraTr == null) return;
+
         // 카메라 보는 방향을 위쪽으로 함
         float cameraY = _cameraTr.eulerAngles.y;
 

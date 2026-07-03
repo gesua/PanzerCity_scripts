@@ -10,7 +10,7 @@ public class StageScene : MonoBehaviour
 {
     [SerializeField] int _stageID;
     [SerializeField] EnemySpawner _enemySpawner; // 스테이지 ID값 넘겨줄거
-    [SerializeField] Transform _playerSpawnPoint; // 플레이어 시작 지점
+    [SerializeField] Transform[] _playerSpawnPoints; // 플레이어 시작 지점 (싱글: [0], 멀티: 인덱스 순)
     [SerializeField] HQ _hq;
     [SerializeField] BaseWall _baseWall;
 
@@ -36,7 +36,7 @@ public class StageScene : MonoBehaviour
         _nextStageName = GameManager.Instance.DataManager.StageIDToSceneName(_stageID + 1);
 
         _hq.OnDestroyed += () => OnHQDestroyed?.Invoke();
-        OnStageLoaded?.Invoke(_playerSpawnPoint.position);
+        OnStageLoaded?.Invoke(_playerSpawnPoints[0].position);
         _enemySpawner.Initialize(_stageID);
 
         _enemySpawner.OnAllEnemiesDefeated += HandleAllEnemiesDefeated; // 모든 적 격파
@@ -76,4 +76,15 @@ public class StageScene : MonoBehaviour
         }
         _droppedItems.Clear();
     }
+
+    /// <summary>
+    /// 플레이어 스폰 위치 반환 (멀티용)
+    /// index가 범위 초과 시 마지막 포인트 반환
+    /// </summary>
+    public Vector3 GetSpawnPoint(int index)
+    {
+        int safeIndex = Mathf.Clamp(index, 0, _playerSpawnPoints.Length - 1);
+        return _playerSpawnPoints[safeIndex].position;
+    }
+
 }
