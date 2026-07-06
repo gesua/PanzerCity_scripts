@@ -30,6 +30,8 @@ public class LobbyScene : MonoBehaviour
     [SerializeField] GameObject _roomPanel;
     [SerializeField] RoomUI _roomUI;
 
+    bool _isCreatingRoom; // 방 만들기 중복 클릭 방지
+
     void Start()
     {
         LobbyManager.Instance.OnLobbyListUpdated += RefreshLobbyListUI;
@@ -89,13 +91,23 @@ public class LobbyScene : MonoBehaviour
     /// </summary>
     public async void OnCreateRoomClicked()
     {
-        string trimmed = _roomNameInput.text.Trim();
-        string roomName = (trimmed == "") ?
-            $"{LobbyManager.Instance.Nickname}의 방" : trimmed;
+        if (_isCreatingRoom) return;
+        _isCreatingRoom = true;
 
-        await LobbyManager.Instance.CreateLobbyAsync(roomName);
-        ShowPanel(_roomPanel);
-        _roomUI.Refresh(LobbyManager.Instance.CurrentLobby);
+        try
+        {
+            string trimmed = _roomNameInput.text.Trim();
+            string roomName = (trimmed == "") ?
+                $"{LobbyManager.Instance.Nickname}의 방" : trimmed;
+
+            await LobbyManager.Instance.CreateLobbyAsync(roomName);
+            ShowPanel(_roomPanel);
+            _roomUI.Refresh(LobbyManager.Instance.CurrentLobby);
+        }
+        finally
+        {
+            _isCreatingRoom = false;
+        }
     }
 
     /// <summary>
@@ -135,15 +147,27 @@ public class LobbyScene : MonoBehaviour
             if (canJoin)
             {
                 string lobbyId = lobby.Id;
+                bool isJoining = false; // 이 버튼 인스턴스의 중복 클릭 방지
+
                 joinButton.onClick.AddListener(async () =>
                 {
-                    await LobbyManager.Instance.JoinLobbyAsync(lobbyId);
+                    if (isJoining) return;
+                    isJoining = true;
 
-                    // 참가 실패 시 패널 전환 안 함
-                    if (LobbyManager.Instance.CurrentLobby == null) return;
+                    try
+                    {
+                        await LobbyManager.Instance.JoinLobbyAsync(lobbyId);
 
-                    ShowPanel(_roomPanel);
-                    _roomUI.Refresh(LobbyManager.Instance.CurrentLobby);
+                        // 참가 실패 시 패널 전환 안 함
+                        if (LobbyManager.Instance.CurrentLobby == null) return;
+
+                        ShowPanel(_roomPanel);
+                        _roomUI.Refresh(LobbyManager.Instance.CurrentLobby);
+                    }
+                    finally
+                    {
+                        isJoining = false;
+                    }
                 });
             }
         }

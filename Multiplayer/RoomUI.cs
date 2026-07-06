@@ -18,6 +18,9 @@ public class RoomUI : MonoBehaviour
     [SerializeField] Button _startButton;      // 호스트용
 
     bool _isReady;
+    bool _isTogglingReady; // 준비 버튼 중복 클릭 방지
+    bool _isStarting;      // 시작 버튼 중복 클릭 방지
+    bool _isLeaving;       // 나가기 버튼 중복 클릭 방지
 
     /// <summary>
     /// 로비 데이터로 UI 갱신
@@ -68,9 +71,20 @@ public class RoomUI : MonoBehaviour
     /// </summary>
     public async void OnReadyClicked()
     {
-        _isReady = !_isReady;
-        _readyButtonText.text = (_isReady) ? "준비 취소" : "준비";
-        await LobbyManager.Instance.UpdateReadyStatusAsync(_isReady);
+        if (_isTogglingReady) return;
+        _isTogglingReady = true;
+
+        try
+        {
+            _isReady = !_isReady;
+            _readyButtonText.text = (_isReady) ? "준비 취소" : "준비";
+            await LobbyManager.Instance.UpdateReadyStatusAsync(_isReady);
+        }
+        finally
+        {
+            _isTogglingReady = false;
+        }
+
     }
 
     /// <summary>
@@ -78,8 +92,19 @@ public class RoomUI : MonoBehaviour
     /// </summary>
     public async void OnStartClicked()
     {
+        if (_isStarting) return;
         if (LobbyManager.Instance.IsAllPlayersReady() == false) return;
-        await LobbyManager.Instance.StartGameAsync();
+
+        _isStarting = true;
+
+        try
+        {
+            await LobbyManager.Instance.StartGameAsync();
+        }
+        finally
+        {
+            _isStarting = false;
+        }
     }
 
     /// <summary>
@@ -87,8 +112,18 @@ public class RoomUI : MonoBehaviour
     /// </summary>
     public async void OnLeaveClicked()
     {
-        _isReady = false;
-        _readyButtonText.text = "준비";
-        await LobbyManager.Instance.LeaveLobbyAsync();
+        if (_isLeaving) return;
+        _isLeaving = true;
+
+        try
+        {
+            _isReady = false;
+            _readyButtonText.text = "준비";
+            await LobbyManager.Instance.LeaveLobbyAsync();
+        }
+        finally
+        {
+            _isLeaving = false;
+        }
     }
 }

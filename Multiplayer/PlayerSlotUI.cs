@@ -12,6 +12,7 @@ public class PlayerSlotUI : MonoBehaviour
     [SerializeField] Button _kickButton;
 
     string _playerId;
+    bool _isKicking; // 강퇴 버튼 중복 클릭 방지
 
     /// <summary>
     /// 플레이어 정보 표시
@@ -40,7 +41,18 @@ public class PlayerSlotUI : MonoBehaviour
     /// </summary>
     public async void OnKickClicked()
     {
+        if (_isKicking) return;
         if (_playerId == null) return;
-        await LobbyManager.Instance.KickPlayerAsync(_playerId);
+
+        _isKicking = true;
+
+        try
+        {
+            await LobbyManager.Instance.KickPlayerAsync(_playerId);
+        }
+        finally
+        {
+            _isKicking = false;
+        }
     }
 }

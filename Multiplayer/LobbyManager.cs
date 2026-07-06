@@ -144,7 +144,9 @@ public class LobbyManager : MonoBehaviour
 
             if (isStillInLobby == false)
             {
+                NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
                 _currentLobby = null;
+                NetworkManager.Singleton.Shutdown();
                 OnKicked?.Invoke();
                 return;
             }
