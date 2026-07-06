@@ -41,7 +41,6 @@ public class LobbyManager : MonoBehaviour
     public bool IsHost => _currentLobby != null &&
         _currentLobby.HostId == AuthenticationService.Instance.PlayerId;
 
-
     public event Action<List<Lobby>> OnLobbyListUpdated;
     public event Action<Lobby> OnLobbyUpdated; // 룸 상태 갱신
     public event Action<string> OnStatusChanged;

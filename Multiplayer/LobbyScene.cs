@@ -119,6 +119,14 @@ public class LobbyScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 메인화면 버튼 → 타이틀 씬으로 복귀 (로비 목록 패널 전용)
+    /// </summary>
+    public void OnMainMenuClicked()
+    {
+        LobbyManager.Instance.StartSceneTransition(ReturnToTitleRoutine());
+    }
+
+    /// <summary>
     /// 로비 목록 UI 갱신
     /// </summary>
     void RefreshLobbyListUI(List<Lobby> lobbies)
@@ -245,6 +253,17 @@ public class LobbyScene : MonoBehaviour
 
         loadingUI.Hide();
         SceneManager.UnloadSceneAsync("Lobby");
+    }
+
+    /// <summary>
+    /// 메인화면 복귀 씬 전환
+    /// </summary>
+    IEnumerator ReturnToTitleRoutine()
+    {
+        if (_audioListener != null) _audioListener.enabled = false;
+        if (_eventSystem != null) _eventSystem.gameObject.SetActive(false);
+
+        yield return SceneManager.LoadSceneAsync("Title");
     }
 
     void UpdateStatus(string message)

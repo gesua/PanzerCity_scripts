@@ -1,5 +1,6 @@
 using System.Collections;
 using Unity.Cinemachine;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -63,6 +64,34 @@ public class GameScene : MonoBehaviour
 
     private void Start()
     {
+        // 멀티 플레이:로컬 플레이어 스폰 신호를 기다림
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            NetworkGameManager.Instance.OnLocalPlayerSpawned += HandleLocalPlayerSpawned;
+        }
+        else // 싱글 플레이:즉시 초기화
+        {
+            Initialize(_player);
+        }
+    }
+
+    /// <summary>
+    /// 로컬 플레이어 스폰 완료(멀티플레이 전용)
+    /// </summary>
+    void HandleLocalPlayerSpawned(PlayerTank player)
+    {
+        NetworkGameManager.Instance.OnLocalPlayerSpawned -= HandleLocalPlayerSpawned;
+        Initialize(player);
+    }
+
+    /// <summary>
+    /// 플레이어 바인딩 및 게임 씬 초기화
+    /// 싱글: Start()에서 즉시 호출 / 멀티: 로컬 플레이어 스폰 후 호출
+    /// </summary>
+    void Initialize(PlayerTank player)
+    {
+        _player = player; // 로컬 플레이어 바인딩
+
         Cursor.lockState = CursorLockMode.Locked;
 
         _inputSystemHandler.OnMoveInput += HandleMoveInput;
@@ -174,6 +203,12 @@ public class GameScene : MonoBehaviour
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnStageLoaded;
+
+        // 멀티플레이 로컬 플레이어 스폰 대기 중이었다면 구독 해제
+        if (NetworkGameManager.Instance != null)
+        {
+            NetworkGameManager.Instance.OnLocalPlayerSpawned -= HandleLocalPlayerSpawned;
+        }
     }
 
     void OnStageLoaded(Scene scene, LoadSceneMode mode)
@@ -195,7 +230,7 @@ public class GameScene : MonoBehaviour
         _currentStage.EnemySpawner.OnEnemySpawned += _enemySpawnUI.SetEnemySpawn;
 
         // 플레이어 능력치 다시 세팅(장착한 거 적용)
-        _player.Initialize();
+        if (_player != null) _player.Initialize();
 
         // 리스폰
         _currentStage.OnStageLoaded += HandleStageLoaded;
@@ -221,6 +256,12 @@ public class GameScene : MonoBehaviour
                 saveManager.SaveCurrentProgress(_currentStage.StageID, _inventoryUI.Presenter);
             }
         }
+
+        // 멀티플레이 — 스테이지 준비 완료를 NetworkGameManager에 알림(서버만 실제로 스폰 처리)
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            NetworkGameManager.Instance?.OnStageReady(_currentStage);
+        }
     }
 
     /// <summary>
@@ -243,7 +284,10 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleStageLoaded(Vector3 pos)
     {
-        _player.Respawn(_playerSpawnPoint = pos, _cinemachineBrain);
+        _playerSpawnPoint = pos;
+
+        // 멀티에서 로컬 플레이어가 아직 없으면 리스폰 생략(스폰 위치는 NetworkGameManager가 처리)
+        if (_player != null) _player.Respawn(_playerSpawnPoint, _cinemachineBrain);
 
         // 스테이지 시작 소리
         GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);

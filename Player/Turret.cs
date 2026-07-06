@@ -29,6 +29,7 @@ public class Turret : MonoBehaviour
     float _rotSpeed;
     bool _isSniping;
     bool _aimLocked;
+    bool _isLocalControl = true; // 로컬 소유인지(싱글 플레이:항상 true)
     Coroutine _sniperRoutine;
 
     // 조준점 색 변경
@@ -54,6 +55,15 @@ public class Turret : MonoBehaviour
     public void SetAimLocked(bool locked)
     {
         _aimLocked = locked;
+    }
+
+    /// <summary>
+    /// 로컬(내 소유) 제어 여부 설정(멀티플레이 전용, PlayerTank가 호출)
+    /// 소유자가 아니면 카메라 기반 조준/조준점 로직을 실행하지 않고, NetworkTransform 복제 값만 표시함
+    /// </summary>
+    public void SetLocalControl(bool isLocal)
+    {
+        _isLocalControl = isLocal;
     }
 
     /// <summary>
@@ -99,6 +109,8 @@ public class Turret : MonoBehaviour
 
     private void Update()
     {
+        if (_isLocalControl == false) return; // 로컬 소유가 아니면 카메라 기반 조준 로직 실행 안 함
+
         if (_aimLocked)
         {
             TurretCrosshair();

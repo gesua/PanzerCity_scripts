@@ -32,6 +32,8 @@ public class PlayerTank : TankBase
     bool _isAttack; // 좌클릭 누르는 중인지
     bool _isSniperMode; // 저격 모드인지(Shift)
     bool _isDead; // 죽었는지
+    bool _isNetworkOwner = true; // 네트워크 소유자인지(싱글 플레이:항상 true)
+
     float _reloadTimer; // 재장전 시간 잴거
     int _prevHp; // 이전 체력(피격 확인용)
 
@@ -121,8 +123,20 @@ public class PlayerTank : TankBase
         _isAttack = isActive;
     }
 
+    /// <summary>
+    /// 네트워크 소유권 설정(멀티플레이 전용, PlayerNetworkOwner가 호출)
+    /// 소유자가 아니면 Update()의 로컬 로직(재장전/공격)을 실행하지 않음
+    /// </summary>
+    public void SetNetworkOwnership(bool isOwner)
+    {
+        _isNetworkOwner = isOwner;
+        _turret.SetLocalControl(isOwner);
+    }
+
     private void Update()
     {
+        if (_isNetworkOwner == false) return; // 네트워크 소유자가 아니면 로컬 로직 실행 안 함
+
         // 재장전 체크
         if (_reloadTimer > 0f)
         {

@@ -112,8 +112,6 @@ public class TitleScene : MonoBehaviour
         _eventSystem.gameObject.SetActive(false);
 
         yield return SceneManager.LoadSceneAsync("Lobby");
-
-        SceneManager.UnloadSceneAsync("Title");
     }
 
     public void OnClickOptions()

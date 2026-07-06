@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,6 +14,8 @@ public class NetworkGameManager : NetworkBehaviour
 
     StageScene _stageScene;
 
+    public event Action<PlayerTank> OnLocalPlayerSpawned; // 로컬 플레이어 스폰 완료 알림(GameScene이 구독)
+
     void Awake()
     {
         if (Instance != null)
@@ -23,33 +26,17 @@ public class NetworkGameManager : NetworkBehaviour
         Instance = this;
     }
 
-    public override void OnNetworkSpawn()
+    /// <summary>
+    /// 스테이지 준비 완료 — GameScene이 명시적으로 호출
+    /// (GameScene과 NetworkGameManager가 각자 sceneLoaded를 구독하면 실행 순서가 보장되지 않아서
+    /// 씬 로드 이벤트에 의존하지 않고 직접 호출받는 방식으로 처리)
+    /// </summary>
+    public void OnStageReady(StageScene stage)
     {
         // 서버만 플레이어 스폰 처리
         if (IsServer == false) return;
 
-        // 스테이지 씬 로드 감지
-        SceneManager.sceneLoaded += HandleSceneLoaded;
-    }
-
-    public override void OnNetworkDespawn()
-    {
-        if (IsServer == false) return;
-
-        SceneManager.sceneLoaded -= HandleSceneLoaded;
-    }
-
-    /// <summary>
-    /// 스테이지 씬 로드됨 — StageScene 캐시 후 플레이어 스폰
-    /// </summary>
-    void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        _stageScene = FindAnyObjectByType<StageScene>();
-        if (_stageScene == null) return;
-
-        // 스테이지 씬 로드 시에만 처리 (이후 씬 로드에서 중복 방지)
-        SceneManager.sceneLoaded -= HandleSceneLoaded;
-
+        _stageScene = stage;
         SpawnAllPlayers();
     }
 
@@ -84,5 +71,13 @@ public class NetworkGameManager : NetworkBehaviour
         {
             networkObject.SpawnAsPlayerObject(clientId);
         }
+    }
+
+    /// <summary>
+    /// 로컬 플레이어 스폰 완료 알림(PlayerNetworkOwner가 호출)
+    /// </summary>
+    public void NotifyLocalPlayerSpawned(PlayerTank player)
+    {
+        OnLocalPlayerSpawned?.Invoke(player);
     }
 }
