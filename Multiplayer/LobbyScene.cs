@@ -161,44 +161,24 @@ public class LobbyScene : MonoBehaviour
         {
             GameObject item = Instantiate(_lobbyItemPrefab, _lobbyListParent);
 
+            if (item.TryGetComponent(out LobbyItemUI itemUI) == false) continue;
+
             bool isLocked = lobby.IsLocked;
-            bool isFull = (lobby.AvailableSlots == 0);
+            bool isFull = lobby.AvailableSlots == 0;
             bool canJoin = (isLocked == false);// && (isFull == false);
 
             // 방 이름 + 인원 + 상태 표시
             string statusTag = (isLocked) ? " [시작됨]" : "";
-            item.GetComponentInChildren<TMP_Text>().text =
-                $"{lobby.Name} [{lobby.Players.Count}/{lobby.MaxPlayers}]{statusTag}";
+            string displayText = $"{lobby.Name} [{lobby.Players.Count}/{lobby.MaxPlayers}]{statusTag}";
+            string lobbyName = lobby.Name;
 
-            Button joinButton = item.GetComponentInChildren<Button>();
-            joinButton.interactable = canJoin;
-
-            if (canJoin)
-            {
-                string lobbyId = lobby.Id;
-                bool isJoining = false; // 이 버튼 인스턴스의 중복 클릭 방지
-
-                joinButton.onClick.AddListener(async () =>
+            itemUI.Setup(displayText, canJoin, lobby.Id,
+                onSelect: () => _roomNameInput.text = lobbyName,
+                onJoined: () =>
                 {
-                    if (isJoining) return;
-                    isJoining = true;
-
-                    try
-                    {
-                        await LobbyManager.Instance.JoinLobbyAsync(lobbyId);
-
-                        // 참가 실패 시 패널 전환 안 함
-                        if (LobbyManager.Instance.CurrentLobby == null) return;
-
-                        ShowPanel(_roomPanel);
-                        _roomUI.Refresh(LobbyManager.Instance.CurrentLobby);
-                    }
-                    finally
-                    {
-                        isJoining = false;
-                    }
+                    ShowPanel(_roomPanel);
+                    _roomUI.Refresh(LobbyManager.Instance.CurrentLobby);
                 });
-            }
         }
     }
 
