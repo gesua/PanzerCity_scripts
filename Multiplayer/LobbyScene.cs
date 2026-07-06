@@ -25,6 +25,7 @@ public class LobbyScene : MonoBehaviour
     [SerializeField] Transform _lobbyListParent;
     [SerializeField] GameObject _lobbyItemPrefab;
     [SerializeField] TMP_Text _statusText;
+    [SerializeField] GameObject _createPanel;
 
     [Header("----- 룸 패널 -----")]
     [SerializeField] GameObject _roomPanel;
@@ -84,6 +85,24 @@ public class LobbyScene : MonoBehaviour
 
         LobbyManager.Instance.SetNickname(nickname);
         ShowPanel(_lobbyPanel);
+
+        UpdateStatus($"{nickname} 로그인 성공");
+    }
+
+    /// <summary>
+    /// 방 만들기 UI 띄우기
+    /// </summary>
+    public void CreateUIOpen()
+    {
+        _createPanel.SetActive(true);
+    }
+
+    /// <summary>
+    /// 방 만들기 UI 닫기
+    /// </summary>
+    public void CreateUIClose()
+    {
+        _createPanel.SetActive(false);
     }
 
     /// <summary>
@@ -94,11 +113,13 @@ public class LobbyScene : MonoBehaviour
         if (_isCreatingRoom) return;
         _isCreatingRoom = true;
 
+        _createPanel.SetActive(false);
+
         try
         {
             string trimmed = _roomNameInput.text.Trim();
             string roomName = (trimmed == "") ?
-                $"{LobbyManager.Instance.Nickname}의 방" : trimmed;
+                $"{LobbyManager.Instance.Nickname} Room" : trimmed;
 
             await LobbyManager.Instance.CreateLobbyAsync(roomName);
             ShowPanel(_roomPanel);
@@ -141,7 +162,7 @@ public class LobbyScene : MonoBehaviour
             GameObject item = Instantiate(_lobbyItemPrefab, _lobbyListParent);
 
             bool isLocked = lobby.IsLocked;
-            bool isFull = lobby.AvailableSlots == 0;
+            bool isFull = (lobby.AvailableSlots == 0);
             bool canJoin = (isLocked == false);// && (isFull == false);
 
             // 방 이름 + 인원 + 상태 표시

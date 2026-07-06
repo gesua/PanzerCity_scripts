@@ -81,7 +81,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"초기화 실패: {e.Message}");
+            OnStatusChanged?.Invoke($"초기화 실패:{e.Message}");
         }
     }
 
@@ -110,7 +110,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"하트비트 실패: {e.Message}");
+            Debug.LogWarning($"하트비트 실패:{e.Message}");
         }
     }
 
@@ -165,7 +165,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"로비 폴링 실패: {e.Message}");
+            Debug.LogWarning($"로비 폴링 실패:{e.Message}");
         }
     }
 
@@ -184,12 +184,14 @@ public class LobbyManager : MonoBehaviour
     {
         try
         {
-            OnStatusChanged?.Invoke("Relay 할당 중...");
+            OnStatusChanged?.Invoke("방 생성 중...");
+
+            //OnStatusChanged?.Invoke("Relay 할당 중...");
 
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(maxPlayers - 1);
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
-            OnStatusChanged?.Invoke("로비 생성 중...");
+            //OnStatusChanged?.Invoke("로비 생성 중...");
 
             CreateLobbyOptions options = new CreateLobbyOptions
             {
@@ -216,11 +218,11 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
 
-            OnStatusChanged?.Invoke($"방 생성 완료: {_currentLobby.Name}");
+            OnStatusChanged?.Invoke($"방 생성 완료:{_currentLobby.Name}");
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"방 생성 실패: {e.Message}");
+            OnStatusChanged?.Invoke($"방 생성 실패:{e.Message}");
         }
     }
 
@@ -241,7 +243,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"목록 조회 실패: {e.Message}");
+            OnStatusChanged?.Invoke($"목록 조회 실패:{e.Message}");
         }
     }
 
@@ -252,7 +254,8 @@ public class LobbyManager : MonoBehaviour
     {
         try
         {
-            OnStatusChanged?.Invoke("로비 참가 중...");
+            OnStatusChanged?.Invoke("방 입장 중...");
+            //OnStatusChanged?.Invoke("로비 참가 중...");
 
             JoinLobbyByIdOptions options = new JoinLobbyByIdOptions
             {
@@ -277,13 +280,13 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
 
-            OnStatusChanged?.Invoke($"참가 완료: {_currentLobby.Name}");
+            OnStatusChanged?.Invoke($"참가 완료:{_currentLobby.Name}");
         }
         catch (Exception e)
         {
             // 참가 실패 시 _currentLobby 보장
             _currentLobby = null;
-            OnStatusChanged?.Invoke($"참가 실패: {e.Message}");
+            OnStatusChanged?.Invoke($"참가 실패:{e.Message}");
         }
     }
 
@@ -318,7 +321,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"준비 상태 업데이트 실패: {e.Message}");
+            Debug.LogWarning($"준비 상태 업데이트 실패:{e.Message}");
         }
     }
 
@@ -336,7 +339,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"강퇴 실패: {e.Message}");
+            Debug.LogWarning($"강퇴 실패:{e.Message}");
         }
     }
 
@@ -372,7 +375,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"게임 시작 실패: {e.Message}");
+            OnStatusChanged?.Invoke($"게임 시작 실패:{e.Message}");
         }
     }
 
@@ -472,7 +475,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"호스트 퇴장 후 로비 정리 실패: {e.Message}");
+            Debug.LogWarning($"호스트 퇴장 후 로비 정리 실패:{e.Message}");
         }
 
         OnHostLeft?.Invoke();
