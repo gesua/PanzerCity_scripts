@@ -6,6 +6,7 @@ using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 /// <summary>
 /// 로비 씬 총괄 — 닉네임/로비/룸 패널 전환 관리
@@ -22,6 +23,7 @@ public class LobbyScene : MonoBehaviour
 
     [Header("----- 로비 패널 -----")]
     [SerializeField] GameObject _lobbyPanel;
+    [SerializeField] Button _refreshButton;
     [SerializeField] TMP_InputField _joinRoomNameInput;
     [SerializeField] TMP_InputField _joinRoomPasswordInput;
     [SerializeField] Transform _lobbyListParent;
@@ -35,7 +37,8 @@ public class LobbyScene : MonoBehaviour
     [SerializeField] GameObject _roomPanel;
     [SerializeField] RoomUI _roomUI;
 
-    bool _isCreatingRoom; // 방 만들기 중복 클릭 방지
+    bool _isRefreshing;      // 새로고침 연타 방지
+    bool _isCreatingRoom;    // 방 만들기 중복 클릭 방지
     bool _isJoining;         // 방 참가 중복 클릭 방지
     string _selectedLobbyId; // 목록에서 선택된 방 ID
 
@@ -130,6 +133,12 @@ public class LobbyScene : MonoBehaviour
 
             await LobbyManager.Instance.CreateLobbyAsync(roomName, password);
 
+            // 생성 실패 시 방 패널로 넘어가지 않음
+            if (LobbyManager.Instance.CurrentLobby == null)
+            {
+                return;
+            }
+
             ShowPanel(_roomPanel);
             _roomUI.Refresh(LobbyManager.Instance.CurrentLobby);
         }
@@ -179,7 +188,23 @@ public class LobbyScene : MonoBehaviour
     /// </summary>
     public async void OnRefreshClicked()
     {
-        await LobbyManager.Instance.RefreshLobbyListAsync();
+        if (_isRefreshing) return;
+        _isRefreshing = true;
+
+        _refreshButton.interactable = false;
+
+        try
+        {
+            await LobbyManager.Instance.RefreshLobbyListAsync();
+
+            // 새로고침 최소 간격 2초
+            await System.Threading.Tasks.Task.Delay(2000);
+        }
+        finally
+        {
+            _refreshButton.interactable = true;
+            _isRefreshing = false;
+        }
     }
 
     /// <summary>

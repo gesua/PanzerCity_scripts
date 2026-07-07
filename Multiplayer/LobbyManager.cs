@@ -202,7 +202,9 @@ public class LobbyManager : MonoBehaviour
                 Player = MakePlayerData(isReady: false)
             };
 
+            Debug.Log("CreateLobbyAsync 시도");
             _currentLobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, options);
+            Debug.Log("CreateLobbyAsync 실행");
 
             RelayServerData relayServerData = AllocationUtils.ToRelayServerData(allocation, "dtls");
 
@@ -212,6 +214,10 @@ public class LobbyManager : MonoBehaviour
             }
 
             NetworkManager.Singleton.StartHost();
+            Debug.Log("StartHost 실행");
+            Debug.Log(_currentLobby.Id);
+            Debug.Log(_currentLobby.Name);
+            Debug.Log(_currentLobby.HasPassword);
 
             // 연결 끊김 감지 구독 (중복 방지)
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
@@ -221,6 +227,9 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
+            // 생성 실패 시 현재 로비 초기화
+            _currentLobby = null;
+
             OnStatusChanged?.Invoke($"Room creation failed:{e.Message}");
         }
     }
