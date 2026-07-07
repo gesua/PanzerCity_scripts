@@ -4,6 +4,7 @@ using TMPro;
 using Unity.Services.Lobbies.Models;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Localization;
 using UnityEngine.UI;
 
@@ -133,7 +134,7 @@ public class RoomUI : MonoBehaviour
         try
         {
             _isReady = false;
-            _readyButtonText.text = "준비";
+            _readyButtonText.text = new LocalizedString("Localization", ReadyKey).GetLocalizedString();
             await LobbyManager.Instance.LeaveLobbyAsync();
         }
         finally

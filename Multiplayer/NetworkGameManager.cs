@@ -73,8 +73,11 @@ public class NetworkGameManager : NetworkBehaviour
         Vector3 spawnPos = _stageScene.GetSpawnPoint(spawnIndex);
         GameObject player = Instantiate(_playerPrefab, spawnPos, Quaternion.identity);
 
+        Debug.Log($"player {player}");
+
         if (player.TryGetComponent(out NetworkObject networkObject))
         {
+            Debug.Log("여기 들어오나?");
             networkObject.SpawnAsPlayerObject(clientId);
         }
     }

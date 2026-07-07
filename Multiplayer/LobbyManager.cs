@@ -81,7 +81,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"초기화 실패:{e.Message}");
+            OnStatusChanged?.Invoke($"Initialization failed:{e.Message}");
         }
     }
 
@@ -184,14 +184,12 @@ public class LobbyManager : MonoBehaviour
     {
         try
         {
-            OnStatusChanged?.Invoke("방 생성 중...");
+            OnStatusChanged?.Invoke("Creating room...");
 
-            //OnStatusChanged?.Invoke("Relay 할당 중...");
+            //OnStatusChanged?.Invoke("Allocating Relay...");
 
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(maxPlayers - 1);
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
-
-            //OnStatusChanged?.Invoke("로비 생성 중...");
 
             CreateLobbyOptions options = new CreateLobbyOptions
             {
@@ -219,11 +217,11 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
 
-            OnStatusChanged?.Invoke($"방 생성 완료:{_currentLobby.Name}");
+            OnStatusChanged?.Invoke($"Room created:{_currentLobby.Name}");
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"방 생성 실패:{e.Message}");
+            OnStatusChanged?.Invoke($"Room creation failed:{e.Message}");
         }
     }
 
@@ -244,7 +242,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"목록 조회 실패:{e.Message}");
+            OnStatusChanged?.Invoke($"Lobby list fetch failed:{e.Message}");
         }
     }
 
@@ -255,8 +253,7 @@ public class LobbyManager : MonoBehaviour
     {
         try
         {
-            OnStatusChanged?.Invoke("방 입장 중...");
-            //OnStatusChanged?.Invoke("로비 참가 중...");
+            OnStatusChanged?.Invoke("Joining room...");
 
             JoinLobbyByIdOptions options = new JoinLobbyByIdOptions
             {
@@ -282,13 +279,13 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
 
-            OnStatusChanged?.Invoke($"참가 완료:{_currentLobby.Name}");
+            OnStatusChanged?.Invoke($"Join successful:{_currentLobby.Name}");
         }
         catch (Exception e)
         {
             // 참가 실패 시 _currentLobby 보장
             _currentLobby = null;
-            OnStatusChanged?.Invoke($"참가 실패:{e.Message}");
+            OnStatusChanged?.Invoke($"Join failed:{e.Message}");
         }
     }
 
@@ -377,7 +374,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"게임 시작 실패:{e.Message}");
+            OnStatusChanged?.Invoke($"Game start failed:{e.Message}");
         }
     }
 

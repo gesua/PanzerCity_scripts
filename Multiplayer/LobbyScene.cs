@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -260,7 +261,7 @@ public class LobbyScene : MonoBehaviour
     void HandleKicked()
     {
         ShowPanel(_lobbyPanel);
-        UpdateStatus($"강퇴당함");
+        UpdateStatus($"");
     }
 
     /// <summary>
@@ -283,25 +284,37 @@ public class LobbyScene : MonoBehaviour
         if (_audioListener != null) _audioListener.enabled = false;
         if (_eventSystem != null) _eventSystem.gameObject.SetActive(false);
 
-        // Game 씬 로드
-        AsyncOperation gameSceneLoad = SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
-        yield return gameSceneLoad;
+        // Game 씬 로드 (호스트만 요청, 클라이언트는 Netcode가 자동으로 밀어줌)
+        yield return LoadNetworkedSceneRoutine("Game");
 
-        // Stage 씬 로드 (로딩 완료까지 대기)
+        // Stage 씬 로드
         string stageName = LobbyManager.Instance.FirstStageName;
-        AsyncOperation stageLoad = SceneManager.LoadSceneAsync(stageName, LoadSceneMode.Additive);
-        stageLoad.allowSceneActivation = false;
-
-        StartCoroutine(loadingUI.UpdateProgress(stageLoad));
-        yield return new WaitUntil(() => stageLoad.progress >= 0.9f);
-
-        stageLoad.allowSceneActivation = true;
-        yield return stageLoad;
+        yield return LoadNetworkedSceneRoutine(stageName);
 
         yield return new WaitForSeconds(0.1f);
 
         loadingUI.Hide();
         SceneManager.UnloadSceneAsync("Lobby");
+    }
+
+    /// <summary>
+    /// 씬 로드 요청(호스트 전용) 및 완료 대기(호스트/클라이언트 공통)
+    /// NetworkSceneManager.LoadScene은 호스트/서버만 호출 가능해서, 클라이언트는 요청 없이 대기만 함
+    /// (호스트가 요청하면 Netcode가 연결된 클라이언트에도 같은 씬을 자동으로 밀어넣어줌)
+    /// </summary>
+    IEnumerator LoadNetworkedSceneRoutine(string sceneName)
+    {
+        if (NetworkManager.Singleton.IsHost)
+        {
+            SceneEventProgressStatus status = NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
+            if (status != SceneEventProgressStatus.Started)
+            {
+                Debug.LogWarning($"씬 로드 요청 실패: {sceneName} ({status})");
+            }
+        }
+
+        // 씬 로드 완료까지 대기 (호스트가 요청했든 클라이언트가 자동으로 받았든 로컬 씬 상태로 확인)
+        yield return new WaitUntil(() => SceneManager.GetSceneByName(sceneName).isLoaded);
     }
 
     /// <summary>
