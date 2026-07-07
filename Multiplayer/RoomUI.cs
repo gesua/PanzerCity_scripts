@@ -9,6 +9,8 @@ using UnityEngine.UI;
 /// </summary>
 public class RoomUI : MonoBehaviour
 {
+    [SerializeField] TMP_Text _roomName;
+
     [Header("----- 슬롯 -----")]
     [SerializeField] List<PlayerSlotUI> _playerSlots; // 인스펙터에서 4개 연결
 
@@ -28,6 +30,9 @@ public class RoomUI : MonoBehaviour
     public void Refresh(Lobby lobby)
     {
         if (lobby == null) return;
+
+        // 방 이름 설정
+        _roomName.text = lobby.Name;
 
         // 슬롯 갱신
         for (int i = 0; i < _playerSlots.Count; i++)

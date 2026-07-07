@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 /// <summary>
 /// 로비 씬 총괄 — 닉네임/로비/룸 패널 전환 관리
@@ -13,7 +13,7 @@ public class LobbyScene : MonoBehaviour
 {
     [Header("----- 씬 -----")]
     [SerializeField] AudioListener _audioListener;
-    [SerializeField] UnityEngine.EventSystems.EventSystem _eventSystem;
+    [SerializeField] EventSystem _eventSystem;
 
     [Header("----- 닉네임 패널 -----")]
     [SerializeField] GameObject _nicknamePanel;
@@ -22,17 +22,21 @@ public class LobbyScene : MonoBehaviour
     [Header("----- 로비 패널 -----")]
     [SerializeField] GameObject _lobbyPanel;
     [SerializeField] TMP_InputField _joinRoomNameInput;
+    [SerializeField] TMP_InputField _joinRoomPasswordInput;
     [SerializeField] Transform _lobbyListParent;
     [SerializeField] GameObject _lobbyItemPrefab;
     [SerializeField] TMP_Text _statusText;
     [SerializeField] GameObject _createPanel;
     [SerializeField] TMP_InputField _createRoomNameInput;
+    [SerializeField] TMP_InputField _createRoomPasswordInput;
 
     [Header("----- 룸 패널 -----")]
     [SerializeField] GameObject _roomPanel;
     [SerializeField] RoomUI _roomUI;
 
     bool _isCreatingRoom; // 방 만들기 중복 클릭 방지
+    bool _isJoining;         // 방 참가 중복 클릭 방지
+    string _selectedLobbyId; // 목록에서 선택된 방 ID
 
     void Start()
     {
@@ -121,14 +125,51 @@ public class LobbyScene : MonoBehaviour
             string trimmed = _createRoomNameInput.text.Trim();
             string roomName = (trimmed == "") ?
                 $"{LobbyManager.Instance.Nickname} Room" : trimmed;
+            string password = _createRoomPasswordInput.text.Trim();
 
-            await LobbyManager.Instance.CreateLobbyAsync(roomName);
+            await LobbyManager.Instance.CreateLobbyAsync(roomName, password);
+
             ShowPanel(_roomPanel);
             _roomUI.Refresh(LobbyManager.Instance.CurrentLobby);
         }
         finally
         {
             _isCreatingRoom = false;
+        }
+    }
+
+    /// <summary>
+    /// 입장 버튼 — 선택된 방으로 참가 (목록에서 방을 먼저 선택해야 함)
+    /// </summary>
+    public void OnJoinRoomClicked()
+    {
+        if (_selectedLobbyId == null) return;
+        TryJoinLobby(_selectedLobbyId);
+    }
+
+    /// <summary>
+    /// 로비 참가 시도 (목록 참가 버튼 / 입장 버튼 공용)
+    /// </summary>
+    async void TryJoinLobby(string lobbyId)
+    {
+        if (_isJoining) return;
+        _isJoining = true;
+
+        try
+        {
+            string password = _joinRoomPasswordInput.text.Trim();
+            await LobbyManager.Instance.JoinLobbyAsync(lobbyId, password);
+
+            // 참가 실패 시 패널 전환 안 함
+            if (LobbyManager.Instance.CurrentLobby == null) return;
+
+            _joinRoomNameInput.text = LobbyManager.Instance.CurrentLobby.Name;
+            ShowPanel(_roomPanel);
+            _roomUI.Refresh(LobbyManager.Instance.CurrentLobby);
+        }
+        finally
+        {
+            _isJoining = false;
         }
     }
 
@@ -166,20 +207,23 @@ public class LobbyScene : MonoBehaviour
 
             bool isLocked = lobby.IsLocked;
             bool isFull = lobby.AvailableSlots == 0;
-            bool canJoin = (isLocked == false);// && (isFull == false);
+            bool canJoin = (isLocked == false);
 
             // 방 이름 + 인원 + 상태 표시
             string statusTag = (isLocked) ? " [시작됨]" : "";
-            string displayText = $"{lobby.Name} [{lobby.Players.Count}/{lobby.MaxPlayers}]{statusTag}";
+            string passwordTag = (lobby.HasPassword) ? " [암호]" : "";
+            string displayText = $"{lobby.Name} [{lobby.Players.Count}/{lobby.MaxPlayers}]{statusTag}{passwordTag}";
+
+            string lobbyId = lobby.Id;
             string lobbyName = lobby.Name;
 
-            itemUI.Setup(displayText, canJoin, lobby.Id,
-                onSelect: () => _joinRoomNameInput.text = lobbyName,
-                onJoined: () =>
+            itemUI.Setup(displayText, canJoin,
+                onSelect: () =>
                 {
-                    ShowPanel(_roomPanel);
-                    _roomUI.Refresh(LobbyManager.Instance.CurrentLobby);
-                });
+                    _joinRoomNameInput.text = lobbyName;
+                    _selectedLobbyId = lobbyId;
+                },
+                onJoinRequested: () => TryJoinLobby(lobbyId));
         }
     }
 
@@ -198,6 +242,7 @@ public class LobbyScene : MonoBehaviour
     void HandleLeftLobby()
     {
         ShowPanel(_lobbyPanel);
+        UpdateStatus($"");
     }
 
     /// <summary>
@@ -206,6 +251,7 @@ public class LobbyScene : MonoBehaviour
     void HandleHostLeft()
     {
         ShowPanel(_lobbyPanel);
+        UpdateStatus($"");
     }
 
     /// <summary>
@@ -214,6 +260,7 @@ public class LobbyScene : MonoBehaviour
     void HandleKicked()
     {
         ShowPanel(_lobbyPanel);
+        UpdateStatus($"강퇴당함");
     }
 
     /// <summary>

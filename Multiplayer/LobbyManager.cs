@@ -180,7 +180,7 @@ public class LobbyManager : MonoBehaviour
     /// <summary>
     /// 공개 방 생성
     /// </summary>
-    public async Task CreateLobbyAsync(string lobbyName, int maxPlayers = 3)
+    public async Task CreateLobbyAsync(string lobbyName, string password, int maxPlayers = 3)
     {
         try
         {
@@ -196,6 +196,7 @@ public class LobbyManager : MonoBehaviour
             CreateLobbyOptions options = new CreateLobbyOptions
             {
                 IsPrivate = false,
+                Password = (string.IsNullOrEmpty(password) == false) ? password : null,
                 Data = new Dictionary<string, DataObject>
                 {
                     { KeyRelayJoinCode, new DataObject(DataObject.VisibilityOptions.Member, joinCode) }
@@ -250,7 +251,7 @@ public class LobbyManager : MonoBehaviour
     /// <summary>
     /// 로비 참가
     /// </summary>
-    public async Task JoinLobbyAsync(string lobbyId)
+    public async Task JoinLobbyAsync(string lobbyId, string password)
     {
         try
         {
@@ -259,6 +260,7 @@ public class LobbyManager : MonoBehaviour
 
             JoinLobbyByIdOptions options = new JoinLobbyByIdOptions
             {
+                Password = (string.IsNullOrEmpty(password) == false) ? password : null,
                 Player = MakePlayerData(isReady: false)
             };
 
