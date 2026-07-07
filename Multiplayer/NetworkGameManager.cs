@@ -33,6 +33,8 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     public void OnStageReady(StageScene stage)
     {
+        Debug.Log("OnStageReady");
+
         // 서버만 플레이어 스폰 처리
         if (IsServer == false) return;
 
@@ -45,6 +47,8 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     void SpawnAllPlayers()
     {
+        Debug.Log("SpawnAllPlayers");
+
         int index = 0;
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
@@ -58,6 +62,8 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     void SpawnPlayer(ulong clientId, int spawnIndex)
     {
+        Debug.Log("SpawnPlayer");
+
         if (_playerPrefab == null)
         {
             Debug.LogWarning("PlayerPrefab이 연결되지 않았습니다. 4단계에서 연결 예정.");

@@ -131,6 +131,7 @@ public class PlayerTank : TankBase
     {
         _isNetworkOwner = isOwner;
         _turret.SetLocalControl(isOwner);
+        _itemPickup.SetLocalControl(isOwner);
     }
 
     private void Update()

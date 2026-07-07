@@ -64,12 +64,13 @@ public class GameScene : MonoBehaviour
 
     private void Start()
     {
-        // 멀티 플레이:로컬 플레이어 스폰 신호를 기다림
+        // 멀티플레이:로컬 플레이어 스폰 신호를 기다림
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
+            Debug.Log("멀티플레이 시작");
             NetworkGameManager.Instance.OnLocalPlayerSpawned += HandleLocalPlayerSpawned;
         }
-        else // 싱글 플레이:즉시 초기화
+        else // 싱글플레이:즉시 초기화
         {
             Initialize(_player);
         }
@@ -213,6 +214,8 @@ public class GameScene : MonoBehaviour
 
     void OnStageLoaded(Scene scene, LoadSceneMode mode)
     {
+        Debug.Log("OnStageLoaded");
+
         _currentStage = FindAnyObjectByType<StageScene>();
         if (_currentStage == null) return;
 

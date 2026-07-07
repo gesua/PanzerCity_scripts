@@ -17,9 +17,11 @@ public class PlayerNetworkOwner : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        Debug.Log("OnNetworkSpawn");
+
         _playerTank.SetNetworkOwnership(IsOwner);
 
-        // 로컬(내) 소유일 때만 GameScene에 스폰 완료를 알림
+        // 로컬 소유일 때만 GameScene에 스폰 완료를 알림
         if (IsOwner)
         {
             NetworkGameManager.Instance.NotifyLocalPlayerSpawned(_playerTank);

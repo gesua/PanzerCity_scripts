@@ -21,11 +21,12 @@ public class LobbyScene : MonoBehaviour
 
     [Header("----- 로비 패널 -----")]
     [SerializeField] GameObject _lobbyPanel;
-    [SerializeField] TMP_InputField _roomNameInput;
+    [SerializeField] TMP_InputField _joinRoomNameInput;
     [SerializeField] Transform _lobbyListParent;
     [SerializeField] GameObject _lobbyItemPrefab;
     [SerializeField] TMP_Text _statusText;
     [SerializeField] GameObject _createPanel;
+    [SerializeField] TMP_InputField _createRoomNameInput;
 
     [Header("----- 룸 패널 -----")]
     [SerializeField] GameObject _roomPanel;
@@ -117,7 +118,7 @@ public class LobbyScene : MonoBehaviour
 
         try
         {
-            string trimmed = _roomNameInput.text.Trim();
+            string trimmed = _createRoomNameInput.text.Trim();
             string roomName = (trimmed == "") ?
                 $"{LobbyManager.Instance.Nickname} Room" : trimmed;
 
@@ -173,7 +174,7 @@ public class LobbyScene : MonoBehaviour
             string lobbyName = lobby.Name;
 
             itemUI.Setup(displayText, canJoin, lobby.Id,
-                onSelect: () => _roomNameInput.text = lobbyName,
+                onSelect: () => _joinRoomNameInput.text = lobbyName,
                 onJoined: () =>
                 {
                     ShowPanel(_roomPanel);

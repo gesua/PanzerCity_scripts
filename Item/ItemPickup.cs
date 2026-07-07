@@ -17,17 +17,35 @@ public class ItemPickup : MonoBehaviour
     DroppedItem _nearestItem; // 획득할 가까운 아이템
     InventoryPresenter _inventoryPresenter;
 
+    bool _isLocalControl = true; // 로컬 소유인지(싱글 플레이:항상 true)
+    bool _isInitialized; // Initialize() 호출 여부(멀티에서 스폰 직후 몇 프레임 동안 아직 안 됐을 수 있음)
+
     public event Action<ItemConfig> OnAutoUsed; // 즉시 사용 아이템 획득
     Func<bool> _isDeadCheck; // 플레이어 죽었는지 넘겨받는 용도
 
     public void Initialize(InventoryPresenter inventoryPresenter, Func<bool> isDeadCheck)
     {
+        Debug.Log("아이템 픽업 세팅");
+
         _inventoryPresenter = inventoryPresenter;
         _isDeadCheck = isDeadCheck;
+        _isInitialized = true;
+    }
+
+    /// <summary>
+    /// 로컬 제어 여부 설정(멀티플레이 전용, PlayerTank가 호출)
+    /// 소유자가 아니면 아이템 탐색/줍기 로직을 실행하지 않음
+    /// </summary>
+    public void SetLocalControl(bool isLocal)
+    {
+        _isLocalControl = isLocal;
     }
 
     void Update()
     {
+        if (_isInitialized == false) return; // 아직 Initialize()가 호출되지 않았으면 스킵
+        if (_isLocalControl == false) return; // 로컬 소유가 아니면 아이템 탐색 안 함
+
         // 주울 수 있는 아이템 체크
         _detectTimer += Time.deltaTime;
         if (_detectTimer >= _detectInterval)
