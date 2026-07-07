@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
+using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -40,7 +42,7 @@ public class LobbyScene : MonoBehaviour
     bool _isRefreshing;      // 새로고침 연타 방지
     bool _isCreatingRoom;    // 방 만들기 중복 클릭 방지
     bool _isJoining;         // 방 참가 중복 클릭 방지
-    string _selectedLobbyId; // 목록에서 선택된 방 ID
+    bool _isFindingRoom;     // 방 이름 검색 중복 클릭 방지
 
     void Start()
     {
@@ -95,7 +97,7 @@ public class LobbyScene : MonoBehaviour
         LobbyManager.Instance.SetNickname(nickname);
         ShowPanel(_lobbyPanel);
 
-        UpdateStatus($"{nickname} 로그인 성공");
+        UpdateStatus($"{nickname} Login successful");
     }
 
     /// <summary>
@@ -149,12 +151,32 @@ public class LobbyScene : MonoBehaviour
     }
 
     /// <summary>
-    /// 입장 버튼 — 선택된 방으로 참가 (목록에서 방을 먼저 선택해야 함)
+    /// 입장 버튼 — 선택된 방으로 참가
     /// </summary>
-    public void OnJoinRoomClicked()
+    public async void OnJoinRoomClicked()
     {
-        if (_selectedLobbyId == null) return;
-        TryJoinLobby(_selectedLobbyId);
+        if (_isFindingRoom) return;
+        _isFindingRoom = true;
+
+        try
+        {
+            string roomName = _joinRoomNameInput.text.Trim();
+            if (roomName == "") return;
+
+            Lobby lobby = await LobbyManager.Instance.FindLobbyByNameAsync(roomName);
+
+            if (lobby == null)
+            {
+                UpdateStatus("방을 찾을 수 없습니다.");
+                return;
+            }
+
+            TryJoinLobby(lobby.Id);
+        }
+        finally
+        {
+            _isFindingRoom = false;
+        }
     }
 
     /// <summary>
@@ -197,6 +219,8 @@ public class LobbyScene : MonoBehaviour
         {
             await LobbyManager.Instance.RefreshLobbyListAsync();
 
+            UpdateStatus($"Room list refreshed");
+
             // 새로고침 최소 간격 2초
             await System.Threading.Tasks.Task.Delay(2000);
         }
@@ -236,8 +260,8 @@ public class LobbyScene : MonoBehaviour
             bool canJoin = (isLocked == false);
 
             // 방 이름 + 인원 + 상태 표시
-            string statusTag = (isLocked) ? " [시작됨]" : "";
-            string passwordTag = (lobby.HasPassword) ? " [암호]" : "";
+            string statusTag = (isLocked) ? " [Started]" : "";
+            string passwordTag = (lobby.HasPassword) ? " [Locked]" : "";
             string displayText = $"{lobby.Name} [{lobby.Players.Count}/{lobby.MaxPlayers}]{statusTag}{passwordTag}";
 
             string lobbyId = lobby.Id;
@@ -247,7 +271,6 @@ public class LobbyScene : MonoBehaviour
                 onSelect: () =>
                 {
                     _joinRoomNameInput.text = lobbyName;
-                    _selectedLobbyId = lobbyId;
                 },
                 onJoinRequested: () => TryJoinLobby(lobbyId));
         }

@@ -17,6 +17,7 @@ public class RoomUI : MonoBehaviour
     const string UnreadyKey = "UI_MP_UNREADY"; // 준비 취소
 
     [SerializeField] TMP_Text _roomName;
+    [SerializeField] TMP_Text _roomPassword;
 
     [Header("----- 슬롯 -----")]
     [SerializeField] List<PlayerSlotUI> _playerSlots; // 인스펙터에서 4개 연결

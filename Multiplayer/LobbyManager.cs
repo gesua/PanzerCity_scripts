@@ -202,9 +202,7 @@ public class LobbyManager : MonoBehaviour
                 Player = MakePlayerData(isReady: false)
             };
 
-            Debug.Log("CreateLobbyAsync 시도");
             _currentLobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, options);
-            Debug.Log("CreateLobbyAsync 실행");
 
             RelayServerData relayServerData = AllocationUtils.ToRelayServerData(allocation, "dtls");
 
@@ -214,10 +212,6 @@ public class LobbyManager : MonoBehaviour
             }
 
             NetworkManager.Singleton.StartHost();
-            Debug.Log("StartHost 실행");
-            Debug.Log(_currentLobby.Id);
-            Debug.Log(_currentLobby.Name);
-            Debug.Log(_currentLobby.HasPassword);
 
             // 연결 끊김 감지 구독 (중복 방지)
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
@@ -252,6 +246,40 @@ public class LobbyManager : MonoBehaviour
         catch (Exception e)
         {
             OnStatusChanged?.Invoke($"Lobby list fetch failed:{e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 로비 검색
+    /// </summary>
+    public async Task<Lobby> FindLobbyByNameAsync(string roomName)
+    {
+        try
+        {
+            QueryLobbiesOptions options = new QueryLobbiesOptions
+            {
+                Filters = new List<QueryFilter>
+                {
+                    new QueryFilter(
+                        QueryFilter.FieldOptions.Name,
+                        roomName,
+                        QueryFilter.OpOptions.EQ)
+                }
+            };
+
+            QueryResponse response = await LobbyService.Instance.QueryLobbiesAsync(options);
+
+            if (response.Results.Count == 0)
+            {
+                return null;
+            }
+
+            return response.Results[0];
+        }
+        catch (Exception e)
+        {
+            OnStatusChanged?.Invoke($"Room search failed:{e.Message}");
+            return null;
         }
     }
 
