@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using System.Globalization;
 using TMPro;
 using Unity.Services.Lobbies.Models;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Localization;
 using UnityEngine.UI;
 
 /// <summary>
@@ -9,6 +12,9 @@ using UnityEngine.UI;
 /// </summary>
 public class RoomUI : MonoBehaviour
 {
+    const string ReadyKey = "UI_MP_READY";     // 준비
+    const string UnreadyKey = "UI_MP_UNREADY"; // 준비 취소
+
     [SerializeField] TMP_Text _roomName;
 
     [Header("----- 슬롯 -----")]
@@ -82,7 +88,11 @@ public class RoomUI : MonoBehaviour
         try
         {
             _isReady = !_isReady;
-            _readyButtonText.text = (_isReady) ? "준비 취소" : "준비";
+
+            // 준비, 준비 취소 글자
+            string key = (_isReady) ? UnreadyKey : ReadyKey;
+            _readyButtonText.text = new LocalizedString("Localization", key).GetLocalizedString();
+
             await LobbyManager.Instance.UpdateReadyStatusAsync(_isReady);
         }
         finally
