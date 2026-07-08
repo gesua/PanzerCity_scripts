@@ -329,6 +329,7 @@ public class Turret : MonoBehaviour
     /// </summary>
     public void SetCrosshairVisible(bool visible)
     {
+        if (_centerCrosshair == null) return;
         _centerCrosshair.gameObject.SetActive(visible);
         _turretCrosshair.gameObject.SetActive(visible);
     }

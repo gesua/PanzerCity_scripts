@@ -60,8 +60,6 @@ public class PlayerTank : TankBase
         _model.OnHit += HandleHit;   // 피격
         _model.OnDead += HandleDead; // 사망
 
-        Initialize();
-
         // 실드 이펙트 색 변경 용도
         _shieldRenderer = _shieldParticle.GetComponent<ParticleSystemRenderer>();
         // 원본 메터리얼 훼손 방지용 복제본 생성 후 교체
@@ -73,6 +71,8 @@ public class PlayerTank : TankBase
 
     public void Initialize()
     {
+        Debug.Log("PlayerTank Initialize");
+
         _mover.Initialize(_model);
         _prevHp = _model.CurrentHp;
 

@@ -17,7 +17,16 @@ public class PlayerNetworkOwner : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        Debug.Log("OnNetworkSpawn");
+        Debug.Log(
+        $"OnNetworkSpawn | {name} | " +
+        $"Owner:{IsOwner} | " +
+        $"Pos:{transform.position} | " +
+        $"Active:{gameObject.activeInHierarchy}");
+
+        Debug.Log($"Scene : {gameObject.scene.name}");
+        Debug.Log($"InstanceID : {gameObject.GetInstanceID()}");
+
+        Debug.Log(FindObjectsByType<PlayerNetworkOwner>(FindObjectsSortMode.None).Length);
 
         _playerTank.SetNetworkOwnership(IsOwner);
 

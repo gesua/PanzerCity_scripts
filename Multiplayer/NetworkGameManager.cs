@@ -73,12 +73,20 @@ public class NetworkGameManager : NetworkBehaviour
         Vector3 spawnPos = _stageScene.GetSpawnPoint(spawnIndex);
         GameObject player = Instantiate(_playerPrefab, spawnPos, Quaternion.identity);
 
-        Debug.Log($"player {player}");
+        // Game씬으로 옮김
+        Scene gameScene = SceneManager.GetSceneByName("Game");
+        SceneManager.MoveGameObjectToScene(player, gameScene);
+
+        Debug.Log(player.scene.name);
+        Debug.Log(SceneManager.GetSceneByName("Game").isLoaded);
 
         if (player.TryGetComponent(out NetworkObject networkObject))
         {
-            Debug.Log("여기 들어오나?");
+            Debug.Log($"Spawn : {clientId}");
+
             networkObject.SpawnAsPlayerObject(clientId);
+
+            Debug.Log($"Spawned : {networkObject.IsSpawned}");
         }
     }
 
