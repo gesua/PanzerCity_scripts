@@ -35,7 +35,7 @@ public class InventoryView : MonoBehaviour
     private void Awake()
     {
         // Pool 생성
-        GameManager.Instance.PoolManager.GetPool(_itemViewPath);
+        GameManager.Instance.PoolManager.GetPool(_itemViewPath, includeInReturnAll:false);
     }
 
     public void Initialize(int width)

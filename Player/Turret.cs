@@ -67,6 +67,23 @@ public class Turret : MonoBehaviour
     }
 
     /// <summary>
+    /// 씬 전용 UI 참조 주입(멀티플레이 전용, PlayerTank가 호출)
+    /// 프리팹은 씬 안의 오브젝트를 미리 연결할 수 없어서, 로컬 플레이어에게만 런타임에 연결함
+    /// </summary>
+    public void SetSceneReferences(
+        CameraTarget cameraTarget,
+        RectTransform centerCrosshair,
+        RectTransform turretCrosshair,
+        Image centerCrosshairImage)
+    {
+        Debug.Log("SetSceneReferences 세팅 끝");
+        _cameraTarget = cameraTarget;
+        _centerCrosshair = centerCrosshair;
+        _turretCrosshair = turretCrosshair;
+        _centerCrosshairImage = centerCrosshairImage;
+    }
+
+    /// <summary>
     /// 저격 모드 여부
     /// </summary>
     public void SetSniperMode(bool isSniper)

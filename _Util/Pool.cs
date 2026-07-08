@@ -12,6 +12,9 @@ public class Pool
     GameObject _prefab;         // Pooling할 원본 프리팹
     Transform _parent;          // Pooling 게임오브젝트들의 부모 트랜스폼
     HashSet<GameObject> _activeObjects; // 현재 Pool 밖에 나가있는(사용 중인) 오브젝트 추적
+    bool _includeInReturnAll;   // PoolManager.ReturnAllPools() 강제 반환 대상인지(필드 아이템/포탄용 Pool: true, UI용 Pool 등: false)
+
+    public bool IncludeInReturnAll => _includeInReturnAll;
 
     /// <summary>
     /// Pool 생성자
@@ -19,12 +22,14 @@ public class Pool
     /// <param name="prefab">Pooling할 프리팹</param>
     /// <param name="parent">Pool의 부모 트랜스폼</param>
     /// <param name="initSize">초기 Pool 크기</param>
-    public Pool(GameObject prefab, Transform parent, int initSize)
+    /// <param name="includeInReturnAll">ReturnAllPools() 강제 반환 대상 여부(기본 true)</param>
+    public Pool(GameObject prefab, Transform parent, int initSize, bool includeInReturnAll = true)
     {
         _prefab = prefab;
         _parent = parent;
         _pool = new Stack<GameObject>(initSize);
         _activeObjects = new HashSet<GameObject>();
+        _includeInReturnAll = includeInReturnAll;
 
         for (int i = 0; i < initSize; i++)
         {
@@ -69,7 +74,7 @@ public class Pool
     /// <returns></returns>
     public GameObject Pop()
     {
-        if(_pool.Count == 0)
+        if (_pool.Count == 0)
         {
             CreatePoolObj();
         }

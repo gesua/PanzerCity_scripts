@@ -3,6 +3,7 @@ using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 /// <summary>
 /// 게임 씬 관리
@@ -41,6 +42,11 @@ public class GameScene : MonoBehaviour
     [SerializeField] EquipmentUI _equipmentUI;   // 장비 UI
     [SerializeField] QuickSlotUI _quickSlotUI;   // 퀵슬롯 UI
     [SerializeField] DropZoneUI _dropZoneUI;     // 드롭존 UI
+    // 멀티에서 로컬에게 전달
+    [SerializeField] Image _centerCrosshairImage;      // 조준점 색상용
+    [SerializeField] RectTransform _centerCrosshair;   // 포탑 조준점(+) UI
+    [SerializeField] RectTransform _turretCrosshair;   // 포탑 조준점(O) UI
+    [SerializeField] ReloadIndicator _reloadIndicator; // 재장전 표시 UI
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
@@ -92,6 +98,13 @@ public class GameScene : MonoBehaviour
     void Initialize(PlayerTank player)
     {
         _player = player; // 로컬 플레이어 바인딩
+
+        // 멀티플레이 전용
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            Debug.Log("SetSceneReferences 세팅 시작");
+            _player.SetSceneReferences(_cameraTarget, _centerCrosshair, _turretCrosshair, _centerCrosshairImage, _reloadIndicator);
+        }
 
         Cursor.lockState = CursorLockMode.Locked;
 

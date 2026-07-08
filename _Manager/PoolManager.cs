@@ -23,8 +23,9 @@ public class PoolManager : MonoBehaviour
     /// </summary>
     /// <param name="prefabPath">프리팹 경로</param>
     /// <param name="size">Pool 초기 사이즈</param>
+    /// <param name="includeInReturnAll">ReturnAllPools() 강제 반환 대상 여부(기본 true). 필드 아이템/포탄처럼 스테이지 전환 시 정리돼야 하면 true, 인벤토리 UI처럼 유지돼야 하면 false</param>
     /// <returns></returns>
-    public Pool GetPool(string prefabPath, int size = 10)
+    public Pool GetPool(string prefabPath, int size = 10, bool includeInReturnAll = true)
     {
         // 프리팹 경로에 해당하는 Pool이 없으면
         if (_poolMap.ContainsKey(prefabPath) == false)
@@ -41,7 +42,7 @@ public class PoolManager : MonoBehaviour
             DontDestroyOnLoad(parentGo);
 
             // Pool 생성
-            Pool pool = new Pool(prefab, parentGo.transform, size);
+            Pool pool = new Pool(prefab, parentGo.transform, size, includeInReturnAll);
 
             // 생성된 Pool을 Pool맵에 추가
             _poolMap[prefabPath] = pool;
@@ -71,6 +72,9 @@ public class PoolManager : MonoBehaviour
     {
         foreach (Pool pool in _poolMap.Values)
         {
+            // 인벤토리 UI는 대상에서 제외
+            if (pool.IncludeInReturnAll == false) continue;
+
             pool.ReturnAll();
         }
     }
