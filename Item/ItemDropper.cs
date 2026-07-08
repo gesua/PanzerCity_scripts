@@ -65,6 +65,9 @@ public class ItemDropper : MonoBehaviour
             droppedItem.Initialize(itemConfig);
         }
 
+        // 아이템 드랍 소리(3D)
+        GameManager.Instance.AudioManager.PlaySfxAtPoint(SfxType.ItemDrop, itemGo.transform.position);
+
         OnItemDropped?.Invoke(droppedItem);
     }
 }

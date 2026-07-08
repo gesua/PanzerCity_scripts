@@ -7,18 +7,20 @@ public enum BgmType
 }
 public enum SfxType
 {
-    StageStart, // 스테이지 시작
-    LifeUp,     // 1목숨 추가
-    Pause,      // 일시정지(열릴 때만, 닫을 땐 안 남)
+    StageStart,  // 스테이지 시작
+    LifeUp,      // 1목숨 추가
+    Pause,       // 일시정지
 
     // 미검수
-    GameOver,   // 게임오버(HQ 파괴/목숨 소진 둘 다 동일) <----- flac로 가져오기
-    StageClear, // +스테이지 클리어(적 전멸)
-    GameClear,  // 게임 클리어(마지막 스테이지) <----- flac로 가져오기
-    TankHit,    // 탱크 피격음(플레이어/적 공통)
-    TankDestroy, // 탱크 파괴음(플레이어/적 공통)
-    HQDestroy,  // HQ 파괴음
-    ShellExplosion, // 포탄 터지는 소리(3D, 탱크/HQ를 맞춘 경우엔 생략)
+    GameOver,    // 게임오버 : 소리 키우기, 주변 소리 다 없애기
+    StageClear,  // +스테이지 클리어
+    GameClear,   // 게임 클리어(마지막 스테이지)
+    TankHit,     // +탱크 피격음
+    TankDestroy, // 탱크 파괴음 : 소리 키우기, 아이템 써서 동시에 죽을 때는 1번만 들리게 하기
+    HQDestroy,   // HQ 파괴음
+    ShellExplosion, // +포탄 터지는 소리
+    ItemDrop,    // 아이템 드랍음
+    ItemUse,     // 아이템 사용음
 }
 
 [System.Serializable]

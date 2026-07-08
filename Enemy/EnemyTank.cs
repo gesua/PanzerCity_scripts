@@ -480,6 +480,8 @@ public class EnemyTank : TankBase, IPoolReturnHandler
 
         _agent.nextPosition = transform.position; // 네브메시 위치 동기화
 
+        if (_agent.isOnNavMesh == false) return; // 네브메시 위에 없으면 종료
+
         // 목적지에 도달했을 때만 새로 계산
         if (_isFirstFlee == false && _agent.remainingDistance > _stoppingDistance) return;
         _isFirstFlee = false;

@@ -23,6 +23,9 @@ public class ItemEffectHandler : MonoBehaviour
 
     public void Use(ItemConfig config)
     {
+        // 아이템 사용 소리
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.ItemUse);
+
         switch (config.Id)
         {
             case 1001: // 목숨 증가
