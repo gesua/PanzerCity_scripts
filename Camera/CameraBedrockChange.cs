@@ -15,6 +15,8 @@ public class CameraBedrockChange : MonoBehaviour
 
     void Update()
     {
+        if (_player == null) return;
+
         // 외곽벽 모델 복구
         if (_changedBedrocks.Count > 0) RestoreBedrocks();
 
@@ -46,5 +48,13 @@ public class CameraBedrockChange : MonoBehaviour
             if (bedrock != null) bedrock.ShowModel();
         }
         _changedBedrocks.Clear();
+    }
+
+    /// <summary>
+    /// 로컬 플레이어 주입(멀티플레이 전용)
+    /// </summary>
+    public void SetPlayer(Transform player)
+    {
+        _player = player;
     }
 }

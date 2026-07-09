@@ -45,6 +45,8 @@ public class CameraTarget : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (_target == null) return;
+
         transform.position = _target.position;
 
         if (_isSniperMode) // 저격모드
@@ -164,5 +166,13 @@ public class CameraTarget : MonoBehaviour
     {
         _pitchSense = value;
         _yawSense = value;
+    }
+
+    /// <summary>
+    /// 따라갈 대상 설정(멀티플레이 전용)
+    /// </summary>
+    public void SetTarget(Transform target)
+    {
+        _target = target;
     }
 }

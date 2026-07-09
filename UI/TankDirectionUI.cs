@@ -11,14 +11,9 @@ public class TankDirectionUI : MonoBehaviour
     [SerializeField] PlayerTank _player; // 플레이어
     [SerializeField] Transform _cameraTr;
 
-    private void Awake()
-    {
-        //_cameraTr = Camera.main.transform;
-    }
-
     void Update()
     {
-        //if (_cameraTr == null) return;
+        if (_player == null) return;
 
         // 카메라 보는 방향을 위쪽으로 함
         float cameraY = _cameraTr.eulerAngles.y;
@@ -30,6 +25,14 @@ public class TankDirectionUI : MonoBehaviour
         // 포탑 회전값
         float turretY = _player.TurretTr.eulerAngles.y - cameraY;
         _turretDirection.localEulerAngles = new Vector3(0f, 0f, -turretY);
+    }
+
+    /// <summary>
+    /// 로컬 플레이어 주입(멀티플레이 전용)
+    /// </summary>
+    public void SetPlayer(PlayerTank player)
+    {
+        _player = player;
     }
 
     public void SetActive(bool active)

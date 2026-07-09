@@ -47,6 +47,8 @@ public class GameScene : MonoBehaviour
     [SerializeField] RectTransform _centerCrosshair;   // 포탑 조준점(+) UI
     [SerializeField] RectTransform _turretCrosshair;   // 포탑 조준점(O) UI
     [SerializeField] ReloadIndicator _reloadIndicator; // 재장전 표시 UI
+    [SerializeField] TankDirectionUI _tankDirectionUI;         // 차체/포탑 방향 UI
+    [SerializeField] CameraBedrockChange _cameraBedrockChange; // 외곽벽 투명화(MainCamera에 붙어있음)
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점
     StageScene _currentStage; // 현재 스테이지
@@ -73,9 +75,6 @@ public class GameScene : MonoBehaviour
         // 멀티플레이:로컬 플레이어 스폰 신호를 기다림
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
-            Destroy(_player.gameObject); // 싱글용 플레이어 제거
-            _player = null;
-
             Debug.Log("멀티플레이 시작");
             NetworkGameManager.Instance.OnLocalPlayerSpawned += HandleLocalPlayerSpawned;
         }
@@ -91,6 +90,10 @@ public class GameScene : MonoBehaviour
     void HandleLocalPlayerSpawned(PlayerTank player)
     {
         NetworkGameManager.Instance.OnLocalPlayerSpawned -= HandleLocalPlayerSpawned;
+
+        // 싱글용 플레이어 제거
+        if (_player != null) Destroy(_player.gameObject);
+
         Initialize(player);
     }
 
@@ -107,6 +110,11 @@ public class GameScene : MonoBehaviour
         {
             Debug.Log("SetSceneReferences 세팅 시작");
             _player.SetSceneReferences(_cameraTarget, _centerCrosshair, _turretCrosshair, _centerCrosshairImage, _reloadIndicator);
+
+            // 싱글용 Player가 파괴되면서 이 오브젝트들이 들고 있던 참조도 같이 끊기므로 새로 주입
+            _cameraTarget.SetTarget(_player.transform);
+            _tankDirectionUI.SetPlayer(_player);
+            _cameraBedrockChange.SetPlayer(_player.transform);
         }
 
         Cursor.lockState = CursorLockMode.Locked;
