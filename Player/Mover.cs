@@ -102,6 +102,11 @@ public class Mover : MonoBehaviour
         // y 성분은 물리 기반으로 유지
         _velocity.y = currentY;
 
+        if (Mathf.Abs(_targetSpeed) > 0.01f)
+        {
+            Debug.Log($"Mover FixedUpdate | targetSpeed:{_targetSpeed} currentSpeed:{_currentSpeed} velocity:{_velocity} isKinematic:{_rigid.isKinematic} pos:{_rigid.position}");
+        }
+
         _rigid.linearVelocity = _velocity;
 
         // 회전

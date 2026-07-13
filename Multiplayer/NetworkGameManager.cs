@@ -39,6 +39,7 @@ public class NetworkGameManager : NetworkBehaviour
         if (IsServer == false) return;
 
         _stageScene = stage;
+
         SpawnAllPlayers();
     }
 
@@ -66,19 +67,12 @@ public class NetworkGameManager : NetworkBehaviour
 
         if (_playerPrefab == null)
         {
-            Debug.LogWarning("PlayerPrefab이 연결되지 않았습니다. 4단계에서 연결 예정.");
+            Debug.LogWarning("PlayerPrefab이 연결되지 않았습니다.");
             return;
         }
 
         Vector3 spawnPos = _stageScene.GetSpawnPoint(spawnIndex);
         GameObject player = Instantiate(_playerPrefab, spawnPos, Quaternion.identity);
-
-        // Game씬으로 옮김
-        Scene gameScene = SceneManager.GetSceneByName("Game");
-        SceneManager.MoveGameObjectToScene(player, gameScene);
-
-        Debug.Log(player.scene.name);
-        Debug.Log(SceneManager.GetSceneByName("Game").isLoaded);
 
         if (player.TryGetComponent(out NetworkObject networkObject))
         {

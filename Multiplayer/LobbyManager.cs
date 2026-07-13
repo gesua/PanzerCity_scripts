@@ -180,7 +180,7 @@ public class LobbyManager : MonoBehaviour
     /// <summary>
     /// 공개 방 생성
     /// </summary>
-    public async Task CreateLobbyAsync(string lobbyName, string password, int maxPlayers = 3)
+    public async Task CreateLobbyAsync(string lobbyName, string password, int maxPlayers = 4)
     {
         try
         {

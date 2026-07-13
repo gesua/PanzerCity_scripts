@@ -115,6 +115,10 @@ public class GameScene : MonoBehaviour
             _cameraTarget.SetTarget(_player.transform);
             _tankDirectionUI.SetPlayer(_player);
             _cameraBedrockChange.SetPlayer(_player.transform);
+
+            // 스폰 시점에 이미 올바른 위치(NetworkGameManager가 배정)에 있으므로 그 위치 그대로 리스폰 처리
+            // StageScene.OnStageLoaded는 항상 1P 스폰 지점(인덱스 0)만 넘겨줘서 멀티에는 못 씀
+            _player.Respawn(_player.transform.position, _cinemachineBrain);
         }
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -238,8 +242,6 @@ public class GameScene : MonoBehaviour
 
     void OnStageLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log("OnStageLoaded");
-
         _currentStage = FindAnyObjectByType<StageScene>();
         if (_currentStage == null) return;
 
@@ -313,8 +315,10 @@ public class GameScene : MonoBehaviour
     {
         _playerSpawnPoint = pos;
 
-        // 멀티에서 로컬 플레이어가 아직 없으면 리스폰 생략(스폰 위치는 NetworkGameManager가 처리)
-        if (_player != null) _player.Respawn(_playerSpawnPoint, _cinemachineBrain);
+        // 멀티에서는 여기서 리스폰 안 함(Initialize가 각자 올바른 위치로 직접 처리)
+        // 이 값은 항상 1P 스폰 지점(인덱스 0)이라 멀티에 그대로 쓰면 안 됨
+        bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        if (isMultiplayer == false && _player != null) _player.Respawn(_playerSpawnPoint, _cinemachineBrain);
 
         // 스테이지 시작 소리
         GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);

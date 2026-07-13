@@ -63,6 +63,8 @@ public class Turret : MonoBehaviour
     /// </summary>
     public void SetLocalControl(bool isLocal)
     {
+        Debug.Log($"Turret.SetLocalControl({isLocal}) 호출됨 | GameObject:{name}");
+
         _isLocalControl = isLocal;
     }
 
@@ -76,7 +78,8 @@ public class Turret : MonoBehaviour
         RectTransform turretCrosshair,
         Image centerCrosshairImage)
     {
-        Debug.Log("SetSceneReferences 세팅 끝");
+        Debug.Log($"Turret.SetSceneReferences 호출됨 | centerCrosshair null 여부:{centerCrosshair == null} | GameObject:{name}");
+
         _cameraTarget = cameraTarget;
         _centerCrosshair = centerCrosshair;
         _turretCrosshair = turretCrosshair;
@@ -126,10 +129,20 @@ public class Turret : MonoBehaviour
 
     private void Update()
     {
-        if (_isLocalControl == false) return; // 로컬 소유가 아니면 카메라 기반 조준 로직 실행 안 함
+        if (_isLocalControl == false)
+        {
+            return; // 로컬 소유가 아니면 카메라 기반 조준 로직 실행 안 함
+        }
+        if (_centerCrosshair == null)
+        {
+            Debug.Log($"Turret Update 막힘 | _isLocalControl:{_isLocalControl} | _centerCrosshair:null | GameObject:{name}");
+            return;
+        }
 
         if (_aimLocked)
         {
+            Debug.Log($"Turret Update: _aimLocked=true라서 회전 스킵 | GameObject:{name}");
+
             TurretCrosshair();
             return;
         }

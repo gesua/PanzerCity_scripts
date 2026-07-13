@@ -25,8 +25,6 @@ public class ItemPickup : MonoBehaviour
 
     public void Initialize(InventoryPresenter inventoryPresenter, Func<bool> isDeadCheck)
     {
-        Debug.Log("아이템 픽업 세팅");
-
         _inventoryPresenter = inventoryPresenter;
         _isDeadCheck = isDeadCheck;
         _isInitialized = true;

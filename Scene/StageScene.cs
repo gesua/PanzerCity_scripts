@@ -36,7 +36,7 @@ public class StageScene : MonoBehaviour
         _nextStageName = GameManager.Instance.DataManager.StageIDToSceneName(_stageID + 1);
 
         _hq.OnDestroyed += () => OnHQDestroyed?.Invoke();
-        OnStageLoaded?.Invoke(_playerSpawnPoints[0].position);
+        OnStageLoaded?.Invoke(_playerSpawnPoints[0].position); // 싱글 전용(멀티에선 이 값 무시)
         _enemySpawner.Initialize(_stageID);
 
         _enemySpawner.OnAllEnemiesDefeated += HandleAllEnemiesDefeated; // 모든 적 격파
