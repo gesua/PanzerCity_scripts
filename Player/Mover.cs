@@ -33,7 +33,6 @@ public class Mover : MonoBehaviour
 
     public void Initialize(TankModel tankModel)
     {
-        Debug.Log("무버 초기화를 안 해주나?", gameObject);
         _forwardSpeed = tankModel.ForwardSpeed;
         _backwardSpeed = tankModel.BackwardSpeed;
         _rotSpeed = tankModel.RotSpeed;

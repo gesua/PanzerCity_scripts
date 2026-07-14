@@ -31,6 +31,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] RightPanelUI _rightPanelUI; // 오른쪽 메뉴 UI
     [SerializeField] MiniMapUI _miniMapUI;       // 미니맵 UI
     [SerializeField] GameInfoUI _gameInfoUI;     // 게임 정보 UI
+    [SerializeField] PlayerHPUI _playerHPUI;     // 플레이어 HP UI
     [SerializeField] EnemySpawnUI _enemySpawnUI; // 적 스폰 UI
     [SerializeField] GameOverUI _gameOverUI;     // 게임오버 UI
     [SerializeField] StageClearUI _stageClearUI; // 스테이지 클리어 UI
@@ -91,9 +92,6 @@ public class GameScene : MonoBehaviour
     {
         NetworkGameManager.Instance.OnLocalPlayerSpawned -= HandleLocalPlayerSpawned;
 
-        // 싱글용 플레이어 제거
-        if (_player != null) Destroy(_player.gameObject);
-
         Initialize(player);
     }
 
@@ -115,6 +113,9 @@ public class GameScene : MonoBehaviour
             _cameraTarget.SetTarget(_player.transform);
             _tankDirectionUI.SetPlayer(_player);
             _cameraBedrockChange.SetPlayer(_player.transform);
+            _playerHPUI.SetPlayer(_player);
+
+            _player.Initialize();
 
             // 스폰 시점에 이미 올바른 위치(NetworkGameManager가 배정)에 있으므로 그 위치 그대로 리스폰 처리
             // StageScene.OnStageLoaded는 항상 1P 스폰 지점(인덱스 0)만 넘겨줘서 멀티에는 못 씀

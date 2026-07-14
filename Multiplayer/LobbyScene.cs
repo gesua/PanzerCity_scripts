@@ -332,8 +332,8 @@ public class LobbyScene : MonoBehaviour
         if (_audioListener != null) _audioListener.enabled = false;
         if (_eventSystem != null) _eventSystem.gameObject.SetActive(false);
 
-        // Game 씬 로드 (호스트만 요청, 클라이언트는 Netcode가 자동으로 밀어줌)
-        yield return LoadNetworkedSceneRoutine("Game");
+        // 멀티용 Game 씬 로드 (호스트만 요청, 클라이언트는 Netcode가 자동으로 밀어줌)
+        yield return LoadNetworkedSceneRoutine("Game_Multi");
 
         // Stage 씬 로드
         string stageName = LobbyManager.Instance.FirstStageName;

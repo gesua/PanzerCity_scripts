@@ -421,7 +421,7 @@ public class LobbyManager : MonoBehaviour
     public bool IsAllPlayersReady()
     {
         if (_currentLobby == null) return false;
-        // if (_currentLobby.Players.Count < 2) return false; HACK : 혼자서도 시작할 수 있게 함
+        if (_currentLobby.Players.Count < 2) return false;
 
         foreach (Player player in _currentLobby.Players)
         {

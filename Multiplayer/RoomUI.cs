@@ -75,7 +75,7 @@ public class RoomUI : MonoBehaviour
         // 호스트/클라이언트 버튼 분기
         bool iAmHost = LobbyManager.Instance.IsHost;
         _startButton.gameObject.SetActive(iAmHost);
-        // _startButton.interactable = LobbyManager.Instance.IsAllPlayersReady(); HACK : 일단 항상 시작할 수 있게 해놓음
+        _startButton.interactable = LobbyManager.Instance.IsAllPlayersReady();
         _readyButton.gameObject.SetActive(iAmHost == false);
     }
 

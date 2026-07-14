@@ -8,8 +8,14 @@ public class PlayerHPUI : MonoBehaviour
     [SerializeField] HeartSlot[] _hpSlots;
     [SerializeField] PlayerTank _player;
 
-    private void Awake()
+    void Awake()
     {
+        if (_player != null) _player.Model.OnHpChanged += UpdateHP;
+    }
+
+    public void SetPlayer(PlayerTank player)
+    {
+        _player = player;
         _player.Model.OnHpChanged += UpdateHP;
     }
 

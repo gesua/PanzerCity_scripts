@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,6 +10,12 @@ using UnityEngine.SceneManagement;
 public class NetworkGameManager : NetworkBehaviour
 {
     [SerializeField] GameObject _playerPrefab; // NetworkObject + PlayerTank 포함 프리팹 (4단계에서 연결)
+
+    // 모든 클라이언트의 씬 로드 완료 여부
+    bool _waitForSceneLoaded;
+
+    // 씬 로드 완료한 클라이언트 목록
+    readonly HashSet<ulong> _loadedClients = new();
 
     public static NetworkGameManager Instance { get; private set; }
 
@@ -24,6 +31,8 @@ public class NetworkGameManager : NetworkBehaviour
             return;
         }
         Instance = this;
+
+        NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnLoadEventCompleted;
     }
 
     /// <summary>
@@ -39,6 +48,33 @@ public class NetworkGameManager : NetworkBehaviour
         if (IsServer == false) return;
 
         _stageScene = stage;
+
+        _loadedClients.Clear();
+        _waitForSceneLoaded = true;
+    }
+
+    /// <summary>
+    /// 모든 클라이언트가 씬 로드를 완료하면 호출된다.
+    /// </summary>
+    private void OnLoadEventCompleted(
+        string sceneName,
+        LoadSceneMode loadSceneMode,
+        List<ulong> clientsCompleted,
+        List<ulong> clientsTimedOut)
+    {
+        // 서버만 처리
+        if (!IsServer)
+            return;
+
+        // Stage 준비를 기다리는 중이 아니면 무시
+        if (!_waitForSceneLoaded)
+            return;
+
+        // Stage 씬만 처리
+        if (_stageScene == null || sceneName != _stageScene.gameObject.scene.name)
+            return;
+
+        _waitForSceneLoaded = false;
 
         SpawnAllPlayers();
     }
