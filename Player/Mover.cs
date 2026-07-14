@@ -42,6 +42,8 @@ public class Mover : MonoBehaviour
 
     public void Move(Vector3 dir)
     {
+        Debug.Log($"Mover Move {dir}");
+
         if (dir.magnitude < Util.Epsilon)
         {
             // 입력이 완전히 없으면 회전 입력도 없다고 보고 목표 속도와 회전 입력을 제거
@@ -84,6 +86,9 @@ public class Mover : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Kinematic이면(멀티에서 남의 탱크) 물리 연산 자체가 의미 없으므로 스킵
+        if (_rigid.isKinematic) return;
+
         // 현재 수직(중력) 속도는 유지
         float currentY = _rigid.linearVelocity.y;
 
