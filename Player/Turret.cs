@@ -199,16 +199,20 @@ public class Turret : MonoBehaviour
             return;
         }
 
-        Quaternion targetRotation = Quaternion.LookRotation(direction);
-        float angle = Quaternion.Angle(_turret.rotation, targetRotation);
+        // NetworkTransform이 In Local Space로 동기화하므로, world rotation이 아닌 localRotation을 직접 갱신함
+        // (parent 기준 상대 회전으로 변환 후 대입 — parent가 기울어져 있어도 기존과 동일한 world 조준 방향 유지)
+        Quaternion targetWorldRotation = Quaternion.LookRotation(direction);
+        Quaternion targetLocalRotation = Quaternion.Inverse(_turret.parent.rotation) * targetWorldRotation;
+
+        float angle = Quaternion.Angle(_turret.localRotation, targetLocalRotation);
 
         if (angle > Util.Epsilon)
         {
-            _turret.rotation = Quaternion.RotateTowards(_turret.rotation, targetRotation, _rotSpeed * Time.deltaTime);
+            _turret.localRotation = Quaternion.RotateTowards(_turret.localRotation, targetLocalRotation, _rotSpeed * Time.deltaTime);
         }
         else
         {
-            _turret.rotation = targetRotation;
+            _turret.localRotation = targetLocalRotation;
         }
     }
 
