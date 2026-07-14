@@ -33,6 +33,7 @@ public class Mover : MonoBehaviour
 
     public void Initialize(TankModel tankModel)
     {
+        Debug.Log("무버 초기화를 안 해주나?", gameObject);
         _forwardSpeed = tankModel.ForwardSpeed;
         _backwardSpeed = tankModel.BackwardSpeed;
         _rotSpeed = tankModel.RotSpeed;
@@ -76,12 +77,15 @@ public class Mover : MonoBehaviour
 
         if (dir.z > Util.Epsilon) // 전진
         {
+            Debug.Log($"여기 안 들어옴? {_forwardSpeed}");
             _targetSpeed = _forwardSpeed;
         }
         else if (dir.z < -Util.Epsilon) // 후진
         {
             _targetSpeed = -_backwardSpeed;
         }
+
+        Debug.Log($"_targetSpeed : {_targetSpeed}");
     }
 
     private void FixedUpdate()
