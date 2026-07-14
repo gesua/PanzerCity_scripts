@@ -290,6 +290,7 @@ public class LobbyScene : MonoBehaviour
     /// </summary>
     void HandleLeftLobby()
     {
+        Debug.Log("로비로 직접 나감");
         ShowPanel(_lobbyPanel);
         UpdateStatus($"");
     }
@@ -299,6 +300,7 @@ public class LobbyScene : MonoBehaviour
     /// </summary>
     void HandleHostLeft()
     {
+        Debug.Log("방장이 연결 끊음");
         ShowPanel(_lobbyPanel);
         UpdateStatus($"");
     }
@@ -308,6 +310,7 @@ public class LobbyScene : MonoBehaviour
     /// </summary>
     void HandleKicked()
     {
+        Debug.Log("강퇴당함");
         ShowPanel(_lobbyPanel);
         UpdateStatus($"");
     }

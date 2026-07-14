@@ -42,8 +42,6 @@ public class Mover : MonoBehaviour
 
     public void Move(Vector3 dir)
     {
-        Debug.Log($"Mover Move {dir}");
-
         if (dir.magnitude < Util.Epsilon)
         {
             // 입력이 완전히 없으면 회전 입력도 없다고 보고 목표 속도와 회전 입력을 제거
@@ -76,15 +74,12 @@ public class Mover : MonoBehaviour
 
         if (dir.z > Util.Epsilon) // 전진
         {
-            Debug.Log($"여기 안 들어옴? {_forwardSpeed}");
             _targetSpeed = _forwardSpeed;
         }
         else if (dir.z < -Util.Epsilon) // 후진
         {
             _targetSpeed = -_backwardSpeed;
         }
-
-        Debug.Log($"_targetSpeed : {_targetSpeed}");
     }
 
     private void FixedUpdate()
@@ -109,11 +104,6 @@ public class Mover : MonoBehaviour
         
         // y 성분은 물리 기반으로 유지
         _velocity.y = currentY;
-
-        if (Mathf.Abs(_targetSpeed) > 0.01f)
-        {
-            Debug.Log($"Mover FixedUpdate | targetSpeed:{_targetSpeed} currentSpeed:{_currentSpeed} velocity:{_velocity} isKinematic:{_rigid.isKinematic} pos:{_rigid.position}");
-        }
 
         _rigid.linearVelocity = _velocity;
 

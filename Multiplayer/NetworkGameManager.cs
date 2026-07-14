@@ -9,19 +9,15 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class NetworkGameManager : NetworkBehaviour
 {
-    [SerializeField] GameObject _playerPrefab; // NetworkObject + PlayerTank 포함 프리팹 (4단계에서 연결)
+    [SerializeField] GameObject _playerPrefab;
 
     // 모든 클라이언트의 씬 로드 완료 여부
     bool _waitForSceneLoaded;
 
-    // 씬 로드 완료한 클라이언트 목록
-    readonly HashSet<ulong> _loadedClients = new();
-
-    public static NetworkGameManager Instance { get; private set; }
-
     StageScene _stageScene;
 
-    public event Action<PlayerTank> OnLocalPlayerSpawned; // 로컬 플레이어 스폰 완료 알림(GameScene이 구독)
+    public static NetworkGameManager Instance { get; private set; }
+    public event Action<PlayerTank> OnLocalPlayerSpawned; // 로컬 플레이어 스폰 완료 알림
 
     void Awake()
     {
@@ -49,7 +45,6 @@ public class NetworkGameManager : NetworkBehaviour
 
         _stageScene = stage;
 
-        _loadedClients.Clear();
         _waitForSceneLoaded = true;
     }
 
