@@ -18,6 +18,7 @@ public class NetworkGameManager : NetworkBehaviour
 
     public static NetworkGameManager Instance { get; private set; }
     public event Action<PlayerTank> OnLocalPlayerSpawned; // 로컬 플레이어 스폰 완료 알림
+    public event Action OnAllClientsReady; // 모든 클라이언트 씬 로드 완료(로딩창/적 스폰 동시 시작용, 로컬 신호)
 
     void Awake()
     {
@@ -48,8 +49,6 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     public void OnStageReady(StageScene stage)
     {
-        Debug.Log("OnStageReady");
-
         // 서버만 플레이어 스폰 처리
         if (IsServer == false) return;
 
@@ -79,6 +78,18 @@ public class NetworkGameManager : NetworkBehaviour
         _waitForSceneLoaded = false;
 
         SpawnAllPlayers();
+
+        // 전원 씬 로드 완료 시점 — 로딩창 종료 및 적 스폰을 동시에 시작하라는 신호
+        NotifyAllClientsReadyClientRpc();
+    }
+
+    /// <summary>
+    /// 모든 클라이언트에게 스테이지 시작 신호 전달(호스트 포함 전원에게 전달됨)
+    /// </summary>
+    [ClientRpc]
+    void NotifyAllClientsReadyClientRpc()
+    {
+        OnAllClientsReady?.Invoke();
     }
 
     /// <summary>
@@ -86,8 +97,6 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     void SpawnAllPlayers()
     {
-        Debug.Log("SpawnAllPlayers");
-
         int index = 0;
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
@@ -101,8 +110,6 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     void SpawnPlayer(ulong clientId, int spawnIndex)
     {
-        Debug.Log("SpawnPlayer");
-
         if (_playerPrefab == null)
         {
             Debug.LogWarning("PlayerPrefab이 연결되지 않았습니다.");

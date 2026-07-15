@@ -342,10 +342,26 @@ public class LobbyScene : MonoBehaviour
         string stageName = LobbyManager.Instance.FirstStageName;
         yield return LoadNetworkedSceneRoutine(stageName);
 
-        yield return new WaitForSeconds(0.1f);
+        // 전원 씬 로드 완료 신호 대기(로딩창/적 스폰을 동시에 시작하기 위함)
+        yield return WaitForAllClientsReadyRoutine();
 
         loadingUI.Hide();
         SceneManager.UnloadSceneAsync("Lobby");
+    }
+
+    /// <summary>
+    /// NetworkGameManager가 전원 씬 로드 완료 신호를 보낼 때까지 대기
+    /// </summary>
+    IEnumerator WaitForAllClientsReadyRoutine()
+    {
+        bool isReady = false;
+        void HandleAllClientsReady() => isReady = true;
+
+        NetworkGameManager.Instance.OnAllClientsReady += HandleAllClientsReady;
+
+        yield return new WaitUntil(() => isReady);
+
+        NetworkGameManager.Instance.OnAllClientsReady -= HandleAllClientsReady;
     }
 
     /// <summary>

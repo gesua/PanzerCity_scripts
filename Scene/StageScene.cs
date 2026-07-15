@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -37,12 +38,39 @@ public class StageScene : MonoBehaviour
 
         _hq.OnDestroyed += () => OnHQDestroyed?.Invoke();
         OnStageLoaded?.Invoke(_playerSpawnPoints[0].position); // 싱글 전용(멀티에선 이 값 무시)
-        _enemySpawner.Initialize(_stageID);
 
         _enemySpawner.OnAllEnemiesDefeated += HandleAllEnemiesDefeated; // 모든 적 격파
         _enemySpawner.OnItemDropped += item => _droppedItems.Add(item);
 
         _baseWall.OnBaseWallDestroyed += HandleBaseWallDestroyed;
+
+        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+        if (isMultiplayer) // 멀티플레이:전원 씬 로드 완료 신호를 받은 뒤에 적 스폰 시작
+        {
+            NetworkGameManager.Instance.OnAllClientsReady += HandleAllClientsReady;
+        }
+        else // 싱글플레이:즉시 시작
+        {
+            _enemySpawner.Initialize(_stageID);
+        }
+    }
+
+    /// <summary>
+    /// 멀티플레이 전용 — 전원 씬 로드 완료 신호를 받으면 적 스폰 시작
+    /// </summary>
+    void HandleAllClientsReady()
+    {
+        NetworkGameManager.Instance.OnAllClientsReady -= HandleAllClientsReady;
+        _enemySpawner.Initialize(_stageID);
+    }
+
+    void OnDestroy()
+    {
+        // 신호가 오기 전에 파괴되는 경우(씬 전환 등) 구독 해제
+        if (NetworkGameManager.Instance != null)
+        {
+            NetworkGameManager.Instance.OnAllClientsReady -= HandleAllClientsReady;
+        }
     }
 
     void HandleAllEnemiesDefeated()
