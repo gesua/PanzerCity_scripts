@@ -14,7 +14,7 @@ public class PlayerTank : TankBase
     [SerializeField] Turret _turret;
     [SerializeField] ReloadIndicator _reloadIndicator; // 재장전 표시 UI
     [SerializeField] MiniMapTankIcon _miniMapTankIcon; // 미니맵 아이콘 UI
-    [SerializeField] GameObject _normalVisual; // 플레이 모델
+    [SerializeField] MeshRenderer[] _normalVisualRenderers; // 플레이 모델 렌더러
     [SerializeField] GameObject _destroyedVisual; // 파괴된 모델
     [SerializeField] GameObject _destroyedTurret; // 파괴된 포탑
     [SerializeField] GameObject _destroyedBarrel; // 파괴된 주포
@@ -205,6 +205,19 @@ public class PlayerTank : TankBase
     }
 
     /// <summary>
+    /// 플레이 모델(정상 상태) 표시 여부 설정
+    /// GameObject 자체를 SetActive로 끄지 않고 렌더러만 껐다 켜서, 자식 오브젝트(Turret 등)가 계속 활성 상태를 유지하게 함
+    /// (NGO의 nested NetworkTransform은 최초 Spawn 시점에 활성 상태였던 자식만 등록하므로, 중간에 SetActive(false)로 꺼지면 재활성화해도 동기화가 끊김)
+    /// </summary>
+    void SetNormalVisualVisible(bool visible)
+    {
+        foreach (MeshRenderer renderer in _normalVisualRenderers)
+        {
+            renderer.enabled = visible;
+        }
+    }
+
+    /// <summary>
     /// 사망 처리
     /// </summary>
     void HandleDead(HitData hitData)
@@ -232,7 +245,7 @@ public class PlayerTank : TankBase
         _commander.SetSadFace();
 
         // 파괴된 모델로 교체
-        _normalVisual.SetActive(false);
+        SetNormalVisualVisible(false);
         _destroyedVisual.SetActive(true);
         // 포탑 위치 맞춰줌
         _destroyedTurret.transform.localRotation = TurretTr.localRotation;
@@ -272,7 +285,8 @@ public class PlayerTank : TankBase
 
         _mover.Teleport(spawnPos, Quaternion.identity); // 시작 위치로
         _turret.ResetRotation(); // 포탑 초기화
-        _normalVisual.SetActive(false); // 모델 비활성화
+        SetNormalVisualVisible(false); // 모델 비활성화
+        _commander.SetVisible(false); // 전차장 비활성화
         _destroyedVisual.SetActive(false); // 파괴된 모델 비활성화
         _miniMapTankIcon.Hide(); // 미니맵 아이콘 숨기기
         _isAttack = false; // 공격 버튼 끄기
@@ -290,7 +304,8 @@ public class PlayerTank : TankBase
         _isDead = false; // 살았음
         _turret.enabled = true; // 포탑 켜기
         _turret.SetCrosshairVisible(true); // 조준점 보이기
-        _normalVisual.SetActive(true); // 모델 활성화
+        SetNormalVisualVisible(true); // 모델 활성화
+        _commander.SetVisible(true); // 전차장 활성화
         _miniMapTankIcon.Show(); // 미니맵 아이콘 보이기
         _model.Initialize(); // HP 초기화
         OnRespawnComplete?.Invoke(_respawnShieldDuration); // 리스폰 무적 시작

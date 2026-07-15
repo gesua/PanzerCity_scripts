@@ -10,6 +10,7 @@ public class CommanderController : MonoBehaviour
     [SerializeField] Transform _commanderRoot;
     [SerializeField] Animator _animator;
     [SerializeField] SkinnedMeshRenderer _face;
+    //[SerializeField] SkinnedMeshRenderer[] _bodyRenderers; // 전차장 표시 여부 전환용 렌더러
 
     [Header("----- 눈 깜빡임 -----")]
     [SerializeField] float _eyeCloseWeight = 100f;
@@ -97,6 +98,21 @@ public class CommanderController : MonoBehaviour
         {
             _nextBlinkTime = Random.Range(_blinkSpanMin, _blinkSpanMax);
         }
+    }
+
+    /// <summary>
+    /// 전차장 표시 여부 설정
+    /// </summary>
+    public void SetVisible(bool visible)
+    {
+        _commanderRoot.gameObject.SetActive(visible);
+
+        /* 렌더러만 껐다 켜서, 자식 오브젝트의 활성 상태(네트워크 컴포넌트 등록 등)를 유지함
+        foreach (SkinnedMeshRenderer renderer in _bodyRenderers)
+        {
+            renderer.enabled = visible;
+        }
+        */
     }
 
     /// <summary>

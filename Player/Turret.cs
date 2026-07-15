@@ -129,20 +129,12 @@ public class Turret : MonoBehaviour
 
     private void Update()
     {
-        if (_isLocalControl == false)
-        {
-            return; // 로컬 소유가 아니면 카메라 기반 조준 로직 실행 안 함
-        }
-        if (_centerCrosshair == null)
-        {
-            Debug.Log($"Turret Update 막힘 | _isLocalControl:{_isLocalControl} | _centerCrosshair:null | GameObject:{name}");
-            return;
-        }
+        // 로컬 소유가 아니면 카메라 기반 조준 로직 실행 안 함
+        if (_isLocalControl == false) return;
+        if (_centerCrosshair == null) return;
 
         if (_aimLocked)
         {
-            Debug.Log($"Turret Update: _aimLocked=true라서 회전 스킵 | GameObject:{name}");
-
             TurretCrosshair();
             return;
         }

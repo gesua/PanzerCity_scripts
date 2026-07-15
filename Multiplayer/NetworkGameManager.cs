@@ -31,6 +31,16 @@ public class NetworkGameManager : NetworkBehaviour
         NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnLoadEventCompleted;
     }
 
+    public override void OnDestroy()
+    {
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnLoadEventCompleted;
+        }
+
+        base.OnDestroy();
+    }
+
     /// <summary>
     /// 스테이지 준비 완료 — GameScene이 명시적으로 호출
     /// (GameScene과 NetworkGameManager가 각자 sceneLoaded를 구독하면 실행 순서가 보장되지 않아서
@@ -44,7 +54,6 @@ public class NetworkGameManager : NetworkBehaviour
         if (IsServer == false) return;
 
         _stageScene = stage;
-
         _waitForSceneLoaded = true;
     }
 
@@ -58,12 +67,10 @@ public class NetworkGameManager : NetworkBehaviour
         List<ulong> clientsTimedOut)
     {
         // 서버만 처리
-        if (!IsServer)
-            return;
+        if (IsServer == false) return;
 
         // Stage 준비를 기다리는 중이 아니면 무시
-        if (!_waitForSceneLoaded)
-            return;
+        if (_waitForSceneLoaded == false) return;
 
         // Stage 씬만 처리
         if (_stageScene == null || sceneName != _stageScene.gameObject.scene.name)
