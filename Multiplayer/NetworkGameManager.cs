@@ -57,13 +57,13 @@ public class NetworkGameManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// 모든 클라이언트가 씬 로드를 완료하면 호출된다.
+    /// 모든 클라이언트가 씬 로드를 완료하면 호출
     /// </summary>
     private void OnLoadEventCompleted(
-        string sceneName,
-        LoadSceneMode loadSceneMode,
-        List<ulong> clientsCompleted,
-        List<ulong> clientsTimedOut)
+        string sceneName,               // 어떤 씬이 완료됐는지
+        LoadSceneMode loadSceneMode,    // 로드 모드
+        List<ulong> clientsCompleted,   // 완료한 클라이언트 ID 목록
+        List<ulong> clientsTimedOut)    // 시간 초과로 완료 못한 클라이언트 ID 목록
     {
         // 서버만 처리
         if (IsServer == false) return;
@@ -73,7 +73,9 @@ public class NetworkGameManager : NetworkBehaviour
 
         // Stage 씬만 처리
         if (_stageScene == null || sceneName != _stageScene.gameObject.scene.name)
+        {
             return;
+        }
 
         _waitForSceneLoaded = false;
 

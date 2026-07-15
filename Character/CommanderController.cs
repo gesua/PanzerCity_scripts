@@ -18,8 +18,6 @@ public class CommanderController : MonoBehaviour
     [SerializeField] float _blinkSpeed = 0.1f;
     [SerializeField] float _blinkSpanMin = 2f;
     [SerializeField] float _blinkSpanMax = 5f;
-    [Header("----- 회전 -----")]
-    [SerializeField] float _lookSpeed = 180f;
 
     //[Header("----- BlendShape 인덱스 -----")]
     int _eyeBlkIndex = 0;
