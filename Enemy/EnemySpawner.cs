@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -40,6 +41,7 @@ public class EnemySpawner : MonoBehaviour
     int _stageSpawnCount; // 스테이지당 스폰할 횟수
     
     bool _isEMPActive; // 적 멈추는 아이템 사용했는지
+    bool _isMultiplayer; // 멀티플레이 여부(풀 경로, 서버 권위 판정용)
 
     public event Action<List<int>> OnSpawnListReady; // 스폰 리스트 준비됨
     public event Action<int> OnEnemySpawned;         // 적 스폰됨
@@ -61,10 +63,17 @@ public class EnemySpawner : MonoBehaviour
         // 적 스폰 UI 세팅
         OnSpawnListReady?.Invoke(_spawnList);
 
-        // Pool 생성
-        GameManager.Instance.PoolManager.GetPool("Tank/201Light");
-        GameManager.Instance.PoolManager.GetPool("Tank/202Medium");
-        GameManager.Instance.PoolManager.GetPool("Tank/203Heavy");
+        // 멀티플레이 여부(풀 경로 분기용)
+        _isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+
+        // Pool 생성(멀티는 네트워크 컴포넌트가 붙은 별도 프리팹 사용)
+        string suffix = _isMultiplayer ? "_Multi" : "";
+        GameManager.Instance.PoolManager.GetPool($"Tank/201Light{suffix}");
+        GameManager.Instance.PoolManager.GetPool($"Tank/202Medium{suffix}");
+        GameManager.Instance.PoolManager.GetPool($"Tank/203Heavy{suffix}");
+
+        // 멀티플레이:적 스폰 판정은 서버만 수행(클라이언트는 NetworkObject.Spawn()으로 자동 복제됨)
+        if (_isMultiplayer && NetworkManager.Singleton.IsServer == false) return;
 
         // 적 생성 코루틴 실행
         _spawnEnemyRoutine = StartCoroutine(SpawnEnemyRoutine());
@@ -143,7 +152,8 @@ public class EnemySpawner : MonoBehaviour
         // Order 순서대로 TankID로 프리팹 경로 가져오기
         int tankID = _spawnList[_spawnedCount];
         TankData tankData = GameManager.Instance.DataManager.GetTankData(tankID);
-        string prefabPath = $"Tank/{tankData.TankID}{tankData.TankType}";
+        string suffix = _isMultiplayer ? "_Multi" : "";
+        string prefabPath = $"Tank/{tankData.TankID}{tankData.TankType}{suffix}";
 
         // 탱크 생성
         StartCoroutine(SpawnRoutine(prefabPath, spawnPos.Value));
@@ -174,17 +184,35 @@ public class EnemySpawner : MonoBehaviour
             itemDropper.OnItemDropped += item => OnItemDropped?.Invoke(item);
         }
 
-        // 렌더러 끄기
-        enemy.SetRenderersVisible(false);
+        // 멀티플레이:네트워크 스폰(클라이언트에도 자동 복제됨)
+        // 렌더러 토글/이펙트 연출은 EnemyNetworkOwner.OnNetworkSpawn()에서 각자 로컬로 처리하므로 여기선 생략
+        if (_isMultiplayer)
+        {
+            if (enemyGo.TryGetComponent(out NetworkObject networkObject))
+            {
+                networkObject.Spawn();
+            }
+        }
+        else
+        {
+            // 렌더러 끄기
+            enemy.SetRenderersVisible(false);
 
-        // 스폰 이펙트 먼저 재생
-        GameManager.Instance.EffectManager.SpawnEffect(EffectType.Twinkle, spawnPos);
+            // 스폰 이펙트 먼저 재생
+            GameManager.Instance.EffectManager.SpawnEffect(EffectType.Twinkle, spawnPos);
+        }
 
         // 이펙트 지속시간 대기
-        yield return new WaitForSeconds(_enemySpawnEffectTime);
+        // 멀티일 때는 EnemyNetworkOwner가 로컬 연출에 쓰는 값(enemy.SpawnEffectTime, 프리팹 원본)과 동일하게 맞춰서
+        // AI 시작 타이밍이 클라이언트 연출 종료 타이밍과 어긋나지 않게 함
+        float waitTime = _isMultiplayer ? enemy.SpawnEffectTime : _enemySpawnEffectTime;
+        yield return new WaitForSeconds(waitTime);
 
-        // 렌더러 켜기
-        enemy.SetRenderersVisible(true);
+        if (_isMultiplayer == false)
+        {
+            // 렌더러 켜기
+            enemy.SetRenderersVisible(true);
+        }
 
         // AI 시작
         enemy.StartAI();

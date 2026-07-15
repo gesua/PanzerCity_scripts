@@ -59,6 +59,8 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     [SerializeField] float _raycastSideOffset; // 좌우 사이드 한번 더 체크(0.6, 0.75)
     [SerializeField] LayerMask _movementObstacleLayer = 1 << 4 | 1 << 6 | 1 << 7 | 1 << 8 | 1 << 9;  // 이동 차단 레이어(물, 맵, 외곽벽, 플레이어, 적)
     [SerializeField] LayerMask _agentObstacleLayer = 1 << 8 | 1 << 9; // 네브메시에이전트끼리 미는거 방지 레이어
+    [Header("----- 멀티플레이 -----")]
+    [SerializeField] float _spawnEffectTime = 1f; // 스폰 이펙트 지속시간
 
     protected EnemyPersonality _personality; // AI 성격
 
@@ -73,6 +75,10 @@ public class EnemyTank : TankBase, IPoolReturnHandler
 
     bool _isAIActive; // 상태머신 활성화 여부
     bool _isFirstFlee; // 첫 도주 체크용
+
+    bool _isNetworkControlled = true; // 멀티플레이:AI/이동 판정 주체 여부(기본값 true — 싱글에서는 항상 자기 자신이 주체)
+
+    public float SpawnEffectTime => _spawnEffectTime;
 
     public EnemyPersonality Personality => _personality;
 
@@ -178,6 +184,15 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     }
 
     /// <summary>
+    /// 멀티플레이:AI/이동 판정 주체 여부 세팅(EnemyNetworkOwner가 호출)
+    /// 서버만 true — 클라이언트는 AI 판단을 하지 않고 NetworkTransform으로 위치만 받음
+    /// </summary>
+    public void SetNetworkControl(bool isControlled)
+    {
+        _isNetworkControlled = isControlled;
+    }
+
+    /// <summary>
     /// 렌더러 표시 설정
     /// </summary>
     public void SetRenderersVisible(bool visible)
@@ -187,6 +202,8 @@ public class EnemyTank : TankBase, IPoolReturnHandler
 
     private void FixedUpdate()
     {
+        // 멀티플레이:AI 판정 주체가 아니면(클라이언트) 상태머신을 돌리지 않음(NetworkTransform으로 위치만 받음)
+        if (_isNetworkControlled == false) return;
         if (_isAIActive == false) return;
 
         // 현재 상태 갱신
