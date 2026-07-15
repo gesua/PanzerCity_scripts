@@ -9,6 +9,7 @@ public class CommanderController : MonoBehaviour
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Transform _commanderRoot;
     [SerializeField] Animator _animator;
+    [SerializeField] CommanderLookAt _lookAt;
     [SerializeField] SkinnedMeshRenderer _face;
     //[SerializeField] SkinnedMeshRenderer[] _bodyRenderers; // 전차장 표시 여부 전환용 렌더러
 
@@ -30,7 +31,6 @@ public class CommanderController : MonoBehaviour
     float _nextBlinkTime;
     float _blinkTimer;
 
-    bool _lookAtCam;
     bool _isDead; // 사망 상태시 항상 슬픈 표정
 
     public Transform CommanderRoot => _commanderRoot;
@@ -42,8 +42,6 @@ public class CommanderController : MonoBehaviour
 
     void LateUpdate()
     {
-        if (_lookAtCam) LookAtCamera();
-
         EyeBlink();
     }
 
@@ -141,7 +139,7 @@ public class CommanderController : MonoBehaviour
     public void Reset()
     {
         _isDead = false;
-        _lookAtCam = false;
+        SetLookAtCam(false);
         _commanderRoot.localRotation = Quaternion.identity; // 회전값 돌아가있는거 초기화
 
         if (_animator.isActiveAndEnabled)
@@ -150,22 +148,9 @@ public class CommanderController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 카메라 바라보기
-    /// </summary>
-    public void LookAtCamera()
-    {
-        Vector3 dirToCamera = Camera.main.transform.position - transform.position;
-        dirToCamera.y = 0f;
-        if (dirToCamera.sqrMagnitude < Mathf.Epsilon) return;
-
-        Quaternion targetRotation = Quaternion.LookRotation(dirToCamera);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _lookSpeed * Time.deltaTime);
-    }
-
     public void SetLookAtCam(bool active)
     {
-        _lookAtCam = active;
+        _lookAt.SetLookAt(active);
     }
 
     /// <summary>

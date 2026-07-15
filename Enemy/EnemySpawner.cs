@@ -21,9 +21,9 @@ public class EnemySpawnData
 public class EnemySpawner : MonoBehaviour
 {
     [Header("----- 적 생성 -----")]
-    [SerializeField] float _spawnSpan = 2f;     // 스폰 시간 간격
-    [SerializeField] int _maxSpawnCount = 4;    // 최대 스폰 수
-    [SerializeField] Transform[] _spawnPos;     // 스폰 위치
+    [SerializeField] float _spawnSpan = 2f;  // 스폰 시간 간격
+    [SerializeField] int _maxSpawnCount = 4; // 최대 스폰 수
+    [SerializeField] Transform[] _spawnPos;  // 스폰 위치
     [SerializeField] float _spawnCheckRadius = 2f; // 스폰 위치 체크 반경
     [SerializeField] LayerMask _spawnCheckLayer = 1 << 8 | 1 << 9; // 탱크 레이어(플레이어, 적)
     [Header("----- 아이템 효과 -----")]
@@ -32,8 +32,8 @@ public class EnemySpawner : MonoBehaviour
 
     List<EnemyTank> _enemies = new(); // 생성된 적 리스트
 
-    int[] _spawnPosIndex;      // 스폰 위치 순서
-    int _spawnedCount = 0;  // 스폰된 수
+    int[] _spawnPosIndex; // 스폰 위치 순서
+    int _spawnedCount = 0; // 스폰된 수
     float _enemySpawnEffectTime = 1f; // 스폰 이펙트 지속시간
 
     List<int> _spawnList; // TankID 순서 리스트
