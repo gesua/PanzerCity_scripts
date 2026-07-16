@@ -49,10 +49,12 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     public void OnStageReady(StageScene stage)
     {
+        // 서버/클라이언트 공통 — 각자 로컬 StageScene 참조(클라이언트도 RPC 수신 시 자기 EnemySpawner에 접근해야 함)
+        _stageScene = stage;
+
         // 서버만 플레이어 스폰 처리
         if (IsServer == false) return;
 
-        _stageScene = stage;
         _waitForSceneLoaded = true;
     }
 
@@ -92,6 +94,26 @@ public class NetworkGameManager : NetworkBehaviour
     void NotifyAllClientsReadyClientRpc()
     {
         OnAllClientsReady?.Invoke();
+    }
+
+    /// <summary>
+    /// 적 스폰 UI 동기화 — 서버가 적을 스폰할 때마다 호출(EnemySpawner가 호출)
+    /// 스폰 리스트 자체(OnSpawnListReady)는 클라이언트도 로컬로 동일하게 계산 가능해서 이미 정상 동작하지만,
+    /// 개별 스폰 시점(OnEnemySpawned, UI 아이콘 제거용)은 서버만 알 수 있어서 별도 전달이 필요함
+    /// </summary>
+    public void NotifyEnemySpawned(int spawnedIndex)
+    {
+        NotifyEnemySpawnedClientRpc(spawnedIndex);
+    }
+
+    [ClientRpc]
+    void NotifyEnemySpawnedClientRpc(int spawnedIndex)
+    {
+        // 호스트 자신은 서버 로컬에서 EnemySpawner.OnEnemySpawned가 이미 직접 발행했으므로 중복 방지
+        if (IsServer) return;
+
+        if (_stageScene == null) return;
+        _stageScene.EnemySpawner.ReceiveEnemySpawned(spawnedIndex);
     }
 
     /// <summary>

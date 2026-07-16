@@ -17,8 +17,21 @@ public class EnemyNetworkOwner : NetworkBehaviour
         // 서버만 AI/이동 판정 주체
         _enemyTank.SetNetworkControl(IsServer);
 
+        // 멀티플레이 여부 판단 및 발사 신호 전달용 참조 세팅
+        _enemyTank.SetNetworkOwner(this);
+
         // 스폰 연출(렌더러 토글 + 이펙트)은 각 클라이언트가 각자 로컬로 재생
         StartCoroutine(SpawnEffectRoutine());
+    }
+
+    /// <summary>
+    /// 서버(AI 판정 주체)가 발사했을 때 전원에게 신호 전달 — 각자 로컬로 발사 연출을 재생함
+    /// (포탄 오브젝트 자체는 네트워크 동기화 대상이 아니라 각자 로컬 Pool에서 재생됨)
+    /// </summary>
+    [ClientRpc]
+    public void NotifyAttackClientRpc()
+    {
+        _enemyTank.PlayLocalAttack();
     }
 
     /// <summary>

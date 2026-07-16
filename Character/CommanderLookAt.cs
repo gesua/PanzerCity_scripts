@@ -31,7 +31,7 @@ public class CommanderLookAt : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!_lookAt || Camera.main == null) return;
+        if (_lookAt == false || Camera.main == null) return;
 
         RotateBody();
         RotateHead();
@@ -70,6 +70,7 @@ public class CommanderLookAt : MonoBehaviour
         if (localDir.sqrMagnitude < Util.Epsilon) return;
 
         // 목표 상하 각도 계산
+        // 이 리그의 로컬 축: X=Pitch(-위/+아래), Y=Roll, Z=Yaw(-좌/+우) — Unity 월드 컨벤션과 다름
         float horizontalDistance = Mathf.Sqrt(localDir.x * localDir.x + localDir.y * localDir.y);
         float targetPitch = Mathf.Atan2(localDir.z, horizontalDistance) * Mathf.Rad2Deg;
 

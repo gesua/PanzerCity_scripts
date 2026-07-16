@@ -62,6 +62,8 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     [Header("----- 멀티플레이 -----")]
     [SerializeField] float _spawnEffectTime = 1f; // 스폰 이펙트 지속시간
 
+    EnemyNetworkOwner _networkOwner; // 멀티플레이 여부 및 발사 신호 전달용
+
     protected EnemyPersonality _personality; // AI 성격
 
     Transform _target; // 플레이어
@@ -190,6 +192,38 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     public void SetNetworkControl(bool isControlled)
     {
         _isNetworkControlled = isControlled;
+    }
+
+    /// <summary>
+    /// 멀티플레이:네트워크 오너 컴포넌트 참조 세팅(EnemyNetworkOwner가 자기 자신을 넘겨줌)
+    /// null이 아니면 멀티플레이로 간주
+    /// </summary>
+    public void SetNetworkOwner(EnemyNetworkOwner networkOwner)
+    {
+        _networkOwner = networkOwner;
+    }
+
+    /// <summary>
+    /// 공격(포탄 발사) — 서버(AI 판정 주체)에서만 호출됨(FixedUpdate 가드로 이미 보장)
+    /// 멀티플레이에선 직접 쏘지 않고, 전원에게 발사 신호만 보내서 각자 로컬로 재생하게 함
+    /// </summary>
+    public override void Attack()
+    {
+        if (_networkOwner != null)
+        {
+            _networkOwner.NotifyAttackClientRpc();
+            return;
+        }
+
+        base.Attack();
+    }
+
+    /// <summary>
+    /// 멀티플레이:발사 신호를 받은 클라이언트가 로컬로 실제 발사(이펙트+포탄+사운드)를 재생할 때 호출(EnemyNetworkOwner가 호출)
+    /// </summary>
+    public void PlayLocalAttack()
+    {
+        base.Attack();
     }
 
     /// <summary>

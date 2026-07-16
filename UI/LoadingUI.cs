@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,10 +9,22 @@ using UnityEngine.UI;
 public class LoadingUI : MonoBehaviour
 {
     [SerializeField] Image _loadingBar;
+    [SerializeField] TMP_Text _waitingText; // 로딩 글자(멀티에서 다른 사람 기다리는 중 변경 용도)
+
     float _fillTime = 0.75f; // 로딩바 채우는 속도(초)
+    Coroutine _fillRoutine; // 진행 중인 채우기 코루틴
 
     public void Show()
     {
+        // 재사용 시 초기화
+        if (_fillRoutine != null)
+        {
+            StopCoroutine(_fillRoutine);
+            _fillRoutine = null;
+        }
+        _loadingBar.fillAmount = 0f;
+        _waitingText.text = "Loading...";
+
         gameObject.SetActive(true);
     }
 
@@ -19,6 +32,38 @@ public class LoadingUI : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
+
+    /// <summary>
+    /// 로딩바를 마저 채우고, 다른 클라이언트를 기다리는 중임을 알리는 문구를 표시
+    /// 자체 코루틴으로 동작함(호출자가 yield로 기다릴 필요 없음) — Hide()로 오브젝트가 비활성화되면 Unity가 자동으로 정지시킴
+    /// </summary>
+    public void ShowWaitingForOthers()
+    {
+        //_fillRoutine = StartCoroutine(FillToFullAndShowWaitingRoutine());
+
+        _waitingText.text = "Synchronizing Players...";
+        _loadingBar.fillAmount = 0.9f;
+    }
+
+    IEnumerator FillToFullAndShowWaitingRoutine()
+    {
+        _waitingText.text = "Waiting for other players...";
+
+        float currentProgress = _loadingBar.fillAmount;
+
+        _loadingBar.fillAmount = 0.9f;
+
+        while (currentProgress < 0.9f)
+        {
+            currentProgress = Mathf.MoveTowards(currentProgress, 0.9f, (0.9f / _fillTime) * Time.deltaTime);
+            _loadingBar.fillAmount = currentProgress;
+            yield return null;
+        }
+
+        _fillRoutine = null;
+    }
+
+
 
     public IEnumerator UpdateProgress(AsyncOperation op)
     {

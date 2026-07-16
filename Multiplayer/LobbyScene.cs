@@ -342,6 +342,9 @@ public class LobbyScene : MonoBehaviour
         string stageName = LobbyManager.Instance.FirstStageName;
         yield return LoadNetworkedSceneRoutine(stageName);
 
+        // 로딩바 100% + 대기 문구 표시
+        loadingUI.ShowWaitingForOthers();
+
         // 전원 씬 로드 완료 신호 대기(로딩창/적 스폰을 동시에 시작하기 위함)
         yield return WaitForAllClientsReadyRoutine();
 

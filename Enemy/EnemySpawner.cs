@@ -84,6 +84,13 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     IEnumerator SpawnEnemyRoutine()
     {
+        // 멀티플레이:클라이언트가 씬 전환 직후 스폰 메시지를 받을 준비를 마칠 시간을 위해 약간의 유예
+        // (전원 로드 완료 신호 직후 곧바로 스폰하면 첫 번째 적이 일부 클라이언트에 누락되는 경우가 있어서 추가)
+        if (_isMultiplayer)
+        {
+            yield return new WaitForSeconds(1f);
+        }
+
         while (true)
         {
             SpawnEnemy();
@@ -161,8 +168,23 @@ public class EnemySpawner : MonoBehaviour
         // 적 스폰 UI에서 아이콘 제거
         OnEnemySpawned?.Invoke(_spawnedCount);
 
+        // 멀티플레이:클라이언트에도 UI 갱신 신호 전달
+        if (_isMultiplayer)
+        {
+            NetworkGameManager.Instance.NotifyEnemySpawned(_spawnedCount);
+        }
+
         // 카운트 증가
         _spawnedCount++;
+    }
+
+    /// <summary>
+    /// 멀티플레이:클라이언트가 서버의 스폰 신호를 받았을 때 호출(NetworkGameManager가 호출)
+    /// 로컬에서 직접 스폰 판정을 못 하는 클라이언트를 위해 UI 이벤트만 대신 발행해줌
+    /// </summary>
+    public void ReceiveEnemySpawned(int spawnedIndex)
+    {
+        OnEnemySpawned?.Invoke(spawnedIndex);
     }
 
     /// <summary>

@@ -50,7 +50,7 @@ public class CommanderController : MonoBehaviour
     {
         if (_isBlinkStart) // 눈 깜빡이기
         {
-            _blinkTimer += _isEyeClose ? -Time.deltaTime : Time.deltaTime;
+            _blinkTimer += (_isEyeClose) ? -Time.deltaTime : Time.deltaTime;
 
             if (_blinkTimer >= _blinkSpeed) // 감는중
             {
