@@ -99,6 +99,46 @@ public class LoadingUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 여러 단계로 나뉜 로딩을 하나의 연속된 바로 이어서 표시할 때 사용
+    /// op.progress(0~0.9)를 [rangeStart, rangeEnd] 구간에 매핑해서 채움(currentProgress를 fillAmount에서 이어받아 앞 구간과 끊기지 않게 함)
+    /// </summary>
+    public IEnumerator UpdateProgress(AsyncOperation op, float rangeStart, float rangeEnd)
+    {
+        float currentProgress = _loadingBar.fillAmount;
+
+        while (op.progress < 0.9f)
+        {
+            float targetProgress = Mathf.Lerp(rangeStart, rangeEnd, op.progress / 0.9f);
+
+            currentProgress = Mathf.MoveTowards(currentProgress, targetProgress, (1f / _fillTime) * Time.deltaTime);
+
+            if (Mathf.Abs(currentProgress - targetProgress) < 0.001f)
+            {
+                currentProgress = targetProgress;
+            }
+
+            _loadingBar.fillAmount = currentProgress;
+
+            yield return null;
+        }
+
+        // 이 구간의 로딩 완료
+        while (_loadingBar.fillAmount < rangeEnd)
+        {
+            currentProgress = Mathf.MoveTowards(currentProgress, rangeEnd, (1f / _fillTime) * Time.deltaTime);
+
+            if (Mathf.Abs(currentProgress - rangeEnd) < 0.001f)
+            {
+                _loadingBar.fillAmount = rangeEnd;
+            }
+
+            _loadingBar.fillAmount = currentProgress;
+            yield return null;
+        }
+    }
+
+
     public IEnumerator UpdateProgress(AsyncOperation op1, AsyncOperation op2)
     {
         float currentProgress = 0f;

@@ -286,11 +286,23 @@ public class LobbyScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 좀비 네트워크 연결을 확실하게 끊어주는 헬퍼 함수
+    /// </summary>
+    void ShutdownNetwork()
+    {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            NetworkManager.Singleton.Shutdown();
+        }
+    }
+
+    /// <summary>
     /// 직접 나감 → 로비 패널로
     /// </summary>
     void HandleLeftLobby()
     {
         Debug.Log("로비로 직접 나감");
+        ShutdownNetwork();
         ShowPanel(_lobbyPanel);
         UpdateStatus($"");
     }
@@ -301,6 +313,7 @@ public class LobbyScene : MonoBehaviour
     void HandleHostLeft()
     {
         Debug.Log("방장이 연결 끊음");
+        ShutdownNetwork();
         ShowPanel(_lobbyPanel);
         UpdateStatus($"");
     }
@@ -311,6 +324,7 @@ public class LobbyScene : MonoBehaviour
     void HandleKicked()
     {
         Debug.Log("강퇴당함");
+        ShutdownNetwork();
         ShowPanel(_lobbyPanel);
         UpdateStatus($"");
     }
@@ -336,11 +350,11 @@ public class LobbyScene : MonoBehaviour
         if (_eventSystem != null) _eventSystem.gameObject.SetActive(false);
 
         // 멀티용 Game 씬 로드 (호스트만 요청, 클라이언트는 Netcode가 자동으로 밀어줌)
-        yield return LoadNetworkedSceneRoutine("Game_Multi");
+        yield return LoadNetworkedSceneRoutine("Game_Multi", 0f, 0.45f);
 
         // Stage 씬 로드
         string stageName = LobbyManager.Instance.FirstStageName;
-        yield return LoadNetworkedSceneRoutine(stageName);
+        yield return LoadNetworkedSceneRoutine(stageName, 0.45f, 0.9f);
 
         // 로딩바 100% + 대기 문구 표시
         loadingUI.ShowWaitingForOthers();
@@ -371,8 +385,9 @@ public class LobbyScene : MonoBehaviour
     /// 씬 로드 요청(호스트 전용) 및 완료 대기(호스트/클라이언트 공통)
     /// NetworkSceneManager.LoadScene은 호스트/서버만 호출 가능해서, 클라이언트는 요청 없이 대기만 함
     /// (호스트가 요청하면 Netcode가 연결된 클라이언트에도 같은 씬을 자동으로 밀어넣어줌)
+    /// OnLoad로 내 로컬 AsyncOperation을 받아서 LoadingUI에 [rangeStart, rangeEnd] 구간으로 진행률을 반영함
     /// </summary>
-    IEnumerator LoadNetworkedSceneRoutine(string sceneName)
+    IEnumerator LoadNetworkedSceneRoutine(string sceneName, float rangeStart, float rangeEnd)
     {
         AsyncOperation localOp = null;
 
@@ -397,13 +412,16 @@ public class LobbyScene : MonoBehaviour
             }
         }
 
-        // 내 로컬 AsyncOperation이 잡힐 때까지 대기(호스트는 거의 즉시, 클라이언트는 로드 지시가 네트워크로 도착할 때까지)
-        yield return new WaitUntil(() => localOp != null);
+        // OnLoad 유실 등으로 localOp를 못 받는 경우에도 멈추지 않도록, 씬이 실제로 로드 완료됐는지도 같이 조건에 둠
+        yield return new WaitUntil(() => localOp != null || SceneManager.GetSceneByName(sceneName).isLoaded);
 
         NetworkManager.Singleton.SceneManager.OnLoad -= HandleLoad;
 
-        // 실제 진행률로 로딩바 채우기
-        yield return GameManager.Instance.LoadingUI.UpdateProgress(localOp);
+        // localOp를 정상적으로 받았을 때만 진행률 애니메이션 재생(못 받았으면 진행률 표시 없이 다음 단계로)
+        if (localOp != null)
+        {
+            yield return GameManager.Instance.LoadingUI.UpdateProgress(localOp, rangeStart, rangeEnd);
+        }
 
         // 씬 로드 완료까지 대기 (호스트가 요청했든 클라이언트가 자동으로 받았든 로컬 씬 상태로 확인)
         yield return new WaitUntil(() => SceneManager.GetSceneByName(sceneName).isLoaded);

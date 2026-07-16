@@ -8,8 +8,9 @@ using UnityEngine;
 public class TankVisualController : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
-    [SerializeField] GameObject _model; // 원래 모델
+    [SerializeField] MeshRenderer[] _normalVisualRenderers; // 플레이 모델 렌더러
     [SerializeField] GameObject _destroyedModel; // 파괴된 모델
+    [SerializeField] GameObject[] _hitZone; // 꺼질 히트존
     [SerializeField] Transform _turretTr; // 원래 포탑
     [SerializeField] Transform _destroyedTurretTr; // 파괴된 포탑
     [SerializeField] Transform[] _destroyedTr; // 파괴된 모델 트랜스폼
@@ -35,7 +36,7 @@ public class TankVisualController : MonoBehaviour
     /// </summary>
     public void Play()
     {
-        _model.SetActive(false); // 원래 모델 비활성화
+        SetModelVisible(false); // 원래 모델 비활성화
         _destroyedModel.SetActive(true); // 파괴된 모델 활성화
 
         // 포탑 회전값 동기화
@@ -61,7 +62,7 @@ public class TankVisualController : MonoBehaviour
         }
 
         _destroyedModel.SetActive(false);
-        _model.SetActive(true);
+        SetModelVisible(true);
     }
 
     /// <summary>
@@ -69,6 +70,16 @@ public class TankVisualController : MonoBehaviour
     /// </summary>
     public void SetModelVisible(bool visible)
     {
-        _model.SetActive(visible);
+        // 멀티 때문에 렌더러로 꺼야함
+        foreach (MeshRenderer renderer in _normalVisualRenderers)
+        {
+            renderer.enabled = visible;
+        }
+
+        // 히트존 변경
+        foreach (GameObject hitZone in _hitZone)
+        {
+            hitZone.SetActive(visible);
+        }
     }
 }
