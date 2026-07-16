@@ -33,6 +33,24 @@ public class RoomUI : MonoBehaviour
     bool _isLeaving;       // 나가기 버튼 중복 클릭 방지
 
     /// <summary>
+    /// UI가 켜질 때(방 진입 시) 내부 상태 초기화
+    /// </summary>
+    void OnEnable()
+    {
+        // 변수 리셋
+        _isReady = false;
+        _isTogglingReady = false;
+        _isStarting = false;
+        _isLeaving = false;
+
+        // 버튼 텍스트 초기화
+        if (_readyButtonText != null)
+        {
+            _readyButtonText.text = new LocalizedString("Localization", ReadyKey).GetLocalizedString();
+        }
+    }
+
+    /// <summary>
     /// 로비 데이터로 UI 갱신
     /// </summary>
     public void Refresh(Lobby lobby)
