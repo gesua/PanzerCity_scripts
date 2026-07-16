@@ -106,7 +106,17 @@ public class OptionManager : MonoBehaviour
     public void ApplyMasterVolume(float value)
     {
         _optionData.SetMasterVolume(value);
-        _audioMixer.SetFloat("Master", Mathf.Log10(value) * 20f);
+
+        // 슬라이더 값이 0이거나 0보다 작으면 확실하게 음소거(-80dB) 처리
+        // Mathf.Log10(0) = NaN
+        if (value <= 0.0001f)
+        {
+            _audioMixer.SetFloat("Master", -80f);
+        }
+        else
+        {
+            _audioMixer.SetFloat("Master", Mathf.Log10(value) * 20f);
+        }
     }
 
     /// <summary>
@@ -115,7 +125,16 @@ public class OptionManager : MonoBehaviour
     public void ApplyBGMVolume(float value)
     {
         _optionData.SetBGMVolume(value);
-        _audioMixer.SetFloat("BGM", Mathf.Log10(value) * 20f);
+
+        // 음소거 처리
+        if (value <= 0.0001f)
+        {
+            _audioMixer.SetFloat("BGM", -80f);
+        }
+        else
+        {
+            _audioMixer.SetFloat("BGM", Mathf.Log10(value) * 20f);
+        }
     }
 
     /// <summary>
@@ -124,7 +143,16 @@ public class OptionManager : MonoBehaviour
     public void ApplySFXVolume(float value)
     {
         _optionData.SetSFXVolume(value);
-        _audioMixer.SetFloat("SFX", Mathf.Log10(value) * 20f);
+
+        // 음소거 처리
+        if (value <= 0.0001f)
+        {
+            _audioMixer.SetFloat("SFX", -80f);
+        }
+        else
+        {
+            _audioMixer.SetFloat("SFX", Mathf.Log10(value) * 20f);
+        }
     }
 
     /// <summary>
