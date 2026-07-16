@@ -20,6 +20,7 @@ public class CameraTarget : MonoBehaviour
     [SerializeField] float _maxPitch = 45f;
     [SerializeField] float _rotDamp = 10f;
     [SerializeField] float _minZoom = 2f;
+    [SerializeField] float _maxZoom = 30f;
     [SerializeField] float _zoomSmooth = 10f;
     [Header("----- 저격 카메라 관련 -----")]
     [SerializeField] float _sniperMinFov = 10f;
@@ -92,7 +93,7 @@ public class CameraTarget : MonoBehaviour
         }
         else
         {
-            _thirdTargetDistance = Mathf.Max(_minZoom, _thirdTargetDistance - scrollInput.y);
+            _thirdTargetDistance = Mathf.Clamp(_thirdTargetDistance - scrollInput.y, _minZoom, _maxZoom);
         }
     }
 

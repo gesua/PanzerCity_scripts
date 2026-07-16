@@ -374,6 +374,20 @@ public class LobbyScene : MonoBehaviour
     /// </summary>
     IEnumerator LoadNetworkedSceneRoutine(string sceneName)
     {
+        AsyncOperation localOp = null;
+
+        // 서버(호스트) 입장에서는 OnLoad가 연결된 클라이언트 수만큼 반복 호출됨(전원의 로드 시작을 다 통지받음)
+        // asyncOperation은 그 클라이언트 로컬의 값이라 내 것이 아니면 의미가 없으므로, 반드시 내 clientId만 필터링해야 함
+        void HandleLoad(ulong clientId, string loadedSceneName, LoadSceneMode loadSceneMode, AsyncOperation asyncOperation)
+        {
+            if (clientId != NetworkManager.Singleton.LocalClientId) return;
+            if (loadedSceneName != sceneName) return;
+
+            localOp = asyncOperation;
+        }
+
+        NetworkManager.Singleton.SceneManager.OnLoad += HandleLoad;
+
         if (NetworkManager.Singleton.IsHost)
         {
             SceneEventProgressStatus status = NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
@@ -382,6 +396,14 @@ public class LobbyScene : MonoBehaviour
                 Debug.LogWarning($"씬 로드 요청 실패: {sceneName} ({status})");
             }
         }
+
+        // 내 로컬 AsyncOperation이 잡힐 때까지 대기(호스트는 거의 즉시, 클라이언트는 로드 지시가 네트워크로 도착할 때까지)
+        yield return new WaitUntil(() => localOp != null);
+
+        NetworkManager.Singleton.SceneManager.OnLoad -= HandleLoad;
+
+        // 실제 진행률로 로딩바 채우기
+        yield return GameManager.Instance.LoadingUI.UpdateProgress(localOp);
 
         // 씬 로드 완료까지 대기 (호스트가 요청했든 클라이언트가 자동으로 받았든 로컬 씬 상태로 확인)
         yield return new WaitUntil(() => SceneManager.GetSceneByName(sceneName).isLoaded);
