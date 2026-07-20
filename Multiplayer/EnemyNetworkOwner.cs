@@ -12,6 +12,14 @@ public class EnemyNetworkOwner : NetworkBehaviour
 {
     [SerializeField] EnemyTank _enemyTank;
 
+    [Header("----- 클라이언트 이동 감지(엔진 이펙트용) -----")]
+    [SerializeField] float _movementThreshold = 0.05f; // 초당 이동 거리 기준(이 값보다 크면 '움직이는 중'으로 판단)
+
+    Vector3 _lastPosition;
+    bool _wasMovingLocally;
+
+
+
     public override void OnNetworkSpawn()
     {
         // 서버만 AI/이동 판정 주체
@@ -20,8 +28,33 @@ public class EnemyNetworkOwner : NetworkBehaviour
         // 멀티플레이 여부 판단 및 발사 신호 전달용 참조 세팅
         _enemyTank.SetNetworkOwner(this);
 
+        // 클라이언트 로컬 이동 감지 초기화(엔진 이펙트용)
+        _lastPosition = transform.position;
+
         // 스폰 연출(렌더러 토글 + 이펙트)은 각 클라이언트가 각자 로컬로 재생
         StartCoroutine(SpawnEffectRoutine());
+    }
+
+    /// <summary>
+    /// 클라이언트는 서버 AI 로직(SetEngineEffect 호출 포함)이 전혀 돌지 않으므로,
+    /// NetworkTransform으로 받은 위치 변화를 직접 관찰해서 엔진 이펙트 여부를 스스로 판단
+    /// (서버는 이미 자체 AI 로직에서 SetEngineEffect를 호출하므로 스킵)
+    /// </summary>
+    void Update()
+    {
+        if (IsServer) return;
+        if (Time.deltaTime <= 0f) return; // 일시정지 등으로 deltaTime이 0이면 스킵(0으로 나누기 방지)
+
+        float speed = Vector3.Distance(transform.position, _lastPosition) / Time.deltaTime;
+        bool isMoving = (speed > _movementThreshold);
+
+        if (isMoving != _wasMovingLocally)
+        {
+            _wasMovingLocally = isMoving;
+            _enemyTank.SetEngineEffect(isMoving);
+        }
+
+        _lastPosition = transform.position;
     }
 
     /// <summary>

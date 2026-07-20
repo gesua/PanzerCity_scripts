@@ -19,6 +19,14 @@ public class HitDirectionIndicator : MonoBehaviour
         GameManager.Instance.PoolManager.GetPool(_iconPath);
     }
 
+    /// <summary>
+    /// 멀티플레이:씬의 UI를 프리팹이 미리 참조할 수 없어서, 로컬 플레이어 스폰 후 GameScene이 런타임에 주입
+    /// </summary>
+    public void SetPlayer(Transform player)
+    {
+        _player = player;
+    }
+
     public void Show(HitData hitData)
     {
         GameObject iconGo = GameManager.Instance.PoolManager.GetFromPool(_iconPath);

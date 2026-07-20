@@ -53,6 +53,10 @@ public class AudioManager : MonoBehaviour
     string _pooledSfxPrefabPath = "Audio/SFX_Pool"; // PooledSfx 컴포넌트가 붙은 프리팹 경로
     Dictionary<BgmType, AudioClip> _bgmDict;
 
+    bool _isMassKillInProgress; // 일괄 처치 아이템 사용 중인지(탱크 개별 3D 파괴음을 스킵시키는 용도)
+
+    public bool IsMassKillInProgress => _isMassKillInProgress;
+
     void Awake()
     {
         _bgmDict = new Dictionary<BgmType, AudioClip>();
@@ -127,6 +131,25 @@ public class AudioManager : MonoBehaviour
         {
             _sfxAs.PlayOneShot(clip);
         }
+    }
+
+    /// <summary>
+    /// 일괄 처치 모드 시작(적 모두 격파 아이템 등)
+    /// 진행 중엔 탱크 개별 3D 파괴음이 스킵됨
+    /// </summary>
+    public void StartMassKillMode()
+    {
+        _isMassKillInProgress = true;
+    }
+
+    /// <summary>
+    /// 일괄 처치 모드 종료 + 2D 대표 파괴음 재생
+    /// </summary>
+    /// <param name="killedAny">실제로 죽은 대상이 있었는지(있을 때만 대표음 재생)</param>
+    public void EndMassKillMode(bool killedAny)
+    {
+        _isMassKillInProgress = false;
+        if (killedAny) PlaySfx(SfxType.TankDestroy);
     }
 
     /// <summary>

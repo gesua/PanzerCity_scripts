@@ -39,7 +39,7 @@ public class EnemySpawner : MonoBehaviour
 
     List<int> _spawnList; // TankID 순서 리스트
     int _stageSpawnCount; // 스테이지당 스폰할 횟수
-    
+
     bool _isEMPActive; // 적 멈추는 아이템 사용했는지
     bool _isMultiplayer; // 멀티플레이 여부(풀 경로, 서버 권위 판정용)
 
@@ -374,13 +374,21 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     public void DestroyAllEnemies()
     {
-        foreach (EnemyTank enemy in _enemies.ToList())
+        List<EnemyTank> targets = _enemies.ToList();
+        bool killedAny = targets.Count > 0;
+
+        GameManager.Instance.AudioManager.StartMassKillMode();
+
+        foreach (EnemyTank enemy in targets)
         {
             if (enemy.TryGetComponent(out TankModel tankModel))
             {
                 tankModel.TakeDamage(new HitData(9999, enemy.transform.position, null));
             }
         }
+
+        // 탱크 터지는 소리
+        GameManager.Instance.AudioManager.EndMassKillMode(killedAny);
     }
 
     private void OnDrawGizmosSelected()

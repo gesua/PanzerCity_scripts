@@ -34,6 +34,9 @@ public class LobbyManager : MonoBehaviour
     float _heartbeatTimer;
     float _lobbyPollTimer;
     string _nickname;
+    string _hostedLobbyId; // 로비 단계 정리용으로 유지
+    Dictionary<ulong, string> _clientIdToPlayerId = new Dictionary<ulong, string>(); // Netcode clientId ↔ Lobby Player.Id
+
 
     bool _isHeartbeating; // 하트비트 중복 방지용(응답이 주기보다 늦게 오면 재진입 가능)
     bool _isPolling; // 폴링 중복 방지용(GetLobbyAsync 응답이 폴링 주기보다 늦게 오면 재진입해서 두 번 실행될 수 있음)
@@ -249,12 +252,20 @@ public class LobbyManager : MonoBehaviour
 
             _currentLobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, options);
 
+            _hostedLobbyId = _currentLobby.Id;
+
             RelayServerData relayServerData = AllocationUtils.ToRelayServerData(allocation, "dtls");
 
             if (NetworkManager.Singleton.TryGetComponent(out UnityTransport transport))
             {
                 transport.SetRelayServerData(relayServerData);
             }
+
+            _clientIdToPlayerId.Clear();
+
+            // 접속 승인 구독 (중복 방지) — clientId ↔ Player.Id 매핑용
+            NetworkManager.Singleton.ConnectionApprovalCallback -= HandleConnectionApproval;
+            NetworkManager.Singleton.ConnectionApprovalCallback += HandleConnectionApproval;
 
             NetworkManager.Singleton.StartHost();
 
@@ -354,6 +365,10 @@ public class LobbyManager : MonoBehaviour
             {
                 transport.SetRelayServerData(relayServerData);
             }
+
+            // 접속 승인 시 호스트가 clientId ↔ Player.Id를 매핑할 수 있도록 전달
+            NetworkManager.Singleton.NetworkConfig.ConnectionData =
+                System.Text.Encoding.UTF8.GetBytes(AuthenticationService.Instance.PlayerId);
 
             NetworkManager.Singleton.StartClient();
 
@@ -579,17 +594,58 @@ public class LobbyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// NetworkManager 연결 끊김 콜백 — 방장 퇴장 감지용
+    /// NetworkManager 연결 끊김 콜백 — 클라이언트는 방장 퇴장 감지, 호스트는 끊긴 클라이언트 로비 정리
     /// </summary>
     void HandleClientDisconnect(ulong clientId)
     {
-        // 서버 역할이면 클라이언트 연결 끊김으로 무시
-        if (NetworkManager.Singleton.IsServer) return;
+        // 서버 역할이면 끊긴 클라이언트 정리
+        if (NetworkManager.Singleton.IsServer)
+        {
+            _ = RemoveDisconnectedPlayerAsync(clientId);
+            return;
+        }
+
         if (_currentLobby == null) return;
 
         NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
 
         _ = HandleHostLeftAsync();
+    }
+
+    /// <summary>
+    /// 클라이언트 접속 승인 — clientId ↔ Lobby Player.Id 매핑 저장 (스폰은 NetworkGameManager가 별도 처리)
+    /// </summary>
+    void HandleConnectionApproval(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+    {
+        string playerId = System.Text.Encoding.UTF8.GetString(request.Payload);
+        if (string.IsNullOrEmpty(playerId) == false)
+        {
+            _clientIdToPlayerId[request.ClientNetworkId] = playerId;
+        }
+
+        response.Approved = true;
+    }
+
+    /// <summary>
+    /// 강제 종료 등으로 연결이 끊긴 클라이언트를 로비에서 제거 (호스트 전용)
+    /// _currentLobby는 게임 시작 신호와 함께 곧바로 null이 되므로, 로비 단계 동안 유지되는
+    /// _hostedLobbyId를 대신 사용함
+    /// </summary>
+    async Task RemoveDisconnectedPlayerAsync(ulong clientId)
+    {
+        if (_hostedLobbyId == null) return;
+        if (_clientIdToPlayerId.TryGetValue(clientId, out string playerId) == false) return;
+
+        _clientIdToPlayerId.Remove(clientId);
+
+        try
+        {
+            await LobbyService.Instance.RemovePlayerAsync(_hostedLobbyId, playerId);
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"연결 끊긴 플레이어 로비 정리 실패:{e.Message}");
+        }
     }
 
     /// <summary>

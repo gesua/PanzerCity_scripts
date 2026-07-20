@@ -109,11 +109,12 @@ public class GameScene : MonoBehaviour
             Debug.Log("SetSceneReferences 세팅 시작");
             _player.SetSceneReferences(_cameraTarget, _centerCrosshair, _turretCrosshair, _centerCrosshairImage, _reloadIndicator);
 
-            // 싱글용 Player가 파괴되면서 이 오브젝트들이 들고 있던 참조도 같이 끊기므로 새로 주입
+            // 프리팹에 연결할 참조 주입
             _cameraTarget.SetTarget(_player.transform);
             _tankDirectionUI.SetPlayer(_player);
             _cameraBedrockChange.SetPlayer(_player.transform);
             _playerHPUI.SetPlayer(_player);
+            _hitDirectionIndicator.SetPlayer(_player.transform);
 
             _player.Initialize();
 

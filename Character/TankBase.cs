@@ -48,7 +48,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     void HandleHitSound(HitData hitData)
     {
         if (_model.IsAlive == false) return; // 사망 시엔 파괴음만 나야 하므로 스킵
-        GameManager.Instance.AudioManager.PlaySfx(SfxType.TankHit);
+        GameManager.Instance.AudioManager.PlaySfxAtPoint(SfxType.TankHit, transform.position);
     }
 
     /// <summary>
@@ -56,7 +56,10 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     /// </summary>
     void HandleDeadSound(HitData hitData)
     {
-        GameManager.Instance.AudioManager.PlaySfx(SfxType.TankDestroy);
+        // 일괄 처치 아이템 사용 중엔 개별 3D 재생을 스킵, 대신 2D 대표음이 한번만 남
+        if (GameManager.Instance.AudioManager.IsMassKillInProgress) return;
+
+        GameManager.Instance.AudioManager.PlaySfxAtPoint(SfxType.TankDestroy, transform.position);
     }
 
     public virtual void Attack()
