@@ -153,7 +153,7 @@ public class LobbyScene : MonoBehaviour
             if (existingLobby != null)
             {
                 // 중복된 이름이 발견되면 상태 메시지를 띄움
-                UpdateStatus("이미 존재하는 방 이름입니다. 다른 이름을 사용해주세요.");
+                UpdateStatus("Room name already in use.\nPlease try a different name.");
                 return;
             }
 
@@ -195,7 +195,7 @@ public class LobbyScene : MonoBehaviour
 
             if (lobby == null)
             {
-                UpdateStatus("방을 찾을 수 없습니다.");
+                UpdateStatus("Room not found.");
                 return;
             }
 
