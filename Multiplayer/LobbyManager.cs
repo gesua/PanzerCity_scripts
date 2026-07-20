@@ -35,6 +35,9 @@ public class LobbyManager : MonoBehaviour
     float _lobbyPollTimer;
     string _nickname;
 
+    bool _isHeartbeating; // 하트비트 중복 방지용(응답이 주기보다 늦게 오면 재진입 가능)
+    bool _isPolling; // 폴링 중복 방지용(GetLobbyAsync 응답이 폴링 주기보다 늦게 오면 재진입해서 두 번 실행될 수 있음)
+
     public Lobby CurrentLobby => _currentLobby;
     public string Nickname => _nickname;
     public string FirstStageName { get; private set; } = "Stage01"; // 멀티 시작 스테이지
@@ -98,11 +101,13 @@ public class LobbyManager : MonoBehaviour
     {
         if (_currentLobby == null) return;
         if (IsHost == false) return;
+        if (_isHeartbeating) return; // 이전 하트비트가 아직 응답 대기 중이면 중복 실행 방지
 
         _heartbeatTimer += Time.deltaTime;
         if (_heartbeatTimer < HeartbeatInterval) return;
 
         _heartbeatTimer = 0f;
+        _isHeartbeating = true;
 
         try
         {
@@ -112,6 +117,10 @@ public class LobbyManager : MonoBehaviour
         {
             Debug.LogWarning($"하트비트 실패:{e.Message}");
         }
+        finally
+        {
+            _isHeartbeating = false;
+        }
     }
 
     /// <summary>
@@ -120,15 +129,20 @@ public class LobbyManager : MonoBehaviour
     async void HandleLobbyPoll()
     {
         if (_currentLobby == null) return;
+        if (_isPolling) return; // 이전 폴링이 아직 응답 대기 중이면 중복 실행 방지
 
         _lobbyPollTimer += Time.deltaTime;
         if (_lobbyPollTimer < LobbyPollInterval) return;
 
         _lobbyPollTimer = 0f;
+        _isPolling = true;
 
         try
         {
             Lobby lobby = await LobbyService.Instance.GetLobbyAsync(_currentLobby.Id);
+
+            // 대기하는 동안 로비를 이미 나갔거나 정리된 경우, 뒤늦게 온 응답은 무시
+            if (_currentLobby == null) return;
 
             // 강퇴 감지 (내 ID가 로비에 없으면 강퇴됨)
             bool isStillInLobby = false;
@@ -166,6 +180,10 @@ public class LobbyManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogWarning($"로비 폴링 실패:{e.Message}");
+        }
+        finally
+        {
+            _isPolling = false;
         }
     }
 
