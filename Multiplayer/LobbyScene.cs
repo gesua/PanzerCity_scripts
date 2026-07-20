@@ -208,6 +208,33 @@ public class LobbyScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 빠른 시작 버튼 (조건에 맞는 방 자동 검색 후 참가)
+    /// </summary>
+    public async void OnQuickJoinClicked()
+    {
+        // 일반 참가나 빠른 시작이 이미 진행 중이면 중복 클릭 방지
+        if (_isJoining) return;
+        _isJoining = true;
+
+        try
+        {
+            await LobbyManager.Instance.QuickJoinLobbyAsync();
+
+            // 참가 실패(또는 빈 방 없음) 시 패널 전환 안 함
+            if (LobbyManager.Instance.CurrentLobby == null) return;
+
+            // 방 UI로 이동 및 화면 갱신
+            _joinRoomNameInput.text = LobbyManager.Instance.CurrentLobby.Name;
+            ShowPanel(_roomPanel);
+            _roomUI.Refresh(LobbyManager.Instance.CurrentLobby);
+        }
+        finally
+        {
+            _isJoining = false;
+        }
+    }
+
+    /// <summary>
     /// 로비 목록 새로고침
     /// </summary>
     public async void OnRefreshClicked()

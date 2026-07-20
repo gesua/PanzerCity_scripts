@@ -372,6 +372,60 @@ public class LobbyManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 빠른 시작 (자동 매치메이킹:인원 많은 방 우선)
+    /// </summary>
+    public async Task QuickJoinLobbyAsync()
+    {
+        try
+        {
+            OnStatusChanged?.Invoke("Searching for available rooms...");
+
+            // 1. 방 검색 옵션 설정
+            QueryLobbiesOptions queryOptions = new QueryLobbiesOptions
+            {
+                Count = 20, // 최대 20개 탐색
+                Filters = new List<QueryFilter>
+                {
+                    // 풀방 제외 (빈 자리가 0보다 큰 방만)
+                    new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT)
+                },
+                Order = new List<QueryOrder>
+                {
+                    // 사람이 많은 순서로 오름차순 정렬
+                    new QueryOrder(true, QueryOrder.FieldOptions.AvailableSlots)
+                }
+            };
+
+            QueryResponse response = await LobbyService.Instance.QueryLobbiesAsync(queryOptions);
+
+            // 2. 검색된 목록 중 완벽한 조건의 방 하나 찾기
+            Lobby targetLobby = null;
+            foreach (Lobby lobby in response.Results)
+            {
+                // 비밀번호가 없고, 게임이 아직 시작되지 않은 방(잠기지 않은 방)
+                if (lobby.HasPassword == false && lobby.IsLocked == false)
+                {
+                    targetLobby = lobby;
+                    break; // 가장 먼저 찾은(가장 인원 많은) 방 채택
+                }
+            }
+
+            if (targetLobby == null)
+            {
+                OnStatusChanged?.Invoke("No available rooms found for Quick Join.");
+                return;
+            }
+
+            // 3. 찾은 방의 ID를 활용해 기존 참가 로직 그대로 실행
+            await JoinLobbyAsync(targetLobby.Id, null);
+        }
+        catch (Exception e)
+        {
+            OnStatusChanged?.Invoke($"Quick Join failed:{e.Message}");
+        }
+    }
+
+    /// <summary>
     /// 준비 상태 업데이트
     /// </summary>
     public async Task UpdateReadyStatusAsync(bool isReady)
