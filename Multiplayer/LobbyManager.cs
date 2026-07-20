@@ -77,6 +77,8 @@ public class LobbyManager : MonoBehaviour
         {
             await UnityServices.InitializeAsync();
 
+            AuthenticationService.Instance.Expired += HandleAuthExpired;
+
             if (AuthenticationService.Instance.IsSignedIn == false)
             {
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
@@ -85,6 +87,30 @@ public class LobbyManager : MonoBehaviour
         catch (Exception e)
         {
             OnStatusChanged?.Invoke($"Initialization failed:{e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 액세스 토큰 만료 감지 — 장시간 유휴 후 자동 갱신 실패 시 발생
+    /// (에디터를 오래 켜두고 자리를 비웠다가 돌아왔을 때 재현되는 문제 대응)
+    /// </summary>
+    void HandleAuthExpired()
+    {
+        _ = ReauthenticateAsync();
+    }
+
+    /// <summary>
+    /// 만료된 인증 세션 재로그인
+    /// </summary>
+    async Task ReauthenticateAsync()
+    {
+        try
+        {
+            await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        }
+        catch (Exception e)
+        {
+            OnStatusChanged?.Invoke($"Re-authentication failed:{e.Message}");
         }
     }
 
