@@ -43,6 +43,7 @@ public class LobbyManager : MonoBehaviour
     public string FirstStageName { get; private set; } = "Stage01"; // 멀티 시작 스테이지
     public bool IsHost => _currentLobby != null &&
         _currentLobby.HostId == AuthenticationService.Instance.PlayerId;
+    public AudioListener PendingLobbyAudioListener { get; set; } // AudioListener 메시지 처리용
 
     public event Action<List<Lobby>> OnLobbyListUpdated;
     public event Action<Lobby> OnLobbyUpdated; // 룸 상태 갱신

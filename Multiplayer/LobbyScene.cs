@@ -54,6 +54,8 @@ public class LobbyScene : MonoBehaviour
         LobbyManager.Instance.OnKicked += HandleKicked;
         LobbyManager.Instance.OnGameStart += HandleGameStart;
 
+        LobbyManager.Instance.PendingLobbyAudioListener = _audioListener; // AudioListener 메시지 처리용
+
         ShowPanel(_nicknamePanel);
     }
 
