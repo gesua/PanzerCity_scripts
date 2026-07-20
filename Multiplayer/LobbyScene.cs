@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
-using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -38,6 +37,9 @@ public class LobbyScene : MonoBehaviour
     [Header("----- 룸 패널 -----")]
     [SerializeField] GameObject _roomPanel;
     [SerializeField] RoomUI _roomUI;
+
+    [Header("----- UI 잠금 -----")]
+    [SerializeField] GameObject _clickBlocker;
 
     bool _isRefreshing;      // 새로고침 연타 방지
     bool _isCreatingRoom;    // 방 만들기 중복 클릭 방지
@@ -89,6 +91,17 @@ public class LobbyScene : MonoBehaviour
     }
 
     /// <summary>
+    /// UI 클릭 방지용 블로커 활성/비활성
+    /// </summary>
+    void SetBlocker(bool isActive)
+    {
+        if (_clickBlocker != null)
+        {
+            _clickBlocker.SetActive(isActive);
+        }
+    }
+
+    /// <summary>
     /// 닉네임 확인 → 로비 패널로
     /// </summary>
     public void OnNicknameConfirmed()
@@ -125,6 +138,7 @@ public class LobbyScene : MonoBehaviour
     {
         if (_isCreatingRoom) return;
         _isCreatingRoom = true;
+        SetBlocker(true);
 
         try
         {
@@ -159,6 +173,7 @@ public class LobbyScene : MonoBehaviour
         finally
         {
             _isCreatingRoom = false;
+            SetBlocker(false);
         }
     }
 
@@ -169,6 +184,7 @@ public class LobbyScene : MonoBehaviour
     {
         if (_isFindingRoom) return;
         _isFindingRoom = true;
+        SetBlocker(true);
 
         try
         {
@@ -183,21 +199,23 @@ public class LobbyScene : MonoBehaviour
                 return;
             }
 
-            TryJoinLobby(lobby.Id);
+            await TryJoinLobby(lobby.Id); // 내부 참가가 완전히 끝날 때까지 기다림
         }
         finally
         {
             _isFindingRoom = false;
+            SetBlocker(false);
         }
     }
 
     /// <summary>
     /// 로비 참가 시도 (목록 참가 버튼 / 입장 버튼 공용)
     /// </summary>
-    async void TryJoinLobby(string lobbyId)
+    async Task TryJoinLobby(string lobbyId)
     {
         if (_isJoining) return;
         _isJoining = true;
+        SetBlocker(true);
 
         try
         {
@@ -214,6 +232,7 @@ public class LobbyScene : MonoBehaviour
         finally
         {
             _isJoining = false;
+            SetBlocker(false);
         }
     }
 
@@ -225,6 +244,7 @@ public class LobbyScene : MonoBehaviour
         // 일반 참가나 빠른 시작이 이미 진행 중이면 중복 클릭 방지
         if (_isJoining) return;
         _isJoining = true;
+        SetBlocker(true);
 
         try
         {
@@ -241,6 +261,7 @@ public class LobbyScene : MonoBehaviour
         finally
         {
             _isJoining = false;
+            SetBlocker(false);
         }
     }
 
@@ -261,7 +282,7 @@ public class LobbyScene : MonoBehaviour
             UpdateStatus($"Room list refreshed");
 
             // 새로고침 최소 간격 2초
-            await System.Threading.Tasks.Task.Delay(2000);
+            await Task.Delay(2000);
         }
         finally
         {
@@ -311,7 +332,7 @@ public class LobbyScene : MonoBehaviour
                 {
                     _joinRoomNameInput.text = lobbyName;
                 },
-                onJoinRequested: () => TryJoinLobby(lobbyId));
+                onJoinRequested: () => { _ = TryJoinLobby(lobbyId); });
         }
     }
 
