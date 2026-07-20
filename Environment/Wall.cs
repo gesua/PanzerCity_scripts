@@ -25,7 +25,7 @@ public class Wall : MonoBehaviour, IExplosionDamageable
 
     public void TakeHit(HitData hitData, float explosionForce, Vector3 pos)
     {
-        if (_isBaseWall && hitData.AtkTank is PlayerTank) return; // 기지 벽은 아군이 직접 못 부수게 함
+        if (_isBaseWall && hitData.IsPlayerAttack) return; // 기지 벽은 아군이 직접 못 부수게 함
 
         _collider.enabled = false; // 충돌 비활성화
         _navMeshObstacle.enabled = false; // 네브메시 장애물 비활성화

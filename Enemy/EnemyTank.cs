@@ -705,6 +705,10 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         // 사망 효과 재생
         _destructionEffect.Play();
 
+        // 멀티플레이:골드/통계/아이템 드랍은 서버(호스트)에서만 처리(중복 지급 방지)
+        // 클라이언트는 서버의 폭발 판정을 재현하는 과정에서 여기까지 도달할 수 있어서 가드 필요
+        if (_networkOwner != null && _networkOwner.IsServer == false) return;
+
         // 골드 추가
         GameManager.Instance.PlayerData.AddGold(_tankData.RewardGold);
 
@@ -727,7 +731,17 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         // 자신 제거 이벤트 발행(정상 사망 경로에서만 스포너에 알림)
         OnRemoved?.Invoke(this);
 
-        // 자신 게임오브젝트 제거
+        // 멀티플레이:클라이언트는 자체적으로 제거하지 않음(서버의 Despawn을 통해 자동 정리됨)
+        if (_networkOwner != null && _networkOwner.IsServer == false) return;
+
+        // 멀티플레이:서버는 네트워크 디스폰(클라이언트에도 자동 전파되어 정리됨)
+        if (_networkOwner != null)
+        {
+            _networkOwner.RequestDespawn();
+            return;
+        }
+
+        // 자신 게임오브젝트 제거(싱글플레이)
         gameObject.DestroyOrReturnToPool();
     }
 

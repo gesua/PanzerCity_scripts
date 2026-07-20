@@ -1,4 +1,5 @@
 using System.Threading;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -97,13 +98,33 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
             GameManager.Instance.AudioManager.PlaySfxAtPoint(SfxType.ShellExplosion, transform.position);
         }
 
-        // 범위 피해
-        Collider[] colliders = Physics.OverlapSphere(transform.position, _explosionRadius, _hitLayer);
+        // 멀티플레이:범위 피해 판정은 서버만 수행(클라이언트는 서버 신호를 받아 재현함)
+        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+        if (isMultiplayer && NetworkManager.Singleton.IsServer == false) return;
+
+        ApplyExplosionDamage(transform.position, _explosionRadius, _hitLayer, hitData);
+
+        // 멀티플레이:클라이언트에도 동일한 판정을 재현하도록 신호 전달
+        if (isMultiplayer)
+        {
+            NetworkGameManager.Instance.NotifyExplosionDamage(
+                transform.position, _explosionRadius, _hitLayer.value, hitData.Damage, hitData.IsPlayerAttack);
+        }
+    }
+
+    /// <summary>
+    /// 범위 피해 적용
+    /// 서버(또는 싱글)의 로컬 판정과, 멀티에서 서버 신호를 받은 클라이언트의 재현 양쪽에서 재사용(NetworkGameManager가 호출)
+    /// </summary>
+    public static void ApplyExplosionDamage(Vector3 position, float radius, LayerMask hitLayer, HitData hitData)
+    {
+        Collider[] colliders = Physics.OverlapSphere(position, radius, hitLayer);
+
         foreach (Collider col in colliders)
         {
             if (col.TryGetComponent(out IExplosionDamageable damageable))
             {
-                damageable.TakeHit(hitData, _explosionRadius, transform.position);
+                damageable.TakeHit(hitData, radius, position);
             }
         }
     }

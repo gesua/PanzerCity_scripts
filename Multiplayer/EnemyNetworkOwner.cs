@@ -35,6 +35,20 @@ public class EnemyNetworkOwner : NetworkBehaviour
     }
 
     /// <summary>
+    /// 서버가 이 적을 네트워크에서 제거(EnemyTank.Remove()가 호출)
+    /// Despawn()이 클라이언트에도 자동 전파되어 정리됨(destroy: true 기본값 — Pool 재사용은 하지 않음)
+    /// </summary>
+    public void RequestDespawn()
+    {
+        if (IsServer == false) return; // 방어적 가드(정상 경로로는 클라이언트에서 호출될 일이 없음)
+
+        if (TryGetComponent(out NetworkObject networkObject))
+        {
+            networkObject.Despawn();
+        }
+    }
+
+    /// <summary>
     /// 스폰 연출: 렌더러 끄기 → 이펙트 재생 → 대기 → 렌더러 켜기
     /// 서버/클라이언트 각자 로컬로 실행(연출은 네트워크 동기화 대상이 아님)
     /// 지속시간은 EnemyTank._spawnEffectTime(프리팹 값)을 그대로 사용 —

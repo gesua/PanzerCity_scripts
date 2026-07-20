@@ -52,7 +52,7 @@ public class NetworkGameManager : NetworkBehaviour
         // 서버/클라이언트 공통 — 각자 로컬 StageScene 참조(클라이언트도 RPC 수신 시 자기 EnemySpawner에 접근해야 함)
         _stageScene = stage;
 
-        // 서버만 플레이어 스폰 처리
+        // 서버만 플레이어 스폰 대기 처리
         if (IsServer == false) return;
 
         _waitForSceneLoaded = true;
@@ -114,6 +114,27 @@ public class NetworkGameManager : NetworkBehaviour
 
         if (_stageScene == null) return;
         _stageScene.EnemySpawner.ReceiveEnemySpawned(spawnedIndex);
+    }
+
+    /// <summary>
+    /// 포탄 폭발 범위 피해 동기화 — 서버가 폭발 판정을 마친 뒤 호출(Shell이 호출)
+    /// 벽/큐브 파괴, 폭발 피해를 받는 대상(경전차 등)의 판정을 클라이언트에도 동일하게 재현시킴
+    /// HitData의 AtkTank(MonoBehaviour 참조)는 RPC로 못 보내서 isPlayerAttack(bool)만 별도 전달
+    /// </summary>
+    public void NotifyExplosionDamage(Vector3 position, float radius, int hitLayerValue, int damage, bool isPlayerAttack)
+    {
+        NotifyExplosionDamageClientRpc(position, radius, hitLayerValue, damage, isPlayerAttack);
+    }
+
+    [ClientRpc]
+    void NotifyExplosionDamageClientRpc(Vector3 position, float radius, int hitLayerValue, int damage, bool isPlayerAttack)
+    {
+        // 호스트 자신은 서버 로컬에서 Shell.Explode()가 이미 직접 판정했으므로 중복 방지
+        if (IsServer) return;
+
+        HitData hitData = new HitData(damage, position, isPlayerAttack);
+        LayerMask hitLayer = hitLayerValue;
+        Shell.ApplyExplosionDamage(position, radius, hitLayer, hitData);
     }
 
     /// <summary>
