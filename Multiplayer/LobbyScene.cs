@@ -126,14 +126,24 @@ public class LobbyScene : MonoBehaviour
         if (_isCreatingRoom) return;
         _isCreatingRoom = true;
 
-        _createPanel.SetActive(false);
-
         try
         {
             string trimmed = _createRoomNameInput.text.Trim();
             string roomName = (trimmed == "") ?
                 $"{LobbyManager.Instance.Nickname} Room" : trimmed;
             string password = _createRoomPasswordInput.text.Trim();
+
+            // 방 이름 중복 검사
+            Lobby existingLobby = await LobbyManager.Instance.FindLobbyByNameAsync(roomName);
+
+            if (existingLobby != null)
+            {
+                // 중복된 이름이 발견되면 상태 메시지를 띄움
+                UpdateStatus("이미 존재하는 방 이름입니다. 다른 이름을 사용해주세요.");
+                return;
+            }
+
+            _createPanel.SetActive(false);
 
             await LobbyManager.Instance.CreateLobbyAsync(roomName, password);
 
