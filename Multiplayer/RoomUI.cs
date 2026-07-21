@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
-using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 
 /// <summary>
@@ -43,7 +43,7 @@ public class RoomUI : MonoBehaviour
         // 버튼 텍스트 초기화
         if (_readyButtonText != null)
         {
-            _readyButtonText.text = new LocalizedString("Localization", ReadyKey).GetLocalizedString();
+            _readyButtonText.text = LocalizationSettings.StringDatabase.GetLocalizedString("Localization", ReadyKey);
         }
     }
 
@@ -108,7 +108,7 @@ public class RoomUI : MonoBehaviour
 
             // 준비, 준비 취소 글자
             string key = (_isReady) ? UnreadyKey : ReadyKey;
-            _readyButtonText.text = new LocalizedString("Localization", key).GetLocalizedString();
+            _readyButtonText.text = LocalizationSettings.StringDatabase.GetLocalizedString("Localization", key);
 
             await LobbyManager.Instance.UpdateReadyStatusAsync(_isReady);
         }
@@ -150,7 +150,7 @@ public class RoomUI : MonoBehaviour
         try
         {
             _isReady = false;
-            _readyButtonText.text = new LocalizedString("Localization", ReadyKey).GetLocalizedString();
+            _readyButtonText.text = LocalizationSettings.StringDatabase.GetLocalizedString("Localization", ReadyKey);
             await LobbyManager.Instance.LeaveLobbyAsync();
         }
         finally

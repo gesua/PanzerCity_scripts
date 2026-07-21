@@ -7,6 +7,9 @@ using UnityEngine.UI;
 /// </summary>
 public class PlayerSlotUI : MonoBehaviour
 {
+    const string ReadyKey = "UI_MP_TAG_READY";     // 준비
+    const string WaitingKey = "UI_MP_TAG_WAITING"; // 대기
+
     [SerializeField] TMP_Text _nicknameText;
     [SerializeField] TMP_Text _statusText;
     [SerializeField] Button _kickButton;
@@ -21,8 +24,17 @@ public class PlayerSlotUI : MonoBehaviour
     {
         _playerId = playerId;
         _nicknameText.text = (isHost) ? $"[Host] {nickname}" : nickname;
-        _statusText.text = (isReady) ? "Ready" : "Not Ready";
+        SetReadyStatus(isReady);
         _kickButton.gameObject.SetActive(canKick);
+    }
+
+    /// <summary>
+    /// 준비상태 글자 변경
+    /// </summary>
+    public void SetReadyStatus(bool isReady)
+    {
+        string key = (isReady) ? ReadyKey : WaitingKey;
+        _statusText.text = UnityEngine.Localization.Settings.LocalizationSettings.StringDatabase.GetLocalizedString("Localization", key);
     }
 
     /// <summary>
