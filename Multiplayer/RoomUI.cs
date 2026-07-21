@@ -58,6 +58,8 @@ public class RoomUI : MonoBehaviour
         // 방 이름 설정
         _roomName.text = lobby.Name;
 
+        string myPlayerId = AuthenticationService.Instance.PlayerId;
+
         // 슬롯 갱신
         for (int i = 0; i < _playerSlots.Count; i++)
         {
@@ -72,9 +74,19 @@ public class RoomUI : MonoBehaviour
                 if (player.Data != null)
                 {
                     if (player.Data.ContainsKey("Nickname")) nickname = player.Data["Nickname"].Value;
-                    if (isHost == false && player.Data.ContainsKey("IsReady"))
+
+                    if (isHost == false)
                     {
-                        isReady = player.Data["IsReady"].Value == "true";
+                        // 본인은 서버 폴링 지연을 무시하고, 내 로컬 _isReady 값을 무조건 신뢰함
+                        if (player.Id == myPlayerId)
+                        {
+                            isReady = _isReady;
+                        }
+                        else if (player.Data.ContainsKey("IsReady"))
+                        {
+                            // 다른 플레이어는 서버에서 가져온 값을 사용
+                            isReady = player.Data["IsReady"].Value == "true";
+                        }
                     }
                 }
 
