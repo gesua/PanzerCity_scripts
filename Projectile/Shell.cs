@@ -1,7 +1,5 @@
-using System.Threading;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Pool;
 
 /// <summary>
 /// 탱크 포탄

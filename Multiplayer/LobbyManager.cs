@@ -50,7 +50,7 @@ public class LobbyManager : MonoBehaviour
 
     public event Action<List<Lobby>> OnLobbyListUpdated;
     public event Action<Lobby> OnLobbyUpdated; // 룸 상태 갱신
-    public event Action<string> OnStatusChanged;
+    public event Action<string, object[]> OnStatusChanged; // 상태 메시지
     public event Action OnKicked;    // 강퇴당함
     public event Action OnLeftLobby; // 직접 나감
     public event Action OnHostLeft;  // 방장이 연결 끊음
@@ -90,7 +90,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"Initialization failed:{e.Message}");
+            OnStatusChanged?.Invoke("UI_MP_ERR_INIT_FAIL", new object[] { e.Message });
         }
     }
 
@@ -114,7 +114,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"Re-authentication failed:{e.Message}");
+            OnStatusChanged?.Invoke("UI_MP_ERR_AUTH_FAIL", new object[] { e.Message });
         }
     }
 
@@ -232,9 +232,7 @@ public class LobbyManager : MonoBehaviour
     {
         try
         {
-            OnStatusChanged?.Invoke("Creating room...");
-
-            //OnStatusChanged?.Invoke("Allocating Relay...");
+            OnStatusChanged?.Invoke("UI_MP_MSG_CREATING_ROOM", null);
 
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(maxPlayers - 1);
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
@@ -273,14 +271,13 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
 
-            OnStatusChanged?.Invoke($"Room created:{_currentLobby.Name}");
+            OnStatusChanged?.Invoke("UI_MP_MSG_ROOM_CREATED", new object[] { _currentLobby.Name });
         }
         catch (Exception e)
         {
             // 생성 실패 시 현재 로비 초기화
             _currentLobby = null;
-
-            OnStatusChanged?.Invoke($"Room creation failed:{e.Message}");
+            OnStatusChanged?.Invoke("UI_MP_ERR_CREATE_FAIL", new object[] { e.Message });
         }
     }
 
@@ -301,7 +298,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"Lobby list fetch failed:{e.Message}");
+            OnStatusChanged?.Invoke("UI_MP_ERR_LOBBY_FETCH_FAIL", new object[] { e.Message });
         }
     }
 
@@ -334,7 +331,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"Room search failed:{e.Message}");
+            OnStatusChanged?.Invoke("UI_MP_ERR_SEARCH_FAIL", new object[] { e.Message });
             return null;
         }
     }
@@ -346,7 +343,7 @@ public class LobbyManager : MonoBehaviour
     {
         try
         {
-            OnStatusChanged?.Invoke("Joining room...");
+            OnStatusChanged?.Invoke("UI_MP_MSG_JOINING_ROOM", null);
 
             JoinLobbyByIdOptions options = new JoinLobbyByIdOptions
             {
@@ -376,13 +373,13 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
 
-            OnStatusChanged?.Invoke($"Join successful:{_currentLobby.Name}");
+            OnStatusChanged?.Invoke("UI_MP_MSG_JOIN_SUCCESS", new object[] { _currentLobby.Name });
         }
         catch (Exception e)
         {
             // 참가 실패 시 _currentLobby 보장
             _currentLobby = null;
-            OnStatusChanged?.Invoke($"Join failed:{e.Message}");
+            OnStatusChanged?.Invoke("UI_MP_ERR_JOIN_FAIL", new object[] { e.Message });
         }
     }
 
@@ -393,7 +390,7 @@ public class LobbyManager : MonoBehaviour
     {
         try
         {
-            OnStatusChanged?.Invoke("Searching for available rooms...");
+            OnStatusChanged?.Invoke("UI_MP_MSG_QUICK_SEARCHING", null);
 
             // 1. 방 검색 옵션 설정
             QueryLobbiesOptions queryOptions = new QueryLobbiesOptions
@@ -427,7 +424,7 @@ public class LobbyManager : MonoBehaviour
 
             if (targetLobby == null)
             {
-                OnStatusChanged?.Invoke("No available rooms found for Quick Join.");
+                OnStatusChanged?.Invoke("UI_MP_ERR_QUICK_EMPTY", null);
                 return;
             }
 
@@ -436,7 +433,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"Quick Join failed:{e.Message}");
+            OnStatusChanged?.Invoke("UI_MP_ERR_QUICK_FAIL", new object[] { e.Message });
         }
     }
 
@@ -525,7 +522,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            OnStatusChanged?.Invoke($"Game start failed:{e.Message}");
+            OnStatusChanged?.Invoke("UI_MP_ERR_START_FAIL", new object[] { e.Message });
         }
     }
 

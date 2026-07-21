@@ -20,8 +20,8 @@ public class PlayerSlotUI : MonoBehaviour
     public void SetPlayer(string nickname, bool isReady, bool isHost, bool canKick, string playerId)
     {
         _playerId = playerId;
-        _nicknameText.text = (isHost) ? $"[방장] {nickname}" : nickname;
-        _statusText.text = (isReady) ? "준비" : "대기";
+        _nicknameText.text = (isHost) ? $"[Host] {nickname}" : nickname;
+        _statusText.text = (isReady) ? "Ready" : "Not Ready";
         _kickButton.gameObject.SetActive(canKick);
     }
 
@@ -31,7 +31,7 @@ public class PlayerSlotUI : MonoBehaviour
     public void SetEmpty()
     {
         _playerId = null;
-        _nicknameText.text = "빈 슬롯";
+        _nicknameText.text = "Empty";
         _statusText.text = "";
         _kickButton.gameObject.SetActive(false);
     }

@@ -6,6 +6,7 @@ using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Localization.Settings;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -112,7 +113,7 @@ public class LobbyScene : MonoBehaviour
         LobbyManager.Instance.SetNickname(nickname);
         ShowPanel(_lobbyPanel);
 
-        UpdateStatus($"{nickname} Login successful");
+        UpdateStatus("UI_MP_MSG_LOGIN_SUCCESS", nickname);
     }
 
     /// <summary>
@@ -153,7 +154,7 @@ public class LobbyScene : MonoBehaviour
             if (existingLobby != null)
             {
                 // 중복된 이름이 발견되면 상태 메시지를 띄움
-                UpdateStatus("Room name already in use.\nPlease try a different name.");
+                UpdateStatus("UI_MP_ERR_DUPLICATE_NAME");
                 return;
             }
 
@@ -195,7 +196,7 @@ public class LobbyScene : MonoBehaviour
 
             if (lobby == null)
             {
-                UpdateStatus("Room not found.");
+                UpdateStatus("UI_MP_ERR_ROOM_NOT_FOUND");
                 return;
             }
 
@@ -279,7 +280,7 @@ public class LobbyScene : MonoBehaviour
         {
             await LobbyManager.Instance.RefreshLobbyListAsync();
 
-            UpdateStatus($"Room list refreshed");
+            UpdateStatus("UI_MP_MSG_REFRESH_SUCCESS");
 
             // 새로고침 최소 간격 2초
             await Task.Delay(2000);
@@ -364,7 +365,7 @@ public class LobbyScene : MonoBehaviour
         Debug.Log("로비로 직접 나감");
         ShutdownNetwork();
         ShowPanel(_lobbyPanel);
-        UpdateStatus($"");
+        UpdateStatus("");
     }
 
     /// <summary>
@@ -375,7 +376,7 @@ public class LobbyScene : MonoBehaviour
         Debug.Log("방장이 연결 끊음");
         ShutdownNetwork();
         ShowPanel(_lobbyPanel);
-        UpdateStatus($"");
+        UpdateStatus("");
     }
 
     /// <summary>
@@ -386,7 +387,7 @@ public class LobbyScene : MonoBehaviour
         Debug.Log("강퇴당함");
         ShutdownNetwork();
         ShowPanel(_lobbyPanel);
-        UpdateStatus($"");
+        UpdateStatus("");
     }
 
     /// <summary>
@@ -498,9 +499,22 @@ public class LobbyScene : MonoBehaviour
         yield return SceneManager.LoadSceneAsync("Title");
     }
 
-    void UpdateStatus(string message)
+    /// <summary>
+    /// 로컬라이제이션 키와 가변 인자를 받아 텍스트 업데이트
+    /// </summary>
+    void UpdateStatus(string key, params object[] args)
+
     {
         if (_statusText == null) return;
-        _statusText.text = message;
+
+        // 키가 비어있으면 텍스트 지움
+        if (string.IsNullOrEmpty(key))
+        {
+            _statusText.text = "";
+            return;
+        }
+
+        // StringDatabase를 통한 접근
+        _statusText.text = LocalizationSettings.StringDatabase.GetLocalizedString("Localization", key, arguments: args);
     }
 }
