@@ -240,6 +240,13 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         if (_isNetworkControlled == false) return;
         if (_isAIActive == false) return;
 
+        // velocity는 한번 설정하면 유지되므로, 매 스텝 수평 속도를 먼저 리셋하고
+        // MoveForward/MoveBackward가 호출될 때만 그 위에 덮어씀(Y축은 중력 등 기존 값 유지)
+        Vector3 resetVelocity = _rigid.linearVelocity;
+        resetVelocity.x = 0f;
+        resetVelocity.z = 0f;
+        _rigid.linearVelocity = resetVelocity;
+
         // 현재 상태 갱신
         _currentState.Update();
         UpdateLostTarget();
@@ -326,8 +333,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
                 return;
             }
 
-            Vector3 move = transform.forward * _model.ForwardSpeed * Time.fixedDeltaTime;
-            _rigid.MovePosition(_rigid.position + move);
+            MoveForward();
         }
 
         // 엔진 켬
@@ -649,23 +655,24 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     }
 
     /// <summary>
-    /// 현재 차체 전방으로 전진한다.
-    /// Rigidbody 이동을 한 곳에 모아 자식 탱크도 같은 이동 방식을 쓰게 한다.
+    /// 현재 차체 전방으로 전진
     /// </summary>
     protected void MoveForward()
     {
-        Vector3 move = transform.forward * _model.ForwardSpeed * Time.fixedDeltaTime;
-        _rigid.MovePosition(_rigid.position + move);
+        Vector3 velocity = transform.forward * _model.ForwardSpeed;
+        velocity.y = _rigid.linearVelocity.y; // 기존 Y축 속도는 보존
+        _rigid.linearVelocity = velocity;
     }
 
     /// <summary>
-    /// 현재 차체 후방으로 후진한다.
-    /// 도주 중 정면을 유지해야 하는 탱크가 사용한다.
+    /// 현재 차체 후방으로 후진
+    /// 도주 중 정면을 유지해야 하는 탱크가 사용(중전차)
     /// </summary>
     protected void MoveBackward()
     {
-        Vector3 move = -transform.forward * _model.BackwardSpeed * Time.fixedDeltaTime;
-        _rigid.MovePosition(_rigid.position + move);
+        Vector3 velocity = -transform.forward * _model.BackwardSpeed;
+        velocity.y = _rigid.linearVelocity.y; // 기존 Y축 속도는 보존
+        _rigid.linearVelocity = velocity;
     }
 
     /// <summary>
