@@ -410,11 +410,11 @@ public class LobbyScene : MonoBehaviour
         if (_eventSystem != null) _eventSystem.gameObject.SetActive(false);
 
         // 멀티용 Game 씬 로드 (호스트만 요청, 클라이언트는 Netcode가 자동으로 밀어줌)
-        yield return LoadNetworkedSceneRoutine("Game_Multi", 0f, 0.45f);
+        yield return LoadNetworkedSceneRoutine("Game_Multi", 0f, 0.297f); // 33%(0.9f가 100%)
 
         // Stage 씬 로드
         string stageName = LobbyManager.Instance.FirstStageName;
-        yield return LoadNetworkedSceneRoutine(stageName, 0.45f, 0.9f);
+        yield return LoadNetworkedSceneRoutine(stageName, 0.297f, 0.594f); // 66%
 
         // 로딩바 100% + 대기 문구 표시
         loadingUI.ShowWaitingForOthers();

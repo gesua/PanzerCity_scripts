@@ -39,31 +39,9 @@ public class LoadingUI : MonoBehaviour
     /// </summary>
     public void ShowWaitingForOthers()
     {
-        //_fillRoutine = StartCoroutine(FillToFullAndShowWaitingRoutine());
-
         _waitingText.text = "Synchronizing Players...";
         _loadingBar.fillAmount = 0.9f;
     }
-
-    IEnumerator FillToFullAndShowWaitingRoutine()
-    {
-        _waitingText.text = "Waiting for other players...";
-
-        float currentProgress = _loadingBar.fillAmount;
-
-        _loadingBar.fillAmount = 0.9f;
-
-        while (currentProgress < 0.9f)
-        {
-            currentProgress = Mathf.MoveTowards(currentProgress, 0.9f, (0.9f / _fillTime) * Time.deltaTime);
-            _loadingBar.fillAmount = currentProgress;
-            yield return null;
-        }
-
-        _fillRoutine = null;
-    }
-
-
 
     public IEnumerator UpdateProgress(AsyncOperation op)
     {
@@ -143,25 +121,11 @@ public class LoadingUI : MonoBehaviour
     {
         float currentProgress = 0f;
 
-        /*
-        Debug.Log($"로딩 : {op1.progress}, {op2.progress}");
-
-        float test = 0;
-        while (test < 1)
-        {
-            _loadingBar.fillAmount = test;
-            test += 0.1f;
-            yield return null;
-        }
-        */
-
         while (op1.progress < 0.9f || op2.progress < 0.9f)
         {
             float targetProgress = (op1.progress + op2.progress) / 2f; // 0.9f까지만 가게함
 
             currentProgress = Mathf.MoveTowards(currentProgress, targetProgress, (1f / _fillTime) * Time.deltaTime);
-
-            //Debug.Log($"로딩 : {op1.progress}, {op2.progress}, {currentProgress}");
 
             if (Mathf.Abs(currentProgress - targetProgress) < 0.001f)
             {
@@ -177,8 +141,6 @@ public class LoadingUI : MonoBehaviour
         while (_loadingBar.fillAmount < 0.9f)
         {
             currentProgress = Mathf.MoveTowards(currentProgress, 0.9f, (1f / _fillTime) * Time.deltaTime);
-
-            //Debug.Log($"로딩 : {op1.progress}, {op2.progress}, {currentProgress}");
 
             if (Mathf.Abs(currentProgress - 0.9f) < 0.001f)
             {
