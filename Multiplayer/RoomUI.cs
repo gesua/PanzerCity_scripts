@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
+using Unity.Services.Authentication;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.Localization.Settings;
@@ -110,13 +111,36 @@ public class RoomUI : MonoBehaviour
             string key = (_isReady) ? UnreadyKey : ReadyKey;
             _readyButtonText.text = LocalizationSettings.StringDatabase.GetLocalizedString("Localization", key);
 
+            UpdateLocalPlayerSlotUI();
+
             await LobbyManager.Instance.UpdateReadyStatusAsync(_isReady);
         }
         finally
         {
             _isTogglingReady = false;
         }
+    }
 
+    /// <summary>
+    /// 내 슬롯 UI 즉시 갱신 (딜레이 보완용)
+    /// </summary>
+    void UpdateLocalPlayerSlotUI()
+    {
+        Lobby lobby = LobbyManager.Instance.CurrentLobby;
+        if (lobby == null) return;
+
+        string myPlayerId = AuthenticationService.Instance.PlayerId;
+
+        // 본인 슬롯 찾아서 상태 변경
+        for (int i = 0; i < lobby.Players.Count; i++)
+        {
+            if (lobby.Players[i].Id == myPlayerId)
+            {
+                // 방금 변경한 _isReady 값을 넘겨서 UI 딜레이 없이 즉각 반영
+                _playerSlots[i].SetReadyStatus(_isReady);
+                break;
+            }
+        }
     }
 
     /// <summary>
