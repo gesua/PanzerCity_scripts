@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
@@ -309,6 +310,16 @@ public class LobbyScene : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+
+        // 우선순위에 맞춰 클라이언트 단에서 정렬
+        var sortedLobbies = lobbies.OrderBy(lobby =>
+        {
+            if (lobby.IsLocked) return 4; // 시작한 방 (가장 마지막)
+            if (lobby.HasPassword && lobby.AvailableSlots == 0) return 3; // 풀방 (암호방)
+            if (lobby.HasPassword && lobby.AvailableSlots > 0) return 2;  // 암호방
+            if (!lobby.HasPassword && lobby.AvailableSlots == 0) return 1; // 풀방
+            return 0; // 풀방 아니고 암호 없는 일반 방 (가장 우선)
+        }).ThenBy(lobby => lobby.AvailableSlots).ToList();
 
         foreach (Lobby lobby in lobbies)
         {

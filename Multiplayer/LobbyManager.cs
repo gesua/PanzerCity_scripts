@@ -302,7 +302,7 @@ public class LobbyManager : MonoBehaviour
         {
             QueryLobbiesOptions options = new QueryLobbiesOptions
             {
-                Count = 10
+                Count = 50
             };
 
             QueryResponse response = await LobbyService.Instance.QueryLobbiesAsync(options);
