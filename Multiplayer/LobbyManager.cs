@@ -226,6 +226,18 @@ public class LobbyManager : MonoBehaviour
     }
 
     /// <summary>
+    /// UGS 로비 비밀번호 최소 8자리 제한 우회용 헬퍼 함수
+    /// 유저가 1글자만 입력해도 강제로 8자리 이상으로 부풀려서 통과시킵니다.
+    /// </summary>
+    string GetUGSPassword(string rawPassword)
+    {
+        if (string.IsNullOrEmpty(rawPassword)) return null;
+
+        // 뒤에 고정된 시크릿 문자열을 붙여 무조건 8자리 이상이 되게 만듭니다.
+        return rawPassword + "_Secret";
+    }
+
+    /// <summary>
     /// 공개 방 생성
     /// </summary>
     public async Task CreateLobbyAsync(string lobbyName, string password, int maxPlayers = 4)
@@ -240,7 +252,7 @@ public class LobbyManager : MonoBehaviour
             CreateLobbyOptions options = new CreateLobbyOptions
             {
                 IsPrivate = false,
-                Password = (string.IsNullOrEmpty(password) == false) ? password : null,
+                Password = GetUGSPassword(password),
                 Data = new Dictionary<string, DataObject>
                 {
                     { KeyRelayJoinCode, new DataObject(DataObject.VisibilityOptions.Member, joinCode) }
@@ -347,7 +359,7 @@ public class LobbyManager : MonoBehaviour
 
             JoinLobbyByIdOptions options = new JoinLobbyByIdOptions
             {
-                Password = (string.IsNullOrEmpty(password) == false) ? password : null,
+                Password = GetUGSPassword(password),
                 Player = MakePlayerData(isReady: false)
             };
 

@@ -23,8 +23,8 @@ public class TankModel : MonoBehaviour
     [SerializeField] float _turretRotSpeed = 100f; // 포탑 회전 속력
 
     [Header("----- 피격 -----")]
-    [SerializeField] int _maxHp = 1;    // 최대 체력
-    [SerializeField] int _currentHp;    // 현재 체력
+    [SerializeField] int _maxHp = 1; // 최대 체력
+    [SerializeField] int _currentHp; // 현재 체력
 
     [Header("----- 포탄 -----")]
     [SerializeField] int _shellDamage = 1;   // 포탄 공격력

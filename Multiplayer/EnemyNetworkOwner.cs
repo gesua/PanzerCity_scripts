@@ -5,7 +5,6 @@ using UnityEngine;
 /// <summary>
 /// 적 탱크 네트워크 브릿지 컴포넌트
 /// 서버만 AI/이동을 판정하고, 클라이언트는 NetworkTransform으로 위치만 받음
-/// (PlayerNetworkOwner와 대칭 구조)
 /// </summary>
 [RequireComponent(typeof(EnemyTank))]
 public class EnemyNetworkOwner : NetworkBehaviour
