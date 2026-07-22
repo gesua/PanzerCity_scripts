@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -64,6 +65,16 @@ public abstract class TankBase : MonoBehaviour, IAttackable
 
     public virtual void Attack()
     {
+        PlayAttackEffects();
+        SpawnShell();
+    }
+
+    /// <summary>
+    /// 발사 연출(포신 이펙트 + 발사음) 재생
+    /// 실제 포탄 생성과 분리되어 있어, 멀티플레이에서 발사 신호만 받은 클라이언트가 로컬 연출만 재생할 때도 재사용됨
+    /// </summary>
+    protected virtual void PlayAttackEffects()
+    {
         // 저격 모드엔 포신 이펙트 안 보이게 함
         if (ShowEffects)
         {
@@ -71,7 +82,19 @@ public abstract class TankBase : MonoBehaviour, IAttackable
             GameManager.Instance.EffectManager.SpawnEffect(EffectType.TinyExplosion, _firePoint.position);
         }
 
-        // 포탄 생성
+        // 포 쏘는 소리
+        _shootAudioSource.PlayOneShot(_shootClip);
+    }
+
+    /// <summary>
+    /// 포탄 생성
+    /// 멀티플레이에선 서버만 실행해서 NetworkObject로 스폰(클라이언트엔 자동 복제됨), 싱글플레이는 그대로 로컬 생성
+    /// </summary>
+    protected virtual void SpawnShell()
+    {
+        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+        if (isMultiplayer && NetworkManager.Singleton.IsServer == false) return; // 멀티에서 서버만 실제 생성
+
         GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPath);
         shellGo.transform.position = _firePoint.position;
         shellGo.transform.rotation = _firePoint.rotation;
@@ -82,8 +105,11 @@ public abstract class TankBase : MonoBehaviour, IAttackable
             shell.Initialize(_model, gameObject.layer, this);
         }
 
-        // 포 쏘는 소리
-        _shootAudioSource.PlayOneShot(_shootClip);
+        // 멀티플레이:네트워크에 스폰해서 클라이언트에 자동 복제(싱글은 로컬 오브젝트로만 존재)
+        if (isMultiplayer && shellGo.TryGetComponent(out NetworkObject networkObject))
+        {
+            networkObject.Spawn();
+        }
     }
 
     /// <summary>

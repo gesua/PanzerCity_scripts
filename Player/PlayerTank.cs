@@ -34,6 +34,7 @@ public class PlayerTank : TankBase
     bool _isSniperMode; // 저격 모드인지(Shift)
     bool _isDead; // 죽었는지
     bool _isNetworkOwner = true; // 네트워크 소유자인지(싱글 플레이:항상 true)
+    PlayerNetworkOwner _networkOwner; // 멀티플레이 여부 및 발사 요청 전달용
 
     float _reloadTimer; // 재장전 시간 잴거
     int _prevHp; // 이전 체력(피격 확인용)
@@ -106,13 +107,25 @@ public class PlayerTank : TankBase
 
     /// <summary>
     /// 공격
+    /// 멀티플레이에선 발사자 본인이 로컬 연출을 즉시 재생하고, 서버에 실제 포탄 생성을 요청(호스트면 직접 처리)
     /// </summary>
     public override void Attack()
     {
         if (_isDead) return;
         if (_isAttack == false) return; // 좌클릭 안 눌림
 
-        base.Attack();
+        PlayAttackEffects(); // 발사자 본인은 로컬에서 즉시 재생(서버 왕복 기다리지 않음)
+
+        if (_networkOwner != null)
+        {
+            if (_networkOwner.IsServer) _networkOwner.HandleAttackOnServer(); // 호스트 자신이면 바로 처리
+            else _networkOwner.RequestAttackServerRpc(); // 비호스트면 서버에 요청
+        }
+        else
+        {
+            SpawnShell(); // 싱글플레이(PlayAttackEffects는 위에서 이미 실행했으므로 SpawnShell만)
+        }
+
         _reloadTimer = _model.MinAttackTime; // 플레이어는 min,max 아무거나 가져오기
     }
 
@@ -133,6 +146,31 @@ public class PlayerTank : TankBase
         _isNetworkOwner = isOwner;
         _turret.SetLocalControl(isOwner);
         _itemPickup.SetLocalControl(isOwner);
+    }
+
+    /// <summary>
+    /// 멀티플레이:네트워크 오너 컴포넌트 참조 세팅(PlayerNetworkOwner가 자기 자신을 넘겨줌)
+    /// null이 아니면 멀티플레이로 간주
+    /// </summary>
+    public void SetNetworkOwner(PlayerNetworkOwner networkOwner)
+    {
+        _networkOwner = networkOwner;
+    }
+
+    /// <summary>
+    /// 멀티플레이:다른 클라이언트의 발사 신호를 받아 로컬로 연출만 재생할 때 호출(PlayerNetworkOwner가 호출)
+    /// </summary>
+    public void PlayLocalAttack()
+    {
+        PlayAttackEffects();
+    }
+
+    /// <summary>
+    /// 멀티플레이:서버가 발사 요청을 처리하며 실제 포탄을 생성할 때 호출(PlayerNetworkOwner가 호출)
+    /// </summary>
+    public void SpawnShellOnServer()
+    {
+        SpawnShell();
     }
 
     /// <summary>

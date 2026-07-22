@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -45,8 +46,16 @@ public class Pool
         // 원본 프리팹을 복제해서 새 게임오브젝트 생성
         GameObject go = Object.Instantiate(_prefab);
 
-        // 새 게임오브젝트의 부모를 Pool의 부모로 설정
-        go.transform.SetParent(_parent);
+        // NetworkObject는 스폰되기 전까지 재부모화가 금지되므로(NGO 제약), Pool 부모 대신 자기 자신을 DontDestroyOnLoad로 보호
+        if (go.TryGetComponent(out NetworkObject networkObject) == false)
+        {
+            // 새 게임오브젝트의 부모를 Pool의 부모로 설정
+            go.transform.SetParent(_parent);
+        }
+        else
+        {
+            Object.DontDestroyOnLoad(go);
+        }
 
         // 새 게임오브젝트를 비활성화
         go.SetActive(false);
@@ -114,7 +123,13 @@ public class Pool
         {
             handler.OnBeforeReturnToPool();
         }
-        go.transform.SetParent(_parent);
+
+        // NetworkObject는 Despawn 이후 다시 재부모화가 금지되므로 부모를 건드리지 않음(DontDestroyOnLoad는 CreatePoolObj에서 이미 걸려있음)
+        if (go.TryGetComponent(out NetworkObject networkObject) == false)
+        {
+            go.transform.SetParent(_parent);
+        }
+
         go.SetActive(false);
         _pool.Push(go);
     }

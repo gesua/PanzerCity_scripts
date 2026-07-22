@@ -205,13 +205,15 @@ public class EnemyTank : TankBase, IPoolReturnHandler
 
     /// <summary>
     /// 공격(포탄 발사) — 서버(AI 판정 주체)에서만 호출됨(FixedUpdate 가드로 이미 보장)
-    /// 멀티플레이에선 직접 쏘지 않고, 전원에게 발사 신호만 보내서 각자 로컬로 재생하게 함
+    /// 멀티플레이에선 서버가 직접 포탄을 생성(NetworkObject로 클라이언트에 자동 복제)하고,
+    /// 전원에게는 발사 연출(이펙트+사운드) 재생 신호만 별도로 보냄
     /// </summary>
     public override void Attack()
     {
         if (_networkOwner != null)
         {
-            _networkOwner.NotifyAttackClientRpc();
+            SpawnShell(); // 서버가 직접, 즉시 실제 포탄 생성
+            _networkOwner.NotifyAttackClientRpc(); // 전원에게 발사 연출만 재생하라는 신호
             return;
         }
 
@@ -219,11 +221,12 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     }
 
     /// <summary>
-    /// 멀티플레이:발사 신호를 받은 클라이언트가 로컬로 실제 발사(이펙트+포탄+사운드)를 재생할 때 호출(EnemyNetworkOwner가 호출)
+    /// 멀티플레이:발사 신호를 받은 클라이언트가 로컬로 발사 연출(이펙트+사운드)만 재생할 때 호출(EnemyNetworkOwner가 호출)
+    /// 실제 포탄은 서버가 SpawnShell()로 이미 생성해서 NetworkObject 복제로 전달됨
     /// </summary>
     public void PlayLocalAttack()
     {
-        base.Attack();
+        PlayAttackEffects();
     }
 
     /// <summary>

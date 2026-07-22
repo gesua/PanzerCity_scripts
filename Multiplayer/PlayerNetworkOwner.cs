@@ -32,6 +32,7 @@ public class PlayerNetworkOwner : NetworkBehaviour
         Debug.Log(FindObjectsByType<PlayerNetworkOwner>(FindObjectsSortMode.None).Length);
 
         _playerTank.SetNetworkOwnership(IsOwner);
+        _playerTank.SetNetworkOwner(this);
 
         // 로컬 소유일 때만 GameScene에 스폰 완료를 알림
         if (IsOwner)
@@ -39,4 +40,38 @@ public class PlayerNetworkOwner : NetworkBehaviour
             NetworkGameManager.Instance.NotifyLocalPlayerSpawned(_playerTank);
         }
     }
+
+
+    /// <summary>
+    /// 실제 포탄 생성 + 전원에게 연출 신호 전달(서버 전용)
+    /// 호스트 자신의 발사(PlayerTank가 직접 호출) / 원격 클라이언트의 발사 요청(RequestAttackServerRpc) 양쪽에서 사용
+    /// </summary>
+    public void HandleAttackOnServer()
+    {
+        if (IsServer == false) return; // 방어적 가드
+
+        _playerTank.SpawnShellOnServer();
+        NotifyAttackClientRpc();
+    }
+
+    /// <summary>
+    /// 비호스트 클라이언트가 발사 입력을 받았을 때 서버에 요청
+    /// </summary>
+    [ServerRpc]
+    public void RequestAttackServerRpc()
+    {
+        HandleAttackOnServer();
+    }
+
+    /// <summary>
+    /// 서버가 발사 처리를 마친 뒤 전원에게 신호 전달
+    /// 발사자 본인은 입력 즉시 로컬에서 이미 재생했으므로 제외
+    /// </summary>
+    [ClientRpc]
+    void NotifyAttackClientRpc()
+    {
+        if (IsOwner) return;
+        _playerTank.PlayLocalAttack();
+    }
+
 }

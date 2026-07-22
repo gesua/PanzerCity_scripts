@@ -7,7 +7,7 @@ using UnityEngine;
 /// 플레이어가 쏜 포탄으로 적 포탄을 없앨 수 있음
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public class Shell : MonoBehaviour, IPoolReturnHandler
+public class Shell : NetworkBehaviour, IPoolReturnHandler
 {
     int _damage;            // 포탄 공격력
     float _speed;           // 포탄 속도
@@ -27,7 +27,6 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
         _rigid = GetComponent<Rigidbody>();
     }
 
-
     /// <summary>
     /// 포탄 초기화
     /// </summary>
@@ -44,13 +43,20 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
         gameObject.layer = ownerLayer; // 적 포탄끼리 충돌 안되게
         _rigid.excludeLayers = ~_hitLayer; // rigidbody도 hitlayer만 충돌되게
 
+        _rigid.isKinematic = false;
+
         _timer = 0; // 생존 시간 타이머 세팅
         _rigid.linearVelocity = transform.forward * _speed;
 
         _isReleased = false;
     }
+
     private void Update()
     {
+        // 멀티플레이:생존 시간 판정은 서버만 수행(클라이언트는 서버의 Despawn을 통해 자동 정리됨)
+        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+        if (isMultiplayer && IsServer == false) return;
+
         // 포탄 생존 시간 체크
         if (_timer < _lifeTime)
         {
@@ -64,6 +70,10 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
 
     private void OnTriggerEnter(Collider other)
     {
+        // 멀티플레이:충돌 판정은 서버만 수행(클라이언트 복제본은 물리적으로 겹쳐도 판정하지 않음)
+        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+        if (isMultiplayer && IsServer == false) return;
+
         if (_isReleased) return; // OnTrigger 여러번 들어오는거 방지
         if (_hitLayer.Contains(other.gameObject.layer) == false) return;
 
@@ -84,21 +94,15 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
 
     /// <summary>
     /// 폭발 계산
+    /// 멀티플레이에선 서버에서만 호출됨(OnTriggerEnter의 서버 가드로 보장)
     /// </summary>
     private void Explode(HitData hitData, bool hitTankOrHQ)
     {
-        // 이펙트 재생
-        GameManager.Instance.EffectManager.SpawnEffect(EffectType.CompleteShellExplosion, transform.position);
-
-        // 포탄 터지는 소리
-        if (hitTankOrHQ == false)
-        {
-            GameManager.Instance.AudioManager.PlaySfxAtPoint(SfxType.ShellExplosion, transform.position);
-        }
-
-        // 멀티플레이:범위 피해 판정은 서버만 수행(클라이언트는 서버 신호를 받아 재현함)
         bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
-        if (isMultiplayer && NetworkManager.Singleton.IsServer == false) return;
+
+        // 이펙트/사운드 재생(멀티면 전원에게 RPC로, 싱글이면 로컬에서 바로)
+        if (isMultiplayer) NotifyExplosionEffectClientRpc(hitTankOrHQ);
+        else PlayExplosionEffect(hitTankOrHQ);
 
         ApplyExplosionDamage(transform.position, _explosionRadius, _hitLayer, hitData);
 
@@ -108,6 +112,30 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
             NetworkGameManager.Instance.NotifyExplosionDamage(
                 transform.position, _explosionRadius, _hitLayer.value, hitData.Damage, hitData.IsPlayerAttack);
         }
+    }
+
+    /// <summary>
+    /// 폭발 이펙트/사운드 재생
+    /// </summary>
+    void PlayExplosionEffect(bool hitTankOrHQ)
+    {
+        // 이펙트 재생
+        GameManager.Instance.EffectManager.SpawnEffect(EffectType.CompleteShellExplosion, transform.position);
+
+        // 포탄 터지는 소리(탱크/HQ를 맞췄으면 각자 전용 피격음/파괴음이 따로 나므로 생략)
+        if (hitTankOrHQ == false)
+        {
+            GameManager.Instance.AudioManager.PlaySfxAtPoint(SfxType.ShellExplosion, transform.position);
+        }
+    }
+
+    /// <summary>
+    /// 멀티플레이:서버가 폭발 이펙트/사운드 재생 신호를 전원에게 전달(호스트 자신도 포함해서 받음)
+    /// </summary>
+    [ClientRpc]
+    void NotifyExplosionEffectClientRpc(bool hitTankOrHQ)
+    {
+        PlayExplosionEffect(hitTankOrHQ);
     }
 
     /// <summary>
@@ -134,9 +162,19 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
     {
         _isReleased = true;
 
+        Debug.Log("정리");
+
         // rigidbody 초기화
         _rigid.linearVelocity = Vector3.zero;
         _rigid.angularVelocity = Vector3.zero;
+
+        // 멀티플레이:서버만 네트워크 디스폰(destroy: false → GameObject는 유지해서 Pool 재사용)
+        // ReturnAllPools() 등으로 클라이언트에서 호출될 수도 있으므로 IsServer 가드 필요
+        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+        if (isMultiplayer && IsServer && TryGetComponent(out NetworkObject networkObject))
+        {
+            networkObject.Despawn(false);
+        }
     }
 
     /// <summary>
