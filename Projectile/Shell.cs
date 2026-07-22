@@ -162,8 +162,6 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
     {
         _isReleased = true;
 
-        Debug.Log("정리");
-
         // rigidbody 초기화
         _rigid.linearVelocity = Vector3.zero;
         _rigid.angularVelocity = Vector3.zero;
