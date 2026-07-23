@@ -113,11 +113,21 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
         // 멀티플레이:탱크(HitZone 보유) 직격은 판정 주체 클라만 서버에 보고, 그 외(벽/HQ 등)는 아직 멀티 대응 대상이 아니므로 서버만 처리
         if (other.TryGetComponent(out HitZone hitZone))
         {
-            if (TryReportDirectHit(hitZone) == false) return; // 판정 주체가 아니면 서버의 결과 전파(NetworkVariable/ClientRpc)를 기다리기만 함
+            bool isJudge = TryReportDirectHit(hitZone);
 
-            // 판정 주체 로컬 연출:체감 지연 없이 즉시 재생(서버 브로드캐스트에서는 이 클라이언트가 제외됨)
-            PlayExplosionEffect(hitTankOrHQ);
+            if (isJudge)
+            {
+                // 판정 주체 로컬 연출:체감 지연 없이 즉시 재생(서버 브로드캐스트에서는 이 클라이언트가 제외됨)
+                PlayExplosionEffect(hitTankOrHQ);
+            }
+            else
+            {
+                Debug.Log($"[진단] 판정 주체 아닌 머신에서 HitZone 접촉으로 로컬 정지(보고/이펙트 없음) | IsServer:{IsServer} | hitZone:{hitZone.name}");
+            }
 
+            // 판정 주체 여부와 무관하게 이 머신에서의 셸은 여기서 멈춰야 함
+            // 안 그러면 판정 주체가 아닌 머신(적 포탄:서버 / 플레이어 포탄:서버 및 비소유 클라이언트)의 셸이
+            // HitZone을 그냥 통과해서 뒤쪽의 벽 등과 별개의 진짜 충돌을 또 일으켜버림(이번 버그의 원인)
             // Pool 반환 대신 렌더링/물리만 즉시 꺼서 화면에서 사라진 것처럼 보이게 함
             // 실제 Pool 반환은 서버의 Despawn 신호를 받았을 때 자동으로 처리됨
             _isReleased = true; // 중복 트리거 방지(Pool 반환 여부와 무관하게 판정 종료 표시)
