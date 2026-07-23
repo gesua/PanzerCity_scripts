@@ -34,16 +34,27 @@ public class HitDirectionIndicator : MonoBehaviour
         GameObject iconGo = GameManager.Instance.PoolManager.GetFromPool(_iconPath);
         iconGo.transform.SetParent(transform, false);
 
-        RectTransform arrow = iconGo.GetComponent<RectTransform>();
-        StartCoroutine(ShowRoutine(hitData.AtkTank.transform, arrow));
+        if (iconGo.TryGetComponent(out RectTransform arrow))
+        {
+            StartCoroutine(ShowRoutine(hitData.AtkTank.transform, arrow));
+        }
+        else // 프리팹에 RectTransform이 없다면 에러를 방지하고 바로 풀로 돌려보냄
+        {
+            iconGo.DestroyOrReturnToPool();
+        }
     }
 
     IEnumerator ShowRoutine(Transform atkTank, RectTransform arrow)
     {
+        if (arrow.TryGetComponent(out Image image) == false)
+        {
+            arrow.gameObject.DestroyOrReturnToPool();
+            yield break; // Image가 없으면 코루틴을 즉시 종료
+        }
+
         arrow.gameObject.SetActive(true);
         arrow.localScale = Vector3.one * 0.3f; // 크기 초기화(Pool엔 Canvas가 없어서 Scale이 점점 커짐)
         float elapsed = 0f;
-        Image image = arrow.GetComponent<Image>();
         Vector3 dir = Vector3.zero; // 피격 방향
 
         while (elapsed < _duration)
@@ -73,7 +84,8 @@ public class HitDirectionIndicator : MonoBehaviour
 
             // 시간 지나면 서서히 사라지게
             float alpha = Mathf.Lerp(1f, 0f, elapsed / _duration);
-            arrow.GetComponent<Image>().color = new Color(1f, 1f, 1f, alpha);
+
+            image.color = new Color(1f, 1f, 1f, alpha);
 
             yield return null;
         }

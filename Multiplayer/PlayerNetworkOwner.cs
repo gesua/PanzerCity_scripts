@@ -34,16 +34,11 @@ public class PlayerNetworkOwner : NetworkBehaviour
         // Lobby 씬이 언로드돼도 파괴되지 않도록 보호(각 컴퓨터에서 로컬로 각자 적용됨)
         DontDestroyOnLoad(gameObject);
 
-        Debug.Log(
-        $"OnNetworkSpawn | {name} | " +
-        $"Owner:{IsOwner} | " +
-        $"Pos:{transform.position} | " +
-        $"Active:{gameObject.activeInHierarchy}");
-
-        Debug.Log($"Scene : {gameObject.scene.name}");
-        Debug.Log($"InstanceID : {gameObject.GetInstanceID()}");
-
-        Debug.Log(FindObjectsByType<PlayerNetworkOwner>(FindObjectsSortMode.None).Length);
+        //Debug.Log(
+        //$"OnNetworkSpawn | {name} | " +
+        //$"Owner:{IsOwner} | " +
+        //$"Pos:{transform.position} | " +
+        //$"Active:{gameObject.activeInHierarchy}");
 
         _playerTank.SetNetworkOwnership(IsOwner);
         _playerTank.SetNetworkOwner(this);

@@ -81,6 +81,8 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
         }
         else // 포탄 사라지게
         {
+            Debug.Log($"[진단] Update 생존시간 만료로 Remove 호출 | IsServer:{IsServer} | _timer:{_timer:F2} | pos:{transform.position}");
+
             Remove();
         }
     }
@@ -124,6 +126,8 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
         else
         {
             if (IsServer == false) return;
+
+            Debug.Log($"[진단] 비탱크 대상과 충돌해서 서버가 즉시 Remove 처리함 | other:{other.name} | tag:{tag} | layer:{LayerMask.LayerToName(other.gameObject.layer)} | pos:{transform.position}");
 
             HitData hitData = new HitData(_damage, transform.position, _ownerTank);
             if (other.TryGetComponent(out IDamageable damageable)) damageable.TakeHit(hitData);
@@ -170,7 +174,13 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
     [ServerRpc(RequireOwnership = false)]
     void ReportHitServerRpc(NetworkBehaviourReference targetRef, Vector3 hitPoint, ServerRpcParams rpcParams = default)
     {
-        if (_isReleased) return; // 이미 처리된 히트면 무시(중복 보고 방지)
+        Debug.Log($"[진단] ReportHitServerRpc 수신 | sender:{rpcParams.Receive.SenderClientId} | _isReleased:{_isReleased} | hitPoint:{hitPoint}");
+
+        if (_isReleased)
+        {
+            Debug.Log($"[진단] _isReleased가 이미 true라서 히트 무시됨 | sender:{rpcParams.Receive.SenderClientId}");
+            return; // 이미 처리된 히트면 무시(중복 보고 방지)
+        }
 
         if (targetRef.TryGet(out EnemyNetworkOwner enemyOwner))
         {

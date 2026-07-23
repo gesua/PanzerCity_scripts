@@ -51,7 +51,9 @@ public class GameScene : MonoBehaviour
     [SerializeField] TankDirectionUI _tankDirectionUI;         // 차체/포탑 방향 UI
     [SerializeField] CameraBedrockChange _cameraBedrockChange; // 외곽벽 투명화(MainCamera에 붙어있음)
 
-    Vector3 _playerSpawnPoint; // 플레이어 시작 지점
+    Vector3 _playerSpawnPoint; // 플레이어 시작 지점(싱글 전용)
+    int _localSpawnIndex; // 멀티플레이:로컬 플레이어의 스폰 인덱스
+
     StageScene _currentStage; // 현재 스테이지
 
     bool _isGameOver;
@@ -106,7 +108,6 @@ public class GameScene : MonoBehaviour
         // 멀티플레이 전용
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
-            Debug.Log("SetSceneReferences 세팅 시작");
             _player.SetSceneReferences(_cameraTarget, _centerCrosshair, _turretCrosshair, _centerCrosshairImage, _reloadIndicator);
 
             // 프리팹에 연결할 참조 주입
@@ -118,9 +119,14 @@ public class GameScene : MonoBehaviour
 
             _player.Initialize();
 
-            // 스폰 시점에 이미 올바른 위치(NetworkGameManager가 배정)에 있으므로 그 위치 그대로 리스폰 처리
-            // StageScene.OnStageLoaded는 항상 1P 스폰 지점(인덱스 0)만 넘겨줘서 멀티에는 못 씀
-            _player.Respawn(_player.transform.position, _cinemachineBrain);
+            // 멀티플레이:clientId가 곧 spawnIndex(0,1,2,3 고정 배정, 재접속이 없어 매치 내내 유지됨)
+            // 로컬 플레이어 자신의 인덱스만 알면 되므로 별도 서버 전달 없이 OwnerClientId를 그대로 사용
+            if (_player.TryGetComponent(out PlayerNetworkOwner networkOwner))
+            {
+                _localSpawnIndex = (int)networkOwner.OwnerClientId;
+            }
+
+            _player.Respawn(_currentStage.GetSpawnPoint(_localSpawnIndex), _cinemachineBrain);
         }
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -519,7 +525,12 @@ public class GameScene : MonoBehaviour
 
             // 리스폰
             _cameraTarget.ResetRotation();
-            _player.Respawn(_playerSpawnPoint, _cinemachineBrain);
+
+            // 멀티플레이:Initialize에서 캐싱해둔 로컬 인덱스로 조회
+            bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+            Vector3 spawnPos = (isMultiplayer) ? _currentStage.GetSpawnPoint(_localSpawnIndex) : _playerSpawnPoint;
+
+            _player.Respawn(spawnPos, _cinemachineBrain);
         }
         else
         {
