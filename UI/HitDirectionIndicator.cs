@@ -29,6 +29,8 @@ public class HitDirectionIndicator : MonoBehaviour
 
     public void Show(HitData hitData)
     {
+        if (hitData.AtkTank == null) return; // 공격자 참조를 알 수 없으면 방향을 계산할 수 없으므로 스킵(멀티플레이 역참조 실패 등)
+
         GameObject iconGo = GameManager.Instance.PoolManager.GetFromPool(_iconPath);
         iconGo.transform.SetParent(transform, false);
 

@@ -178,7 +178,7 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
         }
         else if (targetRef.TryGet(out PlayerNetworkOwner playerOwner))
         {
-            playerOwner.ApplyHit(_damage, hitPoint);
+            playerOwner.ApplyHit(_damage, hitPoint, _ownerTank);
         }
         else
         {

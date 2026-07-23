@@ -10,6 +10,20 @@ public class PlayerNetworkOwner : NetworkBehaviour
 {
     PlayerTank _playerTank;
 
+    [Header("----- 피격 동기화 -----")]
+    // 서버 권위 HP(실제 소스). TankModel._currentHp는 TakeDamage 호출을 통해서만 이 값을 뒤따라감(TankModel 자체는 수정하지 않음)
+    NetworkVariable<int> _currentHp = new NetworkVariable<int>(
+        default,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    // 마지막 공격자 참조(HitDirectionIndicator 등 AtkTank가 필요한 UI를 위해 별도 동기화)
+    // TankBase는 네트워크 직렬화 대상이 아니므로, 공격자의 EnemyNetworkOwner를 참조로 저장했다가 양쪽에서 역참조해서 재구성
+    NetworkVariable<NetworkBehaviourReference> _lastAtkTankRef = new NetworkVariable<NetworkBehaviourReference>(
+        default,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
     void Awake()
     {
         TryGetComponent(out _playerTank);
@@ -81,13 +95,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
         _playerTank.PlayLocalAttack();
     }
 
-    [Header("----- 피격 동기화 -----")]
-    // 서버 권위 HP(실제 소스). TankModel._currentHp는 TakeDamage 호출을 통해서만 이 값을 뒤따라감(TankModel 자체는 수정하지 않음)
-    NetworkVariable<int> _currentHp = new NetworkVariable<int>(
-        default,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
-
     /// <summary>
     /// HP NetworkVariable 초기화 및 구독 시작(OnNetworkSpawn에서 호출)
     /// </summary>
@@ -103,14 +110,21 @@ public class PlayerNetworkOwner : NetworkBehaviour
     /// Shell.ReportHitServerRpc(서버 컨텍스트)에서만 호출됨 — 피격 당사자 클라가 보고한 히트를 서버가 확정 처리하는 지점
     /// 더 이상 ServerRpc가 아님(Shell 쪽 RPC 하나로 통합, 여긴 순수 데미지 적용 로직만 담당)
     /// </summary>
-    public void ApplyHit(int damage, Vector3 hitPoint)
+    /// <param name="atkTank">공격한 적(EnemyTank). HitDirectionIndicator 등 AtkTank 참조가 필요한 UI를 위해 필요</param>
+    public void ApplyHit(int damage, Vector3 hitPoint, TankBase atkTank)
     {
         if (IsServer == false) return; // 방어적 가드(정상 경로로는 서버 컨텍스트에서만 호출됨)
         if (_playerTank.Model.IsAlive == false) return; // 이미 죽은 상태면 무시(중복 히트 등, 리스폰은 다음 단계)
 
+        // 클라이언트가 역참조로 재구성할 수 있도록 공격자 참조를 먼저 갱신(HP보다 먼저 보내서 순서 어긋날 확률을 줄임)
+        if (atkTank != null && atkTank.TryGetComponent(out EnemyNetworkOwner atkOwner))
+        {
+            _lastAtkTankRef.Value = new NetworkBehaviourReference(atkOwner);
+        }
+
         // 서버 자신의 TankModel.TakeDamage를 그대로 호출해서 치트 체크(_noDamage/_infiniteHP)까지 정상 반영
         // 그 결과값을 그대로 NetworkVariable에 실어 클라이언트에 전파(서버 판정이 곧 네트워크 진실)
-        HitData hitData = new HitData(damage, hitPoint, isPlayerAttack: false);
+        HitData hitData = new HitData(damage, hitPoint, atkTank);
         _playerTank.Model.TakeDamage(hitData);
 
         _currentHp.Value = _playerTank.Model.CurrentHp;
@@ -128,7 +142,15 @@ public class PlayerNetworkOwner : NetworkBehaviour
         int damage = previousValue - newValue;
         if (damage <= 0) return; // 초기값 세팅 등 감소가 없는 경우는 스킵
 
-        HitData hitData = new HitData(damage, transform.position, isPlayerAttack: false);
+        // 공격자 참조 역참조(실패하면 null로 진행 — HitDirectionIndicator 등은 null을 자체적으로 처리해야 함)
+        TankBase atkTank = null;
+        if (_lastAtkTankRef.Value.TryGet(out EnemyNetworkOwner atkOwner))
+        {
+            atkOwner.TryGetComponent(out EnemyTank enemyTank);
+            atkTank = enemyTank;
+        }
+
+        HitData hitData = new HitData(damage, transform.position, atkTank);
         _playerTank.Model.TakeDamage(hitData);
     }
 }

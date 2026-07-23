@@ -63,8 +63,6 @@ public class Turret : MonoBehaviour
     /// </summary>
     public void SetLocalControl(bool isLocal)
     {
-        Debug.Log($"Turret.SetLocalControl({isLocal}) 호출됨 | GameObject:{name}");
-
         _isLocalControl = isLocal;
     }
 
@@ -78,8 +76,6 @@ public class Turret : MonoBehaviour
         RectTransform turretCrosshair,
         Image centerCrosshairImage)
     {
-        Debug.Log($"Turret.SetSceneReferences 호출됨 | centerCrosshair null 여부:{centerCrosshair == null} | GameObject:{name}");
-
         _cameraTarget = cameraTarget;
         _centerCrosshair = centerCrosshair;
         _turretCrosshair = turretCrosshair;
