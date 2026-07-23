@@ -48,6 +48,8 @@ public class LobbyScene : MonoBehaviour
     bool _isJoining;         // 방 참가 중복 클릭 방지
     bool _isFindingRoom;     // 방 이름 검색 중복 클릭 방지
 
+    Coroutine _autoRefreshCoroutine; // 자동 새로고침 코루틴 추적용
+
     void Start()
     {
         LobbyManager.Instance.OnLobbyListUpdated += RefreshLobbyListUI;
@@ -85,9 +87,36 @@ public class LobbyScene : MonoBehaviour
         _lobbyPanel.SetActive(_lobbyPanel == targetPanel);
         _roomPanel.SetActive(_roomPanel == targetPanel);
 
-        // 로비 진입 시 목록 자동 새로고침
+        // 다른 패널로 이동할 때 기존 자동 새로고침 중지
+        if (_autoRefreshCoroutine != null)
+        {
+            StopCoroutine(_autoRefreshCoroutine);
+            _autoRefreshCoroutine = null;
+        }
+
+        // 로비 진입 시 목록 1회 갱신 후, 주기적 자동 갱신 시작
         if (targetPanel == _lobbyPanel)
         {
+            _ = LobbyManager.Instance.RefreshLobbyListAsync();
+            _autoRefreshCoroutine = StartCoroutine(AutoRefreshRoutine());
+        }
+    }
+
+    /// <summary>
+    /// 5초마다 방 목록을 자동으로 새로고침하는 코루틴
+    /// </summary>
+    IEnumerator AutoRefreshRoutine()
+    {
+        WaitForSeconds wait = new WaitForSeconds(5f);
+
+        while (true)
+        {
+            yield return wait;
+
+            // 로비 패널이 꺼져있거나, 수동 새로고침/참가 중일 때는 무시
+            if (_lobbyPanel.activeSelf == false) break;
+            if (_isRefreshing || _isJoining || _isFindingRoom || _isCreatingRoom) continue;
+
             _ = LobbyManager.Instance.RefreshLobbyListAsync();
         }
     }
