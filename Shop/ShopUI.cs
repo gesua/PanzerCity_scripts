@@ -14,6 +14,7 @@ public class ShopUI : MonoBehaviour
     [SerializeField] ShopItemSlot _equipmentSlot;   // 장비 슬롯 (1개)
     [SerializeField] GameObject _equipmentSlotRoot; // 장비 슬롯 + 라벨 등 묶은 부모 오브젝트 (선택)
     [SerializeField] TrashCanUI _trashCanUI; // 쓰레기통
+    [SerializeField] GameObject _clickBlocker; // 종료 버튼 눌렀을 때 다른 거 못 누르게 막는 용도
 
     InventoryUI _inventoryUI;
     EquipmentUI _equipmentUI;
@@ -53,6 +54,7 @@ public class ShopUI : MonoBehaviour
     public void SetShopActive(bool active)
     {
         gameObject.SetActive(active);
+        _clickBlocker.SetActive(false);
 
         if (active)
         {
@@ -209,6 +211,7 @@ public class ShopUI : MonoBehaviour
     public void OnClickExit()
     {
         SetInteractable(false); // 나가는 동안 구매/주인 클릭 막기
+        _clickBlocker.SetActive(true); // 그냥 물리적으로 다 막기
 
         _shopOwnerUI.ShowExit(); // 나가기 인사
 
@@ -218,7 +221,7 @@ public class ShopUI : MonoBehaviour
 
     IEnumerator ExitRoutine()
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(5f);
         gameObject.SetActive(false);
         OnExitClicked?.Invoke();
     }
