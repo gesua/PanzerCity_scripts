@@ -90,7 +90,11 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     /// 포탄 생성
     /// 멀티플레이에선 서버만 실행해서 NetworkObject로 스폰(클라이언트엔 자동 복제됨), 싱글플레이는 그대로 로컬 생성
     /// </summary>
-    protected virtual void SpawnShell()
+    /// <param name="ownerClientId">
+    /// 멀티플레이:포탄의 네트워크 소유권을 넘길 클라이언트(직격 판정 주체가 됨)
+    /// 지정하지 않으면 서버 소유로 스폰(적 포탄:서버가 이미 AI 판정 주체이므로 그대로 서버 소유 유지)
+    /// </param>
+    protected virtual void SpawnShell(ulong? ownerClientId = null)
     {
         bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
         if (isMultiplayer && NetworkManager.Singleton.IsServer == false) return; // 멀티에서 서버만 실제 생성
@@ -108,7 +112,8 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         // 멀티플레이:네트워크에 스폰해서 클라이언트에 자동 복제(싱글은 로컬 오브젝트로만 존재)
         if (isMultiplayer && shellGo.TryGetComponent(out NetworkObject networkObject))
         {
-            networkObject.Spawn();
+            if (ownerClientId.HasValue) networkObject.SpawnWithOwnership(ownerClientId.Value);
+            else networkObject.Spawn();
         }
     }
 

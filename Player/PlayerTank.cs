@@ -167,10 +167,12 @@ public class PlayerTank : TankBase
 
     /// <summary>
     /// 멀티플레이:서버가 발사 요청을 처리하며 실제 포탄을 생성할 때 호출(PlayerNetworkOwner가 호출)
+    /// 포탄의 네트워크 소유권을 발사자 본인(이 PlayerNetworkOwner의 소유주)에게 넘겨서,
+    /// 이후 직격 판정(Shell.OnTriggerEnter)을 발사자 클라이언트가 로컬로 담당하게 함
     /// </summary>
-    public void SpawnShellOnServer()
+    public void SpawnShellOnServer(ulong ownerClientId)
     {
-        SpawnShell();
+        SpawnShell(ownerClientId);
     }
 
     /// <summary>

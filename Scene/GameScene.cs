@@ -775,6 +775,9 @@ public class GameScene : MonoBehaviour
         _cameraTarget.ResetRotation();
         _isGameOver = false;
 
+        // 시네머신 블렌드 방식을 다시 Cut으로 복구
+        _cinemachineBrain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.Cut, 0f);
+
         yield return new WaitForSeconds(0.1f); // 잠깐 기다리기
         loadingUI.Hide();
     }

@@ -20,9 +20,9 @@ public class EnemyNetworkOwner : NetworkBehaviour
     [Header("----- 피격 동기화 -----")]
     // 서버 권위 HP(실제 소스). TankModel._currentHp는 TakeDamage 호출을 통해서만 이 값을 뒤따라감(TankModel 자체는 수정하지 않음)
     NetworkVariable<int> _currentHp = new NetworkVariable<int>(
-    default,
-    NetworkVariableReadPermission.Everyone,
-    NetworkVariableWritePermission.Server);
+        default,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
 
     TankModel _model;
 
@@ -53,12 +53,13 @@ public class EnemyNetworkOwner : NetworkBehaviour
     }
 
     /// <summary>
-    /// 공격자 클라이언트가 자신의 로컬 셸 충돌로 이 적을 맞췄다고 보고(공격자가 서버가 아닐 수 있으므로 RequireOwnership false)
-    /// 부정행위 검증은 하지 않음(현재 개발 단계에서는 불필요로 판단)
+    /// 서버 권위:이 적에게 데미지 적용
+    /// Shell.ReportHitServerRpc(서버 컨텍스트)에서만 호출됨 — 판정 주체 클라가 보고한 히트를 서버가 확정 처리하는 지점
+    /// 더 이상 ServerRpc가 아님(Shell 쪽 RPC 하나로 통합, 여긴 순수 데미지 적용 로직만 담당)
     /// </summary>
-    [ServerRpc(RequireOwnership = false)]
-    public void ReportHitServerRpc(int damage, Vector3 hitPoint)
+    public void ApplyHit(int damage, Vector3 hitPoint)
     {
+        if (IsServer == false) return; // 방어적 가드(정상 경로로는 서버 컨텍스트에서만 호출됨)
         if (_model.IsAlive == false) return; // 이미 죽은 상태면 무시(중복 히트 등)
 
         // 서버 자신의 TankModel.TakeDamage를 그대로 호출해서 치트 체크(_noDamage/_infiniteHP)까지 정상 반영
@@ -71,7 +72,7 @@ public class EnemyNetworkOwner : NetworkBehaviour
 
     /// <summary>
     /// HP NetworkVariable 값 변경 콜백
-    /// 서버는 ReportHitServerRpc 안에서 이미 TakeDamage로 이벤트를 발화했으므로 여기서 또 호출하면 중복 재생됨 → 클라이언트에서만 처리
+    /// 서버는 ApplyHit 안에서 이미 TakeDamage로 이벤트를 발화했으므로 여기서 또 호출하면 중복 재생됨 → 클라이언트에서만 처리
     /// 클라이언트는 서버가 확정한 델타를 그대로 TakeDamage에 흘려보내 기존 OnHpChanged/OnHit/OnDead 이벤트를 재사용(치트 필드는 로컬에 없다고 가정)
     /// </summary>
     void HandleHpValueChanged(int previousValue, int newValue)
