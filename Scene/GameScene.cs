@@ -256,6 +256,14 @@ public class GameScene : MonoBehaviour
         // 스테이지 UI 세팅
         _gameInfoUI.UpdateStage(_currentStage.StageID - 7100); // 스테이지 ID값 빼줌(7100)
 
+
+
+        // 튜토리얼 모드 여부 전달(씬 이름 기준)
+        if (_player != null)
+        {
+            _player.ItemPickup.SetTutorialMode(_currentStage.gameObject.scene.name == "Stage00");
+        }
+
         // 이벤트 구독
         _currentStage.OnHQDestroyed += HandleHQDestroyed; // 아군 기지 파괴
         _currentStage.OnBaseWallDestroyed += HandleBaseWallDestroyed; // 기지 벽 파괴

@@ -11,12 +11,19 @@ public class ItemPickup : MonoBehaviour
     [SerializeField] float _pickupRange = 2f; // 획득 거리
     [SerializeField] LayerMask _itemLayer;
 
+    [Header("----- 튜토리얼 전용 -----")]
+    [SerializeField] ItemTooltipUI _tooltipUI; // 인벤토리와 공용으로 쓰는 기존 툴팁
+    [SerializeField] Vector2 _tutorialTooltipPos = new(-1100, 0); // 툴팁 고정 위치
+
     float _detectInterval = 0.2f; // 아이템 재탐색 시간
     float _detectTimer;
 
     DroppedItem _nearestItem; // 획득할 가까운 아이템
+    DroppedItem _prevTooltipItem; // 튜토리얼 툴팁을 마지막으로 갱신한 아이템(중복 호출 방지)
+
     InventoryPresenter _inventoryPresenter;
 
+    bool _isTutorial; // 튜토리얼 씬 여부
     bool _isLocalControl = true; // 로컬 소유인지(싱글 플레이:항상 true)
     bool _isInitialized; // Initialize() 호출 여부(멀티에서 스폰 직후 몇 프레임 동안 아직 안 됐을 수 있음)
 
@@ -28,6 +35,14 @@ public class ItemPickup : MonoBehaviour
         _inventoryPresenter = inventoryPresenter;
         _isDeadCheck = isDeadCheck;
         _isInitialized = true;
+    }
+
+    /// <summary>
+    /// 튜토리얼 모드 설정(GameScene이 씬 로드 시점에 호출)
+    /// </summary>
+    public void SetTutorialMode(bool isTutorial)
+    {
+        _isTutorial = isTutorial;
     }
 
     /// <summary>
@@ -72,6 +87,7 @@ public class ItemPickup : MonoBehaviour
             _nearestItem = null;
             _pickupUI.transform.SetParent(transform); // 복귀
             _pickupUI.SetActive(false);
+            SyncTutorialTooltip(null);
             return;
         }
 
@@ -93,12 +109,35 @@ public class ItemPickup : MonoBehaviour
             _pickupUI.transform.SetParent(_nearestItem.transform); // 해당 아이템에 붙이기
             _pickupUI.transform.localPosition = Vector3.up * 2f;
             _pickupUI.SetActive(true);
+            SyncTutorialTooltip(_nearestItem);
         }
         else
         {
             _pickupUI.transform.SetParent(transform); // 복귀
             _pickupUI.SetActive(false);
+            SyncTutorialTooltip(null);
         }
+    }
+
+    /// <summary>
+    /// 튜토리얼 전용 : 화면 상에 기존 ItemTooltipUI를 띄움
+    /// 인벤토리 쪽에서 호버 이벤트가 발생하면 그쪽 내용으로 자연스럽게 덮어써짐
+    /// 같은 아이템이면 다시 호출하지 않음
+    /// </summary>
+    void SyncTutorialTooltip(DroppedItem item)
+    {
+        if (_isTutorial == false) return;
+        if (item == _prevTooltipItem) return;
+
+        _prevTooltipItem = item;
+
+        if (item == null)
+        {
+            _tooltipUI.Hide();
+            return;
+        }
+
+        _tooltipUI.ShowAtAnchoredPosition(item.ItemConfig, _tutorialTooltipPos);
     }
 
     /// <summary>

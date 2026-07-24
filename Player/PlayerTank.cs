@@ -72,8 +72,6 @@ public class PlayerTank : TankBase
 
     public void Initialize()
     {
-        Debug.Log("PlayerTank Initialize");
-
         _mover.Initialize(_model);
         _prevHp = _model.CurrentHp;
 

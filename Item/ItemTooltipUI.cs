@@ -18,20 +18,49 @@ public class ItemTooltipUI : MonoBehaviour
     [SerializeField] float _extraXPerCell = 0f;   // 가로 2칸 이상일 때 추가 x 오프셋
     [SerializeField] float _extraYPerCell = -75f; // 세로 2칸 이상일 때 추가 y 오프셋
 
+    RectTransform _rectTransform;
+
     // 낮을수록 좋은 스탯 (색상 반전 적용)
     static readonly StatType[] _invertedStats = { StatType.Reload };
 
     void Awake()
     {
+        _rectTransform = (RectTransform)transform;
         gameObject.SetActive(false);
     }
 
     /// <summary>
-    /// 툴팁 표시
+    /// 툴팁 표시(월드/스크린 위치 기준)
     /// </summary>
     /// <param name="config">표시할 아이템 설정</param>
     /// <param name="iconPos">아이콘 월드 위치</param>
     public void Show(ItemConfig config, Vector3 iconPos)
+    {
+        SetContent(config);
+
+        // 아이콘 위치 기준으로 고정 (아이템 크기에 따라 위치 보정)
+        transform.position = iconPos + _offset + GetSizeOffset(config);
+        gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// 튜토리얼 전용 — 로컬(anchoredPosition) 좌표로 직접 위치 지정
+    /// 아이콘 기준 오프셋/크기 보정 없이 지정한 위치에 그대로 표시
+    /// </summary>
+    /// <param name="config">표시할 아이템 설정</param>
+    /// <param name="anchoredPos">RectTransform 기준 anchoredPosition</param>
+    public void ShowAtAnchoredPosition(ItemConfig config, Vector2 anchoredPos)
+    {
+        SetContent(config);
+
+        _rectTransform.anchoredPosition = anchoredPos;
+        gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// 이름/설명 텍스트 세팅 (Show, ShowAtAnchoredPosition 공용)
+    /// </summary>
+    void SetContent(ItemConfig config)
     {
         // 이름 로컬라이즈
         LocalizedString nameString = new LocalizedString("Localization", config.NameKey);
@@ -59,10 +88,6 @@ public class ItemTooltipUI : MonoBehaviour
         {
             _descText.text = desc;
         }
-
-        // 아이콘 위치 기준으로 고정 (아이템 크기에 따라 위치 보정)
-        transform.position = iconPos + _offset + GetSizeOffset(config);
-        gameObject.SetActive(true);
     }
 
     /// <summary>
