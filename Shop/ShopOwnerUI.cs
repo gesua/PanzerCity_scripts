@@ -15,17 +15,23 @@ public class ShopOwnerUI : MonoBehaviour
     [SerializeField] GameObject _dialoguePanel;
     [SerializeField] Image _ownerImage;
     [Header("----- 글자 속도 -----")]
-    [SerializeField] float _typeSpeed = 0.05f;
+    [SerializeField] float _typeSpeed = 0.02f;
     [Header("----- 상점주인 표정 -----")]
     [SerializeField] Sprite _spriteSmile;
     [SerializeField] Sprite _spriteNormal;
     [SerializeField] Sprite _spriteSad;
 
-    string[] _tipKeys = { "SHOP_TIP_01", "SHOP_TIP_02", "SHOP_TIP_03" };
+    int _tipCount; // 팁 갯수
+    int _lastTipNumber; // 마지막으로 보여준 팁(중복 방지)
 
     string _currentText;
     Coroutine _typeRoutine;
     bool _isInteractable = true; // 상호 작용 가능한 상태인지
+
+    private void Awake()
+    {
+        _tipCount = _dialogueConfig.GetDialogueCount("SHOP_TIP_"); // 팁 갯수 세팅
+    }
 
     public void ShowWelcome()
     {
@@ -65,9 +71,29 @@ public class ShopOwnerUI : MonoBehaviour
     /// </summary>
     public void OnClickOwner()
     {
+        // 대사 출력 중이면 전체 출력만 하고 종료
+        if (_typeRoutine != null)
+        {
+            StopCoroutine(_typeRoutine);
+            _typeRoutine = null;
+
+            _dialogueText.text = _currentText;
+            return;
+        }
+
         if (_isInteractable == false) return;
 
-        string tipKey = _tipKeys[Random.Range(0, _tipKeys.Length)];
+        int tipNumber = Random.Range(1, _tipCount);
+
+        if (tipNumber >= _lastTipNumber)
+        {
+            tipNumber++;
+        }
+
+        _lastTipNumber = tipNumber;
+
+        string tipKey = $"SHOP_TIP_{tipNumber:00}";
+
         ShowDialogue(tipKey);
     }
 

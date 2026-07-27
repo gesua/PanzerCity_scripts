@@ -221,7 +221,7 @@ public class ShopUI : MonoBehaviour
 
     IEnumerator ExitRoutine()
     {
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(3f);
         gameObject.SetActive(false);
         OnExitClicked?.Invoke();
     }
