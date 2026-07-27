@@ -445,7 +445,7 @@ public class LobbyScene : MonoBehaviour
     {
         // Pool 미리 만들기
         GameManager.Instance.PoolManager.GetPool("DroppedItem");
-        GameManager.Instance.PoolManager.GetPool("Shell");
+        GameManager.Instance.PoolManager.GetPool("Shell_Multi");
 
         LoadingUI loadingUI = GameManager.Instance.LoadingUI;
         loadingUI.Show();

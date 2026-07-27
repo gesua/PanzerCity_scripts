@@ -1,4 +1,3 @@
-using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -7,7 +6,7 @@ using UnityEngine;
 /// 플레이어가 쏜 포탄으로 적 포탄을 없앨 수 있음
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
-public class Shell : NetworkBehaviour, IPoolReturnHandler
+public class Shell : MonoBehaviour, IPoolReturnHandler
 {
     int _damage;            // 포탄 공격력
     float _speed;           // 포탄 속도
@@ -22,9 +21,12 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
     LayerMask _hitLayer;    // 충돌할 레이어(적이 쏜 포탄은 적을 뚫고 감)
     TankBase _ownerTank;    // 포탄 주인
 
+    ShellNetworkOwner _networkOwner; // 멀티플레이 여부 및 네트워크 신호 전달용
+    bool _isNetworkControlled = true; // 멀티플레이:생존시간/충돌 판정 주체 여부(기본값 true — 싱글에서는 항상 자기 자신이 주체)
+
     private void Awake()
     {
-        _rigid = GetComponent<Rigidbody>();
+        TryGetComponent(out _rigid);
     }
 
     /// <summary>
@@ -51,11 +53,28 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
         _isReleased = false;
     }
 
+    /// <summary>
+    /// 멀티플레이:생존시간/충돌 판정 주체 여부 세팅(ShellNetworkOwner가 호출)
+    /// 서버만 true — 클라이언트는 판정을 하지 않고 서버 신호(RPC/Despawn)로만 반영됨
+    /// </summary>
+    public void SetNetworkControl(bool isControlled)
+    {
+        _isNetworkControlled = isControlled;
+    }
+
+    /// <summary>
+    /// 멀티플레이:네트워크 오너 컴포넌트 참조 세팅(ShellNetworkOwner가 자기 자신을 넘겨줌)
+    /// null이 아니면 멀티플레이로 간주
+    /// </summary>
+    public void SetNetworkOwner(ShellNetworkOwner networkOwner)
+    {
+        _networkOwner = networkOwner;
+    }
+
     private void Update()
     {
         // 멀티플레이:생존 시간 판정은 서버만 수행(클라이언트는 서버의 Despawn을 통해 자동 정리됨)
-        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
-        if (isMultiplayer && IsServer == false) return;
+        if (_isNetworkControlled == false) return;
 
         // 포탄 생존 시간 체크
         if (_timer < _lifeTime)
@@ -71,8 +90,7 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
     private void OnTriggerEnter(Collider other)
     {
         // 멀티플레이:충돌 판정은 서버만 수행(클라이언트 복제본은 물리적으로 겹쳐도 판정하지 않음)
-        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
-        if (isMultiplayer && IsServer == false) return;
+        if (_isNetworkControlled == false) return;
 
         if (_isReleased) return; // OnTrigger 여러번 들어오는거 방지
         if (_hitLayer.Contains(other.gameObject.layer) == false) return;
@@ -88,18 +106,8 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
             damageable.TakeHit(hitData);
 
             // 멀티플레이:클라이언트에도 직격 판정을 재현하도록 신호 전달
-            if (isMultiplayer)
-            {
-                // 피격 콜라이더(HitZone)에서 NetworkObject를 탐색
-                NetworkObject targetNetworkObject = other.GetComponentInParent<NetworkObject>();
-                if (targetNetworkObject != null)
-                {
-                    NetworkGameManager.Instance.NotifyDirectHitDamage(
-                        targetNetworkObject.NetworkObjectId, hitData.Damage, hitData.IsPlayerAttack, transform.position);
-                }
-            }
+            _networkOwner?.NotifyDirectHitDamage(other, hitData);
         }
-
 
         // 탱크/HQ를 맞췄으면 각자 전용 피격음/파괴음이 따로 나므로 포탄 터지는 소리는 생략
         bool hitTankOrHQ = tag == "EnemyHitZone" || tag == "PlayerHitZone" || tag == "HQ";
@@ -114,26 +122,27 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
     /// </summary>
     private void Explode(HitData hitData, bool hitTankOrHQ)
     {
-        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
-
         // 이펙트/사운드 재생(멀티면 전원에게 RPC로, 싱글이면 로컬에서 바로)
-        if (isMultiplayer) NotifyExplosionEffectClientRpc(hitTankOrHQ);
-        else PlayExplosionEffect(hitTankOrHQ);
+        if (_networkOwner != null)
+        {
+            _networkOwner.NotifyExplosionEffectClientRpc(hitTankOrHQ);
+        }
+        else
+        {
+            PlayExplosionEffect(hitTankOrHQ);
+        }
 
         ApplyExplosionDamage(transform.position, _explosionRadius, _hitLayer, hitData);
 
         // 멀티플레이:클라이언트에도 동일한 판정을 재현하도록 신호 전달
-        if (isMultiplayer)
-        {
-            NetworkGameManager.Instance.NotifyExplosionDamage(
-                transform.position, _explosionRadius, _hitLayer.value, hitData.Damage, hitData.IsPlayerAttack);
-        }
+        _networkOwner?.NotifyExplosionDamage(_explosionRadius, _hitLayer, hitData);
     }
 
     /// <summary>
     /// 폭발 이펙트/사운드 재생
+    /// ShellNetworkOwner의 ClientRpc에서도 호출하므로 public
     /// </summary>
-    void PlayExplosionEffect(bool hitTankOrHQ)
+    public void PlayExplosionEffect(bool hitTankOrHQ)
     {
         // 이펙트 재생
         GameManager.Instance.EffectManager.SpawnEffect(EffectType.CompleteShellExplosion, transform.position);
@@ -146,17 +155,8 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
     }
 
     /// <summary>
-    /// 멀티플레이:서버가 폭발 이펙트/사운드 재생 신호를 전원에게 전달(호스트 자신도 포함해서 받음)
-    /// </summary>
-    [ClientRpc]
-    void NotifyExplosionEffectClientRpc(bool hitTankOrHQ)
-    {
-        PlayExplosionEffect(hitTankOrHQ);
-    }
-
-    /// <summary>
     /// 범위 피해 적용
-    /// 서버(또는 싱글)의 로컬 판정과, 멀티에서 서버 신호를 받은 클라이언트의 재현 양쪽에서 재사용(NetworkGameManager가 호출)
+    /// 서버(또는 싱글)의 로컬 판정과, 멀티에서 서버 신호를 받은 클라이언트의 재현 양쪽에서 재사용
     /// </summary>
     public static void ApplyExplosionDamage(Vector3 position, float radius, LayerMask hitLayer, HitData hitData)
     {
@@ -183,12 +183,7 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
         _rigid.angularVelocity = Vector3.zero;
 
         // 멀티플레이:서버만 네트워크 디스폰(destroy: false → GameObject는 유지해서 Pool 재사용)
-        // ReturnAllPools() 등으로 클라이언트에서 호출될 수도 있으므로 IsServer 가드 필요
-        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
-        if (isMultiplayer && IsServer && TryGetComponent(out NetworkObject networkObject))
-        {
-            networkObject.Despawn(false);
-        }
+        _networkOwner?.RequestDespawn();
     }
 
     /// <summary>

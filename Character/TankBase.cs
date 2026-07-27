@@ -95,7 +95,9 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
         if (isMultiplayer && NetworkManager.Singleton.IsServer == false) return; // 멀티에서 서버만 실제 생성
 
-        GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool(_shellPath);
+        string suffix = (isMultiplayer) ? "_Multi" : "";
+        GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool($"{_shellPath}{suffix}");
+
         shellGo.transform.position = _firePoint.position;
         shellGo.transform.rotation = _firePoint.rotation;
 
