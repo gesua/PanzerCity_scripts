@@ -40,12 +40,13 @@ public class PlayerNetworkOwner : NetworkBehaviour
     /// <summary>
     /// 실제 포탄 생성 + 전원에게 연출 신호 전달(서버 전용)
     /// 호스트 자신의 발사(PlayerTank가 직접 호출) / 원격 클라이언트의 발사 요청(RequestAttackServerRpc) 양쪽에서 사용
+    /// 위치/회전은 발사자 본인이 보낸 값을 그대로 사용(서버가 자기 쪽에서 다시 읽으면 라운드트립 지연만큼 밀려 보임)
     /// </summary>
-    public void HandleAttackOnServer()
+    public void HandleAttackOnServer(Vector3 firePosition, Quaternion fireRotation)
     {
         if (IsServer == false) return; // 방어적 가드
 
-        _playerTank.SpawnShellOnServer();
+        _playerTank.SpawnShellOnServer(firePosition, fireRotation);
         NotifyAttackClientRpc();
     }
 
@@ -53,9 +54,9 @@ public class PlayerNetworkOwner : NetworkBehaviour
     /// 비호스트 클라이언트가 발사 입력을 받았을 때 서버에 요청
     /// </summary>
     [ServerRpc]
-    public void RequestAttackServerRpc()
+    public void RequestAttackServerRpc(Vector3 firePosition, Quaternion fireRotation)
     {
-        HandleAttackOnServer();
+        HandleAttackOnServer(firePosition, fireRotation);
     }
 
     /// <summary>
@@ -68,5 +69,4 @@ public class PlayerNetworkOwner : NetworkBehaviour
         if (IsOwner) return;
         _playerTank.PlayLocalAttack();
     }
-
 }

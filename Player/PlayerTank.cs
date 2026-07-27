@@ -112,16 +112,16 @@ public class PlayerTank : TankBase
         if (_isDead) return;
         if (_isAttack == false) return; // 좌클릭 안 눌림
 
-        PlayAttackEffects(); // 발사자 본인은 로컬에서 즉시 재생(서버 왕복 기다리지 않음)
+        PlayAttackEffects(); // 발사자 본인은 로컬에서 즉시 재생
 
         if (_networkOwner != null)
         {
-            if (_networkOwner.IsServer) _networkOwner.HandleAttackOnServer(); // 호스트 자신이면 바로 처리
-            else _networkOwner.RequestAttackServerRpc(); // 비호스트면 서버에 요청
+            if (_networkOwner.IsServer) _networkOwner.HandleAttackOnServer(_firePoint.position, _firePoint.rotation); // 호스트 자신이면 바로 처리
+            else _networkOwner.RequestAttackServerRpc(_firePoint.position, _firePoint.rotation); // 비호스트면 서버에 요청(라운드트립 지연 동안 밀린 위치 대신 발사 시점 위치를 그대로 전달)
         }
         else
         {
-            SpawnShell(); // 싱글플레이(PlayAttackEffects는 위에서 이미 실행했으므로 SpawnShell만)
+            SpawnShell(); // 싱글플레이
         }
 
         _reloadTimer = _model.MinAttackTime; // 플레이어는 min,max 아무거나 가져오기
@@ -165,10 +165,11 @@ public class PlayerTank : TankBase
 
     /// <summary>
     /// 멀티플레이:서버가 발사 요청을 처리하며 실제 포탄을 생성할 때 호출(PlayerNetworkOwner가 호출)
+    /// 발사자 본인이 보낸 위치/회전을 그대로 사용(서버 자신의 _firePoint를 다시 읽지 않음)
     /// </summary>
-    public void SpawnShellOnServer()
+    public void SpawnShellOnServer(Vector3 firePosition, Quaternion fireRotation)
     {
-        SpawnShell();
+        SpawnShell(firePosition, fireRotation);
     }
 
     /// <summary>

@@ -87,10 +87,20 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     }
 
     /// <summary>
-    /// 포탄 생성
-    /// 멀티플레이에선 서버만 실행해서 NetworkObject로 스폰(클라이언트엔 자동 복제됨), 싱글플레이는 그대로 로컬 생성
+    /// 포탄 생성:자신의 _firePoint 위치/회전을 그대로 사용
     /// </summary>
     protected virtual void SpawnShell()
+    {
+        SpawnShell(_firePoint.position, _firePoint.rotation);
+    }
+
+    /// <summary>
+    /// 포탄 생성:발사 위치/회전을 직접 지정
+    /// 멀티플레이 플레이어 발사처럼, 서버가 자기 쪽에서 다시 읽은 위치 대신 발사자 본인이 보낸 위치를 그대로 써야 할 때 사용
+    /// (라운드트립 지연 동안 탱크가 이동해서 발사 지점이 밀려 보이는 문제 방지)
+    /// 멀티플레이에선 서버만 실행해서 NetworkObject로 스폰(클라이언트엔 자동 복제됨), 싱글플레이는 그대로 로컬 생성
+    /// </summary>
+    protected virtual void SpawnShell(Vector3 firePosition, Quaternion fireRotation)
     {
         bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
         if (isMultiplayer && NetworkManager.Singleton.IsServer == false) return; // 멀티에서 서버만 실제 생성
@@ -98,8 +108,8 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         string suffix = (isMultiplayer) ? "_Multi" : "";
         GameObject shellGo = GameManager.Instance.PoolManager.GetFromPool($"{_shellPath}{suffix}");
 
-        shellGo.transform.position = _firePoint.position;
-        shellGo.transform.rotation = _firePoint.rotation;
+        shellGo.transform.position = firePosition;
+        shellGo.transform.rotation = fireRotation;
 
         // 포탄 초기화
         if (shellGo.TryGetComponent(out Shell shell))
