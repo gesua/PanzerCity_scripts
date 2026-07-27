@@ -78,7 +78,6 @@ public class GameScene : MonoBehaviour
         // 멀티플레이:로컬 플레이어 스폰 신호를 기다림
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
-            Debug.Log("멀티플레이 시작");
             NetworkGameManager.Instance.OnLocalPlayerSpawned += HandleLocalPlayerSpawned;
         }
         else // 싱글플레이:즉시 초기화

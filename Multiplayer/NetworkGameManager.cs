@@ -193,11 +193,7 @@ public class NetworkGameManager : NetworkBehaviour
 
         if (player.TryGetComponent(out NetworkObject networkObject))
         {
-            Debug.Log($"Spawn : {clientId}");
-
             networkObject.SpawnAsPlayerObject(clientId);
-
-            Debug.Log($"Spawned : {networkObject.IsSpawned}");
         }
     }
 
