@@ -28,6 +28,16 @@ public class LoadingUI : MonoBehaviour
         gameObject.SetActive(true);
     }
 
+    /// <summary>
+    /// yield return용 Show
+    /// </summary>
+    public IEnumerator ShowRoutine()
+    {
+        Show();
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForSeconds(0.1f);
+    }
+
     public void Hide()
     {
         gameObject.SetActive(false);

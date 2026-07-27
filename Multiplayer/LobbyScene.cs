@@ -448,9 +448,7 @@ public class LobbyScene : MonoBehaviour
         GameManager.Instance.PoolManager.GetPool("Shell_Multi");
 
         LoadingUI loadingUI = GameManager.Instance.LoadingUI;
-        loadingUI.Show();
-
-        yield return new WaitForSeconds(1f); // 로딩UI가 뜰 시간 기다리기
+        yield return loadingUI.ShowRoutine();
 
         if (_audioListener != null) _audioListener.enabled = false;
         if (_eventSystem != null) _eventSystem.gameObject.SetActive(false);
