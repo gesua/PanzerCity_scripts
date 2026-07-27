@@ -72,8 +72,6 @@ public class PlayerTank : TankBase
 
     public void Initialize()
     {
-        Debug.Log("PlayerTank Initialize");
-
         _mover.Initialize(_model);
         _prevHp = _model.CurrentHp;
 
@@ -265,6 +263,8 @@ public class PlayerTank : TankBase
         // 사망 횟수 기록
         GameManager.Instance.GameStatistics.AddDeath();
 
+        // 엔진 연기 끄기
+        SetEngineEffect(false);
         // 포탑 끄기
         _turret.enabled = false;
         // 조준점 숨기기

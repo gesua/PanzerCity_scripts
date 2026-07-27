@@ -27,6 +27,7 @@ public class LobbyScene : MonoBehaviour
     [Header("----- 로비 패널 -----")]
     [SerializeField] GameObject _lobbyPanel;
     [SerializeField] Button _refreshButton;
+    [SerializeField] Button _quickStartButton;
     [SerializeField] TMP_InputField _joinRoomNameInput;
     [SerializeField] TMP_InputField _joinRoomPasswordInput;
     [SerializeField] Transform _lobbyListParent;
@@ -305,6 +306,7 @@ public class LobbyScene : MonoBehaviour
         _isRefreshing = true;
 
         _refreshButton.interactable = false;
+        _quickStartButton.interactable = false; // 빠른 시작 버튼도 새로고침 사용하니까 같이 막아야 함(HTTP 에러)
 
         try
         {
@@ -318,6 +320,7 @@ public class LobbyScene : MonoBehaviour
         finally
         {
             _refreshButton.interactable = true;
+            _quickStartButton.interactable= true;
             _isRefreshing = false;
         }
     }
@@ -446,6 +449,8 @@ public class LobbyScene : MonoBehaviour
 
         LoadingUI loadingUI = GameManager.Instance.LoadingUI;
         loadingUI.Show();
+
+        yield return new WaitForSeconds(1f); // 로딩UI가 뜰 시간 기다리기
 
         if (_audioListener != null) _audioListener.enabled = false;
         if (_eventSystem != null) _eventSystem.gameObject.SetActive(false);

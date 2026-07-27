@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Linq.Expressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Localization;
@@ -114,11 +113,31 @@ public class ShopOwnerUI : MonoBehaviour
     {
         _currentText = text;
         _dialogueText.text = string.Empty;
-        foreach (char c in text)
+
+        int index = 0;
+
+        while (index < text.Length)
         {
-            _dialogueText.text += c;
+            // 리치텍스트 태그(<...>)는 한번에 추가
+            if (text[index] == '<')
+            {
+                int endIndex = text.IndexOf('>', index);
+
+                if (endIndex != -1)
+                {
+                    _dialogueText.text += text.Substring(index, endIndex - index + 1);
+                    index = endIndex + 1;
+                    continue;
+                }
+            }
+
+            // 일반 글자는 한글자씩 출력
+            _dialogueText.text += text[index];
+            index++;
+
             yield return new WaitForSeconds(_typeSpeed);
         }
+
         _typeRoutine = null;
     }
 

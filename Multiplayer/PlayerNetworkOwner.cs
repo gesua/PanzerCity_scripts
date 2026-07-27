@@ -26,8 +26,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
         //$"Pos:{transform.position} | " +
         //$"Active:{gameObject.activeInHierarchy}");
 
-        Debug.Log(FindObjectsByType<PlayerNetworkOwner>(FindObjectsSortMode.None).Length);
-
         _playerTank.SetNetworkOwnership(IsOwner);
         _playerTank.SetNetworkOwner(this);
 
