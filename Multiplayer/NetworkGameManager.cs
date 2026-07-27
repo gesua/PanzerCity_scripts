@@ -138,6 +138,33 @@ public class NetworkGameManager : NetworkBehaviour
     }
 
     /// <summary>
+    /// 포탄 직격 데미지 동기화 — 서버가 직격 판정을 마친 뒤 호출(Shell이 호출)
+    /// 폭발 판정과 달리 특정 대상 하나만 지정해야 해서, 위치 재탐색 대신 NetworkObjectId로 대상을 직접 지정함
+    /// HitData의 AtkTank(MonoBehaviour 참조)는 RPC로 못 보내서 isPlayerAttack(bool)만 별도 전달
+    /// </summary>
+    public void NotifyDirectHitDamage(ulong targetNetworkObjectId, int damage, bool isPlayerAttack, Vector3 hitPosition)
+    {
+        NotifyDirectHitDamageClientRpc(targetNetworkObjectId, damage, isPlayerAttack, hitPosition);
+    }
+
+    [ClientRpc]
+    void NotifyDirectHitDamageClientRpc(ulong targetNetworkObjectId, int damage, bool isPlayerAttack, Vector3 hitPosition)
+    {
+        // 호스트 자신은 서버 로컬에서 Shell.OnTriggerEnter()가 이미 직접 판정했으므로 중복 방지
+        if (IsServer) return;
+
+        // 대상이 이미 디스폰/파괴됐으면 무시(과거 신호가 뒤늦게 도착한 경우 방어)
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out NetworkObject targetObject) == false) return;
+
+        // HitZone의 IDamageable 가져옴
+        IDamageable damageable = targetObject.GetComponentInChildren<IDamageable>();
+        if (damageable == null) return;
+
+        HitData hitData = new HitData(damage, hitPosition, isPlayerAttack);
+        damageable.TakeHit(hitData);
+    }
+
+    /// <summary>
     /// 연결된 모든 클라이언트에 플레이어 스폰
     /// </summary>
     void SpawnAllPlayers()

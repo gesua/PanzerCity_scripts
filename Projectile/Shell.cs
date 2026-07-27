@@ -83,7 +83,23 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
         // 포탄 정보 추가
         HitData hitData = new HitData(_damage, transform.position, _ownerTank);
 
-        if (other.TryGetComponent(out IDamageable damageable)) damageable.TakeHit(hitData);
+        if (other.TryGetComponent(out IDamageable damageable))
+        {
+            damageable.TakeHit(hitData);
+
+            // 멀티플레이:클라이언트에도 직격 판정을 재현하도록 신호 전달
+            if (isMultiplayer)
+            {
+                // 피격 콜라이더(HitZone)에서 NetworkObject를 탐색
+                NetworkObject targetNetworkObject = other.GetComponentInParent<NetworkObject>();
+                if (targetNetworkObject != null)
+                {
+                    NetworkGameManager.Instance.NotifyDirectHitDamage(
+                        targetNetworkObject.NetworkObjectId, hitData.Damage, hitData.IsPlayerAttack, transform.position);
+                }
+            }
+        }
+
 
         // 탱크/HQ를 맞췄으면 각자 전용 피격음/파괴음이 따로 나므로 포탄 터지는 소리는 생략
         bool hitTankOrHQ = tag == "EnemyHitZone" || tag == "PlayerHitZone" || tag == "HQ";
@@ -161,8 +177,6 @@ public class Shell : NetworkBehaviour, IPoolReturnHandler
     public void OnBeforeReturnToPool()
     {
         _isReleased = true;
-
-        Debug.Log("정리");
 
         // rigidbody 초기화
         _rigid.linearVelocity = Vector3.zero;
