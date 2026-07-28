@@ -97,6 +97,17 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 멀티플레이:다른 플레이어의 목숨 변경 수신(NetworkGameManager가 호출)
+    /// 내 것은 이미 로컬 PlayerData.OnLifeChanged 구독으로 처리되므로 제외
+    /// </summary>
+    void HandleOtherPlayerLifeChanged(int playerIndex, int life)
+    {
+        if (playerIndex == _localSpawnIndex) return;
+
+        _gameInfoUI.UpdateLife(playerIndex, life);
+    }
+
+    /// <summary>
     /// 플레이어 바인딩 및 게임 씬 초기화
     /// 싱글: Start()에서 즉시 호출 / 멀티: 로컬 플레이어 스폰 후 호출
     /// </summary>
@@ -127,6 +138,16 @@ public class GameScene : MonoBehaviour
             }
 
             _player.Respawn(_currentStage.GetSpawnPoint(_localSpawnIndex), _cinemachineBrain);
+
+            // 목숨 UI:접속 인원 수만큼만 슬롯 활성화
+            _gameInfoUI.SetActivePlayerCount(NetworkManager.Singleton.ConnectedClientsIds.Count);
+            // 목숨 UI:다른 플레이어의 목숨 변경 수신(내 것은 아래 로컬 PlayerData 구독으로 별도 처리)
+            NetworkGameManager.Instance.OnPlayerLifeChanged += HandleOtherPlayerLifeChanged;
+        }
+        else
+        {
+            // 목숨 UI:싱글플레이는 슬롯 1개만 쓰므로 여백 대비 글자가 작아 보이지 않도록 확대
+            _gameInfoUI.SetSingleplayerScale();
         }
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -146,7 +167,7 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnQuickSlotInput += HandleQuickSlotInput;
 
         GameManager.Instance.PlayerData.OnGoldChanged += _gameInfoUI.UpdateGold;
-        GameManager.Instance.PlayerData.OnLifeChanged += _gameInfoUI.UpdateLife;
+        GameManager.Instance.PlayerData.OnLifeChanged += life => _gameInfoUI.UpdateLife(_localSpawnIndex, life);
 
         _rightPanelUI.OnPauseClicked += HandlePauseInput;
         _pauseUI.OnResumeClicked += HandlePauseInput;
@@ -209,7 +230,7 @@ public class GameScene : MonoBehaviour
         _player.OnHit += _hitDirectionIndicator.Show;
 
         // 목숨 UI 갱신
-        _gameInfoUI.UpdateLife(GameManager.Instance.PlayerData.Life);
+        _gameInfoUI.UpdateLife(_localSpawnIndex, GameManager.Instance.PlayerData.Life);
 
         // 인벤토리 세팅
         _player.ItemPickup.Initialize(_inventoryUI.Presenter, () => _player.IsDead);

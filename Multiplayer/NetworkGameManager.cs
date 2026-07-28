@@ -19,6 +19,7 @@ public class NetworkGameManager : NetworkBehaviour
     public static NetworkGameManager Instance { get; private set; }
     public event Action<PlayerTank> OnLocalPlayerSpawned; // 로컬 플레이어 스폰 완료 알림
     public event Action OnAllClientsReady; // 모든 클라이언트 씬 로드 완료(로딩창/적 스폰 동시 시작용, 로컬 신호)
+    public event Action<int, int> OnPlayerLifeChanged; // 목숨 UI 갱신용(playerIndex, life)
 
     void Awake()
     {
@@ -162,6 +163,21 @@ public class NetworkGameManager : NetworkBehaviour
 
         HitData hitData = new HitData(damage, hitPosition, isPlayerAttack);
         damageable.TakeHit(hitData);
+    }
+
+    /// <summary>
+    /// 목숨 UI 동기화 — 각 클라이언트가 자기 목숨이 바뀔 때마다 호출(PlayerNetworkOwner가 호출)
+    /// 목숨은 서버 권위 값이 아니라 각자 로컬에서 관리되는 값이라, 서버는 판정 없이 그대로 전원에게 릴레이만 함
+    /// </summary>
+    public void NotifyLifeChanged(int playerIndex, int life)
+    {
+        NotifyLifeChangedClientRpc(playerIndex, life);
+    }
+
+    [ClientRpc]
+    void NotifyLifeChangedClientRpc(int playerIndex, int life)
+    {
+        OnPlayerLifeChanged?.Invoke(playerIndex, life);
     }
 
     /// <summary>

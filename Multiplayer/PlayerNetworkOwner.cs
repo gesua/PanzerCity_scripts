@@ -34,9 +34,23 @@ public class PlayerNetworkOwner : NetworkBehaviour
         if (IsOwner)
         {
             NetworkGameManager.Instance.NotifyLocalPlayerSpawned(_playerTank);
+
+            // 목숨이 바뀔 때마다 서버에 보고
+            GameManager.Instance.PlayerData.OnLifeChanged += RequestLifeSyncServerRpc;
+            RequestLifeSyncServerRpc(GameManager.Instance.PlayerData.Life); // 스폰 시점의 현재 값도 즉시 1회 보고
         }
     }
 
+    /// <summary>
+    /// 목숨 UI 동기화 — 로컬 오너의 목숨이 바뀔 때마다 서버에 보고
+    /// 보고자가 곧 OwnerClientId이므로 별도 인자 없이 자기 자신에서 바로 확인 가능
+    /// RequireOwnership=false:OnNetworkSpawn 직후 즉시 호출 시 소유권 검증 타이밍 이슈로 거부되는 걸 방지(실제 호출 주체는 위 IsOwner 체크로 통제됨)
+    /// </summary>
+    [ServerRpc(RequireOwnership = false)]
+    void RequestLifeSyncServerRpc(int life)
+    {
+        NetworkGameManager.Instance.NotifyLifeChanged((int)OwnerClientId, life);
+    }
 
     /// <summary>
     /// 실제 포탄 생성 + 전원에게 연출 신호 전달(서버 전용)
