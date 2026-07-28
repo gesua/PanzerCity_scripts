@@ -29,6 +29,15 @@ public class PlayerTank : TankBase
     [SerializeField] float _respawnPushRadius = 2f; // 밀어낼 탱크 감지 반경
     [SerializeField] float _respawnPushOffset = 0.1f; // 밀어내기 강도 배율
     [SerializeField] LayerMask _respawnPushLayer = 1 << 8 | 1 << 9; // 밀어낼 대상 레이어(플레이어 + 적)
+    
+    // 멀티플레이 구분 색상
+    Color[] _playerColors = // 1P~4P 구분 색(BaseMap), OwnerClientId를 인덱스로 사용
+    {
+        new Color(1f, 1f, 1f), // 1P 청록/하양
+        new Color(1f, 0f, 1f), // 2P 파랑/보라
+        new Color(1f, 0f, 0f), // 3P 검정/빨강
+        new Color(1f, 1f, 0f)  // 4P 연두/노랑
+    };
 
     bool _isAttack; // 좌클릭 누르는 중인지
     bool _isSniperMode; // 저격 모드인지(Shift)
@@ -41,11 +50,16 @@ public class PlayerTank : TankBase
 
     ParticleSystemRenderer _shieldRenderer;
 
+    static readonly int _baseColorID = Shader.PropertyToID("_BaseColor"); // BaseMap 색상 셰이더 프로퍼티 ID(구분 색상용)
+
     public ItemPickup ItemPickup => _itemPickup;
     public Transform TurretTr => _turret.TurretTr;
     public TankModel Model => _model;
     protected override bool ShowEffects => !_isSniperMode;
     public bool IsDead => _isDead;
+    public MeshRenderer[] NormalVisualRenderers => _normalVisualRenderers;
+    public GameObject CommanderRoot => _commander.CommanderRoot.gameObject;
+
 
     public event Action<int> OnDamaged;   // 대미지 받음<현재 HP>
     public event Action<HitData> OnHit;   // 피격
@@ -153,6 +167,22 @@ public class PlayerTank : TankBase
     public void SetNetworkOwner(PlayerNetworkOwner networkOwner)
     {
         _networkOwner = networkOwner;
+    }
+
+    /// <summary>
+    /// 멀티플레이:플레이어 구분 색상 적용(PlayerNetworkOwner가 OwnerClientId를 인덱스로 호출)
+    /// renderer.material로 접근하면 최초 호출 시 Unity가 자동으로 인스턴스를 복제해줘서 원본 메터리얼은 훼손되지 않음
+    /// </summary>
+    public void SetTankColorByIndex(int colorIndex)
+    {
+        if (colorIndex < 0 || colorIndex >= _playerColors.Length) return;
+
+        Color color = _playerColors[colorIndex];
+
+        foreach (MeshRenderer renderer in _normalVisualRenderers)
+        {
+            renderer.material.SetColor(_baseColorID, color);
+        }
     }
 
     /// <summary>

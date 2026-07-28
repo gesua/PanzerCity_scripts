@@ -11,7 +11,6 @@ public class CommanderController : MonoBehaviour
     [SerializeField] Animator _animator;
     [SerializeField] CommanderLookAt _lookAt;
     [SerializeField] SkinnedMeshRenderer _face;
-    //[SerializeField] SkinnedMeshRenderer[] _bodyRenderers; // 전차장 표시 여부 전환용 렌더러
 
     [Header("----- 눈 깜빡임 -----")]
     [SerializeField] float _eyeCloseWeight = 100f;

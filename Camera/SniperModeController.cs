@@ -26,6 +26,20 @@ public class SniperModeController : MonoBehaviour
 
     public bool IsSniper => _isSniper;
 
+    /// <summary>
+    /// 멀티플레이:로컬 플레이어의 실제 렌더러/사람 캐릭터/기준점 참조로 교체(GameScene이 호출)
+    /// </summary>
+    public void SetPlayerVisualReferences(Renderer[] tankRenderers, GameObject human, Transform playerTarget)
+    {
+        _tankRenderers = tankRenderers;
+        _human = human;
+        _playerTarget = playerTarget;
+
+        // 참조가 바뀌었으니 캐시된 적용 상태를 무시하고 강제로 재적용
+        _hasAppliedVisual = false;
+        ApplyPlayerVisual();
+    }
+
     private void LateUpdate()
     {
         UpdateCameraCloseState();

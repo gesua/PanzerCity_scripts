@@ -28,6 +28,7 @@ public class PlayerNetworkOwner : NetworkBehaviour
 
         _playerTank.SetNetworkOwnership(IsOwner);
         _playerTank.SetNetworkOwner(this);
+        _playerTank.SetTankColorByIndex((int)OwnerClientId); // 플레이어 구분 색상 적용
 
         // 로컬 소유일 때만 GameScene에 스폰 완료를 알림
         if (IsOwner)
