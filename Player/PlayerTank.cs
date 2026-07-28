@@ -183,6 +183,8 @@ public class PlayerTank : TankBase
         {
             renderer.material.SetColor(_baseColorID, color);
         }
+
+        _miniMapTankIcon.SetIconColorByIndex(colorIndex);
     }
 
     /// <summary>
