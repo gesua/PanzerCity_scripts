@@ -12,6 +12,7 @@ using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 로비 생성/조회/참가, Relay 연결, 준비/강퇴/게임 시작 담당
@@ -55,6 +56,7 @@ public class LobbyManager : MonoBehaviour
     public event Action OnLeftLobby; // 직접 나감
     public event Action OnHostLeft;  // 방장이 연결 끊음
     public event Action OnGameStart; // 게임 시작 신호
+    public event Action OnNetworkSceneLoadStarted; // 클라이언트가 Game_Multi 씬 로드 시작을 수신
 
     void Awake()
     {
@@ -191,16 +193,6 @@ public class LobbyManager : MonoBehaviour
                 _currentLobby = null;
                 NetworkManager.Singleton.Shutdown();
                 OnKicked?.Invoke();
-                return;
-            }
-
-            // 게임 시작 감지
-            if (lobby.Data != null &&
-                lobby.Data.ContainsKey(KeyGameStarted) &&
-                lobby.Data[KeyGameStarted].Value == "true")
-            {
-                _currentLobby = null;
-                OnGameStart?.Invoke();
                 return;
             }
 
@@ -379,7 +371,10 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.NetworkConfig.ConnectionData =
                 System.Text.Encoding.UTF8.GetBytes(AuthenticationService.Instance.PlayerId);
 
-            NetworkManager.Singleton.StartClient();
+            if (NetworkManager.Singleton.StartClient())
+            {
+                SubscribeToNetworkSceneLoad();
+            }
 
             // 연결 끊김 감지 구독 (중복 방지)
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
@@ -703,5 +698,31 @@ public class LobbyManager : MonoBehaviour
                 }
             }
         };
+    }
+
+
+    void SubscribeToNetworkSceneLoad()
+    {
+        NetworkManager.Singleton.SceneManager.OnLoad -= HandleNetworkSceneLoad;
+        NetworkManager.Singleton.SceneManager.OnLoad += HandleNetworkSceneLoad;
+    }
+
+    void HandleNetworkSceneLoad(
+        ulong clientId,
+        string sceneName,
+        LoadSceneMode loadSceneMode,
+        AsyncOperation asyncOperation)
+    {
+        if (clientId != NetworkManager.Singleton.LocalClientId) return;
+        if (sceneName != "Game_Multi") return;
+
+        LoadingUI loadingUI = GameManager.Instance.LoadingUI;
+        if (loadingUI.gameObject.activeSelf == false)
+        {
+            loadingUI.Show();
+        }
+
+        _currentLobby = null;
+        OnNetworkSceneLoadStarted?.Invoke();
     }
 }

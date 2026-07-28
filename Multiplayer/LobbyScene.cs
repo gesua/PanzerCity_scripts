@@ -60,6 +60,7 @@ public class LobbyScene : MonoBehaviour
         LobbyManager.Instance.OnHostLeft += HandleHostLeft;
         LobbyManager.Instance.OnKicked += HandleKicked;
         LobbyManager.Instance.OnGameStart += HandleGameStart;
+        LobbyManager.Instance.OnNetworkSceneLoadStarted += HandleNetworkSceneLoadStarted;
 
         LobbyManager.Instance.PendingLobbyAudioListener = _audioListener; // AudioListener 메시지 처리용
 
@@ -77,6 +78,7 @@ public class LobbyScene : MonoBehaviour
         LobbyManager.Instance.OnHostLeft -= HandleHostLeft;
         LobbyManager.Instance.OnKicked -= HandleKicked;
         LobbyManager.Instance.OnGameStart -= HandleGameStart;
+        LobbyManager.Instance.OnNetworkSceneLoadStarted -= HandleNetworkSceneLoadStarted;
     }
 
     /// <summary>
@@ -437,6 +439,14 @@ public class LobbyScene : MonoBehaviour
     /// 게임 시작 신호 수신 → 씬 전환
     /// </summary>
     void HandleGameStart()
+    {
+        LobbyManager.Instance.StartSceneTransition(StartMultiplayerRoutine());
+    }
+
+    /// <summary>
+    /// 호스트가 씬 로드할 때 클라이언트에서 바로 로딩 UI 띄워주는 용도
+    /// </summary>
+    void HandleNetworkSceneLoadStarted()
     {
         LobbyManager.Instance.StartSceneTransition(StartMultiplayerRoutine());
     }
