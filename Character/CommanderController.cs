@@ -11,6 +11,7 @@ public class CommanderController : MonoBehaviour
     [SerializeField] Animator _animator;
     [SerializeField] CommanderLookAt _lookAt;
     [SerializeField] SkinnedMeshRenderer _face;
+    [SerializeField] SkinnedMeshRenderer[] _body;
 
     [Header("----- 눈 깜빡임 -----")]
     [SerializeField] float _eyeCloseWeight = 100f;
@@ -100,7 +101,11 @@ public class CommanderController : MonoBehaviour
     /// </summary>
     public void SetVisible(bool visible)
     {
-        _commanderRoot.gameObject.SetActive(visible);
+        _face.enabled = visible;
+        foreach (SkinnedMeshRenderer renderer in _body)
+        {
+            renderer.enabled = visible;
+        }
     }
 
     /// <summary>

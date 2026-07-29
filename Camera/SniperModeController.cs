@@ -8,10 +8,10 @@ using UnityEngine;
 public class SniperModeController : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
-    [SerializeField] CinemachineCamera _normalCam;  // 평소 카메라
-    [SerializeField] CinemachineCamera _sniperCam;  // 저격 모드 카메라
-    [SerializeField] Renderer[] _tankRenderers;     // 탱크 렌더러들 (저격 모드에서 비활성화)
-    [SerializeField] GameObject _human; // 사람 캐릭터 (저격 모드에서 비활성화)
+    [SerializeField] CinemachineCamera _normalCam;   // 평소 카메라
+    [SerializeField] CinemachineCamera _sniperCam;   // 저격 모드 카메라
+    [SerializeField] Renderer[] _tankRenderers;      // 탱크 렌더러들 (저격 모드에서 비활성화)
+    [SerializeField] CommanderController _commander; // 전차장 캐릭터 (저격 모드에서 비활성화)
     [SerializeField] Transform _mainCameraTr; // 거리 체크용 메인 카메라
     [SerializeField] Transform _playerTarget; // 카메라와 거리 비교할 기준점
 
@@ -27,12 +27,12 @@ public class SniperModeController : MonoBehaviour
     public bool IsSniper => _isSniper;
 
     /// <summary>
-    /// 멀티플레이:로컬 플레이어의 실제 렌더러/사람 캐릭터/기준점 참조로 교체(GameScene이 호출)
+    /// 멀티플레이:로컬 플레이어의 실제 렌더러/전차장 캐릭터/기준점 참조로 교체(GameScene이 호출)
     /// </summary>
-    public void SetPlayerVisualReferences(Renderer[] tankRenderers, GameObject human, Transform playerTarget)
+    public void SetPlayerVisualReferences(Renderer[] tankRenderers, CommanderController commander, Transform playerTarget)
     {
         _tankRenderers = tankRenderers;
-        _human = human;
+        _commander = commander;
         _playerTarget = playerTarget;
 
         // 참조가 바뀌었으니 캐시된 적용 상태를 무시하고 강제로 재적용
@@ -105,7 +105,7 @@ public class SniperModeController : MonoBehaviour
             renderer.enabled = !shouldHide;
         }
 
-        // 사람 캐릭터
-        if (_human != null) _human.SetActive(!shouldHide);
+        // 전차장 캐릭터
+        if (_commander != null) _commander.SetVisible(!shouldHide);
     }
 }

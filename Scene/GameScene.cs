@@ -126,7 +126,7 @@ public class GameScene : MonoBehaviour
             _cameraBedrockChange.SetPlayer(_player.transform);
             _playerHPUI.SetPlayer(_player);
             _hitDirectionIndicator.SetPlayer(_player.transform);
-            _sniperMode.SetPlayerVisualReferences(_player.NormalVisualRenderers, _player.CommanderRoot, _player.transform);
+            _sniperMode.SetPlayerVisualReferences(_player.NormalVisualRenderers, _player.Commander, _player.transform);
 
             _player.Initialize();
 
