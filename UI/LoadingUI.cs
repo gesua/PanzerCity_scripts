@@ -49,7 +49,7 @@ public class LoadingUI : MonoBehaviour
     /// </summary>
     public void ShowWaitingForOthers()
     {
-        _waitingText.text = "Synchronizing Players...";
+        _waitingText.text = "Waiting for other players...";
         _loadingBar.fillAmount = 0.9f;
     }
 

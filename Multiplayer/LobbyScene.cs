@@ -101,7 +101,7 @@ public class LobbyScene : MonoBehaviour
         // 로비 진입 시 목록 1회 갱신 후, 주기적 자동 갱신 시작
         if (targetPanel == _lobbyPanel)
         {
-            _ = LobbyManager.Instance.RefreshLobbyListAsync();
+            OnRefreshClicked();
             _autoRefreshCoroutine = StartCoroutine(AutoRefreshRoutine());
         }
     }
