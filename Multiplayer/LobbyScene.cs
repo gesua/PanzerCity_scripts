@@ -323,7 +323,7 @@ public class LobbyScene : MonoBehaviour
         finally
         {
             _refreshButton.interactable = true;
-            _quickStartButton.interactable= true;
+            _quickStartButton.interactable = true;
             _isRefreshing = false;
         }
     }
@@ -379,7 +379,11 @@ public class LobbyScene : MonoBehaviour
                 {
                     _joinRoomNameInput.text = lobbyName;
                 },
-                onJoinRequested: () => { _ = TryJoinLobby(lobbyId); });
+                onJoinRequested: () =>
+                {
+                    _joinRoomNameInput.text = lobbyName;
+                    _ = TryJoinLobby(lobbyId);
+                });
         }
     }
 
