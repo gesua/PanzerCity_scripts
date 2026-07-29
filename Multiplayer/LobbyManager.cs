@@ -38,7 +38,6 @@ public class LobbyManager : MonoBehaviour
     string _hostedLobbyId; // 로비 단계 정리용으로 유지
     Dictionary<ulong, string> _clientIdToPlayerId = new Dictionary<ulong, string>(); // Netcode clientId ↔ Lobby Player.Id
 
-
     bool _isHeartbeating; // 하트비트 중복 방지용(응답이 주기보다 늦게 오면 재진입 가능)
     bool _isPolling; // 폴링 중복 방지용(GetLobbyAsync 응답이 폴링 주기보다 늦게 오면 재진입해서 두 번 실행될 수 있음)
 
@@ -56,7 +55,7 @@ public class LobbyManager : MonoBehaviour
     public event Action OnLeftLobby; // 직접 나감
     public event Action OnHostLeft;  // 방장이 연결 끊음
     public event Action OnGameStart; // 게임 시작 신호
-    public event Action OnNetworkSceneLoadStarted; // 클라이언트가 Game_Multi 씬 로드 시작을 수신
+    public event Action<AsyncOperation> OnNetworkSceneLoadStarted; // 클라이언트가 Game_Multi 씬 로드 시작을 수신
 
     void Awake()
     {
@@ -723,6 +722,6 @@ public class LobbyManager : MonoBehaviour
         }
 
         _currentLobby = null;
-        OnNetworkSceneLoadStarted?.Invoke();
+        OnNetworkSceneLoadStarted?.Invoke(asyncOperation);
     }
 }

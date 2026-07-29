@@ -839,6 +839,14 @@ public class GameScene : MonoBehaviour
     {
         Time.timeScale = 1f;
         UnsubscribeStage();
+
+        // 멀티플레이 매치 중(또는 종료 후) 메인메뉴로 돌아갈 때 네트워크 세션이 안 끊긴 채 남으면
+        // 다음 멀티플레이 시도 때 좀비 연결 상태 위에서 새 세션이 시작돼버림(LobbyScene.ShutdownNetwork()와 동일한 패턴)
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            NetworkManager.Singleton.Shutdown();
+        }
+
         SceneManager.LoadScene("Title");
     }
 

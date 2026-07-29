@@ -48,6 +48,7 @@ public class LobbyScene : MonoBehaviour
     bool _isCreatingRoom;    // 방 만들기 중복 클릭 방지
     bool _isJoining;         // 방 참가 중복 클릭 방지
     bool _isFindingRoom;     // 방 이름 검색 중복 클릭 방지
+    bool _isGameStarting;    // 게임 중복 실행 방지
 
     Coroutine _autoRefreshCoroutine; // 자동 새로고침 코루틴 추적용
 
@@ -440,18 +441,24 @@ public class LobbyScene : MonoBehaviour
     /// </summary>
     void HandleGameStart()
     {
-        LobbyManager.Instance.StartSceneTransition(StartMultiplayerRoutine());
+        if (_isGameStarting) return;
+        _isGameStarting = true;
+
+        LobbyManager.Instance.StartSceneTransition(StartMultiplayerRoutine(null));
     }
 
     /// <summary>
     /// 호스트가 씬 로드할 때 클라이언트에서 바로 로딩 UI 띄워주는 용도
     /// </summary>
-    void HandleNetworkSceneLoadStarted()
+    void HandleNetworkSceneLoadStarted(AsyncOperation firstSceneOp)
     {
-        LobbyManager.Instance.StartSceneTransition(StartMultiplayerRoutine());
+        if (_isGameStarting) return;
+        _isGameStarting = true;
+
+        LobbyManager.Instance.StartSceneTransition(StartMultiplayerRoutine(firstSceneOp));
     }
 
-    IEnumerator StartMultiplayerRoutine()
+    IEnumerator StartMultiplayerRoutine(AsyncOperation firstSceneOp)
     {
         // Pool 미리 만들기
         GameManager.Instance.PoolManager.GetPool("DroppedItem");
@@ -464,11 +471,12 @@ public class LobbyScene : MonoBehaviour
         if (_eventSystem != null) _eventSystem.gameObject.SetActive(false);
 
         // 멀티용 Game 씬 로드 (호스트만 요청, 클라이언트는 Netcode가 자동으로 밀어줌)
-        yield return LoadNetworkedSceneRoutine("Game_Multi", 0f, 0.297f); // 33%(0.9f가 100%)
+        yield return LoadNetworkedSceneRoutine("Game_Multi", 0f, 0.297f, firstSceneOp); // 33%(0.9f가 100%)
 
         // Stage 씬 로드
         string stageName = LobbyManager.Instance.FirstStageName;
-        yield return LoadNetworkedSceneRoutine(stageName, 0.297f, 0.594f); // 66%
+        // 두 번째 씬부터는 null을 넘겨서 내부 로직이 다시 OnLoad를 정상 구독하도록 함
+        yield return LoadNetworkedSceneRoutine(stageName, 0.297f, 0.594f, null); // 66%
 
         // 로딩바 100% + 대기 문구 표시
         loadingUI.ShowWaitingForOthers();
@@ -501,35 +509,39 @@ public class LobbyScene : MonoBehaviour
     /// (호스트가 요청하면 Netcode가 연결된 클라이언트에도 같은 씬을 자동으로 밀어넣어줌)
     /// OnLoad로 내 로컬 AsyncOperation을 받아서 LoadingUI에 [rangeStart, rangeEnd] 구간으로 진행률을 반영함
     /// </summary>
-    IEnumerator LoadNetworkedSceneRoutine(string sceneName, float rangeStart, float rangeEnd)
+    IEnumerator LoadNetworkedSceneRoutine(string sceneName, float rangeStart, float rangeEnd, AsyncOperation preLoadedOp)
     {
-        AsyncOperation localOp = null;
-
-        // 서버(호스트) 입장에서는 OnLoad가 연결된 클라이언트 수만큼 반복 호출됨(전원의 로드 시작을 다 통지받음)
-        // asyncOperation은 그 클라이언트 로컬의 값이라 내 것이 아니면 의미가 없으므로, 반드시 내 clientId만 필터링해야 함
-        void HandleLoad(ulong clientId, string loadedSceneName, LoadSceneMode loadSceneMode, AsyncOperation asyncOperation)
+        // 이미 진행 중인 객체(클라이언트의 첫 씬)가 있다면 그대로 사용
+        AsyncOperation localOp = preLoadedOp;
+        // 넘겨받은 객체가 없을 때만(호스트의 첫 씬, 혹은 모든 유저의 두 번째 씬) 구독 로직 실행
+        if (localOp == null)
         {
-            if (clientId != NetworkManager.Singleton.LocalClientId) return;
-            if (loadedSceneName != sceneName) return;
-
-            localOp = asyncOperation;
-        }
-
-        NetworkManager.Singleton.SceneManager.OnLoad += HandleLoad;
-
-        if (NetworkManager.Singleton.IsHost)
-        {
-            SceneEventProgressStatus status = NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
-            if (status != SceneEventProgressStatus.Started)
+            // 서버(호스트) 입장에서는 OnLoad가 연결된 클라이언트 수만큼 반복 호출됨(전원의 로드 시작을 다 통지받음)
+            // asyncOperation은 그 클라이언트 로컬의 값이라 내 것이 아니면 의미가 없으므로, 반드시 내 clientId만 필터링해야 함
+            void HandleLoad(ulong clientId, string loadedSceneName, LoadSceneMode loadSceneMode, AsyncOperation asyncOperation)
             {
-                Debug.LogWarning($"씬 로드 요청 실패: {sceneName} ({status})");
+                if (clientId != NetworkManager.Singleton.LocalClientId) return;
+                if (loadedSceneName != sceneName) return;
+
+                localOp = asyncOperation;
             }
+
+            NetworkManager.Singleton.SceneManager.OnLoad += HandleLoad;
+
+            if (NetworkManager.Singleton.IsHost)
+            {
+                SceneEventProgressStatus status = NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
+                if (status != SceneEventProgressStatus.Started)
+                {
+                    Debug.LogWarning($"씬 로드 요청 실패: {sceneName} ({status})");
+                }
+            }
+
+            // OnLoad 유실 등으로 localOp를 못 받는 경우에도 멈추지 않도록, 씬이 실제로 로드 완료됐는지도 같이 조건에 둠
+            yield return new WaitUntil(() => localOp != null || SceneManager.GetSceneByName(sceneName).isLoaded);
+
+            NetworkManager.Singleton.SceneManager.OnLoad -= HandleLoad;
         }
-
-        // OnLoad 유실 등으로 localOp를 못 받는 경우에도 멈추지 않도록, 씬이 실제로 로드 완료됐는지도 같이 조건에 둠
-        yield return new WaitUntil(() => localOp != null || SceneManager.GetSceneByName(sceneName).isLoaded);
-
-        NetworkManager.Singleton.SceneManager.OnLoad -= HandleLoad;
 
         // localOp를 정상적으로 받았을 때만 진행률 애니메이션 재생(못 받았으면 진행률 표시 없이 다음 단계로)
         if (localOp != null)
