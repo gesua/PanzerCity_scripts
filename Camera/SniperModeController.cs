@@ -93,30 +93,39 @@ public class SniperModeController : MonoBehaviour
     /// </summary>
     void ApplyPlayerVisual()
     {
-        bool shouldHide = _isSniper || _isCameraTooClose;
+        // 카메라 상태에 따라 숨길지 결정
+        bool isCameraHide = _isSniper || _isCameraTooClose;
 
-        // 플레이어가 죽었을 땐 일반 모델링을 무조건 숨김
+        // 탱크와 전차장의 숨김 여부를 각각 분리
+        bool tankShouldHide = isCameraHide;
+        bool commanderShouldHide = isCameraHide;
+
+        // 사망 시 예외 처리
         if (_player != null && _player.IsDead)
         {
-            shouldHide = true;
-
-            // 전차장은 보이게 하기
-            if (_commander != null) _commander.SetVisible(true);
+            tankShouldHide = true;       // 죽으면 탱크 모델링은 무조건 숨김
+            commanderShouldHide = false; // 죽으면 전차장은 무조건 보이게 함
         }
 
-        if (_hasAppliedVisual && _lastVisualHidden == shouldHide) return;
+        // 탱크 렌더러 상태가 이전과 동일하다면 전차장 상태만 갱신하고 반환
+        if (_hasAppliedVisual && _lastVisualHidden == tankShouldHide)
+        {
+            if (_commander != null) _commander.SetVisible(!commanderShouldHide);
+            return;
+        }
 
         _hasAppliedVisual = true;
-        _lastVisualHidden = shouldHide;
+        _lastVisualHidden = tankShouldHide;
 
-        // 내 탱크 렌더러들
-        foreach (Renderer renderer in _tankRenderers)
+        if (_tankRenderers != null)
         {
-            if (renderer == null) continue;
-            renderer.enabled = !shouldHide;
+            foreach (Renderer renderer in _tankRenderers)
+            {
+                if (renderer != null) renderer.enabled = !tankShouldHide;
+            }
         }
 
-        // 전차장 캐릭터
-        if (_commander != null) _commander.SetVisible(!shouldHide);
+        // 전차장 업데이트
+        if (_commander != null) _commander.SetVisible(!commanderShouldHide);
     }
 }
