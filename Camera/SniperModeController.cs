@@ -10,6 +10,7 @@ public class SniperModeController : MonoBehaviour
     [Header("----- 컴포넌트 -----")]
     [SerializeField] CinemachineCamera _normalCam;   // 평소 카메라
     [SerializeField] CinemachineCamera _sniperCam;   // 저격 모드 카메라
+    [SerializeField] PlayerTank _player;             // 플레이어 참조 (사망 상태 확인용)
     [SerializeField] Renderer[] _tankRenderers;      // 탱크 렌더러들 (저격 모드에서 비활성화)
     [SerializeField] CommanderController _commander; // 전차장 캐릭터 (저격 모드에서 비활성화)
     [SerializeField] Transform _mainCameraTr; // 거리 체크용 메인 카메라
@@ -27,13 +28,14 @@ public class SniperModeController : MonoBehaviour
     public bool IsSniper => _isSniper;
 
     /// <summary>
-    /// 멀티플레이:로컬 플레이어의 실제 렌더러/전차장 캐릭터/기준점 참조로 교체(GameScene이 호출)
+    /// 멀티플레이:로컬 플레이어의 실제 참조로 교체(GameScene이 호출)
     /// </summary>
-    public void SetPlayerVisualReferences(Renderer[] tankRenderers, CommanderController commander, Transform playerTarget)
+    public void SetPlayerVisualReferences(PlayerTank player)
     {
-        _tankRenderers = tankRenderers;
-        _commander = commander;
-        _playerTarget = playerTarget;
+        _player = player;
+        _tankRenderers = player.NormalVisualRenderers;
+        _commander = player.Commander;
+        _playerTarget = player.transform;
 
         // 참조가 바뀌었으니 캐시된 적용 상태를 무시하고 강제로 재적용
         _hasAppliedVisual = false;
@@ -92,6 +94,15 @@ public class SniperModeController : MonoBehaviour
     void ApplyPlayerVisual()
     {
         bool shouldHide = _isSniper || _isCameraTooClose;
+
+        // 플레이어가 죽었을 땐 일반 모델링을 무조건 숨김
+        if (_player != null && _player.IsDead)
+        {
+            shouldHide = true;
+
+            // 전차장은 보이게 하기
+            if (_commander != null) _commander.SetVisible(true);
+        }
 
         if (_hasAppliedVisual && _lastVisualHidden == shouldHide) return;
 
