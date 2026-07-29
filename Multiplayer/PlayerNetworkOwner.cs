@@ -10,6 +10,11 @@ public class PlayerNetworkOwner : NetworkBehaviour
 {
     PlayerTank _playerTank;
 
+    // 목숨 UI 동기화용:Owner만 로컬에서 직접 쓸 수 있음(목숨은 서버 권위가 아니라 각자 로컬 판단 기반)
+    NetworkVariable<int> _life = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
+    public int CurrentLife => _life.Value; // 다른 클라이언트가 초기 UI 세팅 시 조회용
+
     void Awake()
     {
         TryGetComponent(out _playerTank);
@@ -30,26 +35,32 @@ public class PlayerNetworkOwner : NetworkBehaviour
         _playerTank.SetNetworkOwner(this);
         _playerTank.SetTankColorByIndex((int)OwnerClientId); // 플레이어 구분 색상 적용
 
+        // 목숨 UI:전원이 이 값의 변경을 받아서 NetworkGameManager로 릴레이
+        _life.OnValueChanged += HandleLifeValueChanged;
+
+
         // 로컬 소유일 때만 GameScene에 스폰 완료를 알림
         if (IsOwner)
         {
             NetworkGameManager.Instance.NotifyLocalPlayerSpawned(_playerTank);
 
             // 목숨이 바뀔 때마다 서버에 보고
-            GameManager.Instance.PlayerData.OnLifeChanged += RequestLifeSyncServerRpc;
-            RequestLifeSyncServerRpc(GameManager.Instance.PlayerData.Life); // 스폰 시점의 현재 값도 즉시 1회 보고
+            GameManager.Instance.PlayerData.OnLifeChanged += SetLifeValue;
+            SetLifeValue(GameManager.Instance.PlayerData.Life); // 스폰 시점의 현재 값도 즉시 반영
         }
     }
 
-    /// <summary>
-    /// 목숨 UI 동기화 — 로컬 오너의 목숨이 바뀔 때마다 서버에 보고
-    /// 보고자가 곧 OwnerClientId이므로 별도 인자 없이 자기 자신에서 바로 확인 가능
-    /// RequireOwnership=false:OnNetworkSpawn 직후 즉시 호출 시 소유권 검증 타이밍 이슈로 거부되는 걸 방지(실제 호출 주체는 위 IsOwner 체크로 통제됨)
-    /// </summary>
-    [ServerRpc(RequireOwnership = false)]
-    void RequestLifeSyncServerRpc(int life)
+    void SetLifeValue(int life)
     {
-        NetworkGameManager.Instance.NotifyLifeChanged((int)OwnerClientId, life);
+        _life.Value = life;
+    }
+
+    /// <summary>
+    /// 목숨 UI 동기화
+    /// </summary>
+    void HandleLifeValueChanged(int previousValue, int currentValue)
+    {
+        NetworkGameManager.Instance.NotifyLifeChanged((int)OwnerClientId, currentValue);
     }
 
     /// <summary>

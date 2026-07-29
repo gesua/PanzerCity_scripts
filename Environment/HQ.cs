@@ -1,5 +1,6 @@
 using System;
 using Unity.Cinemachine;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -19,9 +20,30 @@ public class HQ : MonoBehaviour, IDamageable
 
     public void TakeHit(HitData hitData)
     {
-        if (hitData.AtkTank is PlayerTank) return; // 아군이 직접 못 부수게 함
+        if (hitData.IsPlayerAttack) return; // 아군이 직접 못 부수게 함(AtkTank는 RPC로 못 넘어가니 IsPlayerAttack 사용)
 
         if (_isDestroy) return;
+
+        // 방어적 가드(정상 경로로는 클라이언트에서 호출될 일이 없음 — Shell.OnTriggerEnter가 이미 서버 전용)
+        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+        if (isMultiplayer && NetworkManager.Singleton.IsServer == false) return;
+
+        TriggerDestruction();
+
+        if (isMultiplayer)
+        {
+            NetworkGameManager.Instance.NotifyHQDestroyed();
+        }
+    }
+
+    /// <summary>
+    /// HQ 파괴 연출 + 이벤트 발행
+    /// 서버는 판정 통과 직후 로컬로 직접 호출, 클라이언트는 NotifyHQDestroyedClientRpc로 재현(각자 로컬로 카메라 전환/시간 정지 적용)
+    /// </summary>
+    public void TriggerDestruction()
+    {
+        if (_isDestroy) return; // 중복 방지(클라 재현 경로 포함)
+
         _isDestroy = true;
 
         Time.timeScale = 0f; // 카메라 전환될 동안 시간 멈추기

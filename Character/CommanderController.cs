@@ -101,13 +101,6 @@ public class CommanderController : MonoBehaviour
     public void SetVisible(bool visible)
     {
         _commanderRoot.gameObject.SetActive(visible);
-
-        /* 렌더러만 껐다 켜서, 자식 오브젝트의 활성 상태(네트워크 컴포넌트 등록 등)를 유지함
-        foreach (SkinnedMeshRenderer renderer in _bodyRenderers)
-        {
-            renderer.enabled = visible;
-        }
-        */
     }
 
     /// <summary>

@@ -141,6 +141,16 @@ public class GameScene : MonoBehaviour
 
             // 목숨 UI:접속 인원 수만큼만 슬롯 활성화
             _gameInfoUI.SetActivePlayerCount(NetworkManager.Singleton.ConnectedClientsIds.Count);
+
+            // 목숨 UI:이미 스폰된 플레이어들(나 포함)의 현재 목숨을 초기 반영
+            foreach (NetworkClient client in NetworkManager.Singleton.ConnectedClientsList)
+            {
+                if (client.PlayerObject == null) continue;
+                if (client.PlayerObject.TryGetComponent(out PlayerNetworkOwner clientNetworkOwner) == false) continue;
+
+                _gameInfoUI.UpdateLife((int)clientNetworkOwner.OwnerClientId, clientNetworkOwner.CurrentLife);
+            }
+
             // 목숨 UI:다른 플레이어의 목숨 변경 수신(내 것은 아래 로컬 PlayerData 구독으로 별도 처리)
             NetworkGameManager.Instance.OnPlayerLifeChanged += HandleOtherPlayerLifeChanged;
         }

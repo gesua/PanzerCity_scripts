@@ -22,6 +22,7 @@ public class StageScene : MonoBehaviour
     public int StageID => _stageID;
     public EnemySpawner EnemySpawner => _enemySpawner;
     public BaseWall BaseWall => _baseWall;
+    public HQ HQ => _hq;
     public string SceneName => _sceneName;
     public string NextStageName => _nextStageName;
 

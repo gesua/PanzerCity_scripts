@@ -118,6 +118,24 @@ public class NetworkGameManager : NetworkBehaviour
     }
 
     /// <summary>
+    /// HQ 파괴 동기화 — 서버가 판정을 마친 뒤 호출(HQ가 호출)
+    /// </summary>
+    public void NotifyHQDestroyed()
+    {
+        NotifyHQDestroyedClientRpc();
+    }
+
+    [ClientRpc]
+    void NotifyHQDestroyedClientRpc()
+    {
+        // 호스트 자신은 서버 로컬에서 HQ.TakeHit()이 이미 직접 처리했으므로 중복 방지
+        if (IsServer) return;
+
+        if (_stageScene == null) return;
+        _stageScene.HQ.TriggerDestruction();
+    }
+
+    /// <summary>
     /// 포탄 폭발 범위 피해 동기화 — 서버가 폭발 판정을 마친 뒤 호출(Shell이 호출)
     /// 벽/큐브 파괴, 폭발 피해를 받는 대상(경전차 등)의 판정을 클라이언트에도 동일하게 재현시킴
     /// HitData의 AtkTank(MonoBehaviour 참조)는 RPC로 못 보내서 isPlayerAttack(bool)만 별도 전달
@@ -166,16 +184,10 @@ public class NetworkGameManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// 목숨 UI 동기화 — 각 클라이언트가 자기 목숨이 바뀔 때마다 호출(PlayerNetworkOwner가 호출)
-    /// 목숨은 서버 권위 값이 아니라 각자 로컬에서 관리되는 값이라, 서버는 판정 없이 그대로 전원에게 릴레이만 함
+    /// 목숨 UI 동기화 — 각 클라이언트가 자기 로컬에서 NetworkVariable 변경을 감지해서 호출(PlayerNetworkOwner가 호출)
+    /// NetworkVariable 자체가 이미 네트워크 동기화를 처리하므로 여기서는 로컬 이벤트 발행만 담당
     /// </summary>
     public void NotifyLifeChanged(int playerIndex, int life)
-    {
-        NotifyLifeChangedClientRpc(playerIndex, life);
-    }
-
-    [ClientRpc]
-    void NotifyLifeChangedClientRpc(int playerIndex, int life)
     {
         OnPlayerLifeChanged?.Invoke(playerIndex, life);
     }
