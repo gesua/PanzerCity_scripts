@@ -184,7 +184,7 @@ public class PlayerTank : TankBase
             renderer.material.SetColor(_baseColorID, color);
         }
 
-        _miniMapTankIcon.SetIconColorByIndex(colorIndex);
+        _miniMapTankIcon.SetIconSpriteByIndex(colorIndex);
     }
 
     /// <summary>
@@ -464,7 +464,6 @@ public class PlayerTank : TankBase
             float pushStrength = Mathf.Clamp(10f / dist, 0.5f, 3f);
 
             rigid.position = rigid.position + dir * pushStrength * _respawnPushOffset;
-
         }
     }
 

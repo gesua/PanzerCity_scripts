@@ -8,18 +8,17 @@ public class MiniMapTankIcon : MonoBehaviour
 {
     [SerializeField] Transform _turretIcon; // 포탑 아이콘
     [SerializeField] PlayerTank _player;    // 플레이어
-    [Header("----- 구분 색상 -----")]
+    [Header("----- 구분 아이콘 -----")]
     [SerializeField] SpriteRenderer _hullIconRenderer;   // 차체 아이콘 렌더러
     [SerializeField] SpriteRenderer _turretIconRenderer; // 포탑 아이콘 렌더러
+    [SerializeField] PlayerIconSprites[] _playerIcons;   // 1P ~ 4P 차체 + 포탑 아이콘 세트, OwnerClientId를 인덱스로 사용
 
-    Color[] _playerColors = // 1P~4P 구분 색, OwnerClientId를 인덱스로 사용
+    [System.Serializable]
+    class PlayerIconSprites
     {
-        new Color(1f, 1f, 1f),       // 1P 기본(초록)
-        new Color(0f, 0f, 1f),       // 2P 파랑
-        new Color(0.2f, 0.2f, 0.2f), // 3P 회색
-        new Color(1f, 1f, 0f)        // 4P 노랑
-    };
-
+        public Sprite Hull;   // 차체 아이콘
+        public Sprite Turret; // 포탑 아이콘
+    }
 
     /// <summary>
     /// 아이콘 표시
@@ -38,16 +37,16 @@ public class MiniMapTankIcon : MonoBehaviour
     }
 
     /// <summary>
-    /// 미니맵 아이콘 구분 색상 적용(PlayerTank가 몸체 색과 함께 전파)
+    /// 미니맵 아이콘 구분 스프라이트 적용(PlayerTank가 호출)
     /// </summary>
-    public void SetIconColorByIndex(int colorIndex)
+    public void SetIconSpriteByIndex(int spriteIndex)
     {
-        if (colorIndex < 0 || colorIndex >= _playerColors.Length) return;
+        if (spriteIndex < 0 || spriteIndex >= _playerIcons.Length) return;
 
-        Color color = _playerColors[colorIndex];
+        PlayerIconSprites icons = _playerIcons[spriteIndex];
 
-        _hullIconRenderer.color = color;
-        _turretIconRenderer.color = color;
+        _hullIconRenderer.sprite = icons.Hull;
+        _turretIconRenderer.sprite = icons.Turret;
     }
 
     void Update()
