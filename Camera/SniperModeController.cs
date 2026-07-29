@@ -24,6 +24,7 @@ public class SniperModeController : MonoBehaviour
     bool _isCameraTooClose;
     bool _lastVisualHidden;
     bool _hasAppliedVisual;
+    bool _lastPlayerDead; // 사망/부활 상태 변경 감지용
 
     public bool IsSniper => _isSniper;
 
@@ -100,8 +101,16 @@ public class SniperModeController : MonoBehaviour
         bool tankShouldHide = isCameraHide;
         bool commanderShouldHide = isCameraHide;
 
+        // 사망 상태 캐싱 및 갱신 체크
+        bool currentDead = _player != null && _player.IsDead;
+        if (_lastPlayerDead != currentDead)
+        {
+            _hasAppliedVisual = false; // 사망/부활 상태가 바뀌면 캐시 무시하고 강제로 다시 적용
+            _lastPlayerDead = currentDead;
+        }
+
         // 사망 시 예외 처리
-        if (_player != null && _player.IsDead)
+        if (currentDead)
         {
             tankShouldHide = true;       // 죽으면 탱크 모델링은 무조건 숨김
             commanderShouldHide = false; // 죽으면 전차장은 무조건 보이게 함
