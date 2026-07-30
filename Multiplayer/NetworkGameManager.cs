@@ -17,6 +17,8 @@ public class NetworkGameManager : NetworkBehaviour
     StageScene _stageScene;
 
     public static NetworkGameManager Instance { get; private set; }
+    public StageScene StageScene => _stageScene;
+
     public event Action<PlayerTank> OnLocalPlayerSpawned; // 로컬 플레이어 스폰 완료 알림
     public event Action OnAllClientsReady; // 모든 클라이언트 씬 로드 완료(로딩창/적 스폰 동시 시작용, 로컬 신호)
     public event Action<int, int> OnPlayerLifeChanged; // 목숨 UI 갱신용(playerIndex, life)

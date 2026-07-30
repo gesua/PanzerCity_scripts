@@ -34,7 +34,8 @@ public class PlayerNetworkOwner : NetworkBehaviour
         _playerTank.SetNetworkOwnership(IsOwner);
         _playerTank.SetNetworkOwner(this);
         _playerTank.SetTankColorByIndex((int)OwnerClientId); // 플레이어 구분 색상 적용
-
+        
+        _playerTank.OnPlayerRespawn += HandleRemoteRespawn;
         // 목숨 UI:전원이 이 값의 변경을 받아서 NetworkGameManager로 릴레이
         _life.OnValueChanged += HandleLifeValueChanged;
 
@@ -61,6 +62,22 @@ public class PlayerNetworkOwner : NetworkBehaviour
     void HandleLifeValueChanged(int previousValue, int currentValue)
     {
         NetworkGameManager.Instance.NotifyLifeChanged((int)OwnerClientId, currentValue);
+    }
+
+    /// <summary>
+    /// 멀티플레이:소유자가 아닌 관찰자 쪽에서 리스폰을 재현
+    /// GameScene은 로컬 플레이어(소유자)만 처리하므로, 원격 플레이어의 리스폰은 각자 로컬로 독립 재현해야 함
+    /// 생명력 체크/게임오버 등 로컬 전용 로직은 소유자 쪽에서 GameScene이 이미 처리하므로 여기선 순수 연출만
+    /// </summary>
+    void HandleRemoteRespawn()
+    {
+        if (IsOwner) return; // 소유자 자신은 GameScene이 이미 처리
+
+        StageScene stageScene = NetworkGameManager.Instance.StageScene;
+        if (stageScene == null) return;
+
+        Vector3 spawnPos = stageScene.GetSpawnPoint((int)OwnerClientId);
+        _playerTank.Respawn(spawnPos, null); // CinemachineBrain은 RespawnRoutine에서 실제로 쓰이지 않아 null 전달
     }
 
     /// <summary>

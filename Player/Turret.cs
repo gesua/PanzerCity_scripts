@@ -83,6 +83,24 @@ public class Turret : MonoBehaviour
     }
 
     /// <summary>
+    /// 카메라 댐핑 즉시 해제(멀티플레이:원격 관찰자는 _cameraTarget이 주입되지 않으므로 내부적으로 스킵됨)
+    /// </summary>
+    public void DisableCameraDamping()
+    {
+        if (_cameraTarget == null) return;
+        _cameraTarget.DisableDamping();
+    }
+
+    /// <summary>
+    /// 카메라 댐핑 값 복구(멀티플레이:원격 관찰자는 _cameraTarget이 주입되지 않으므로 내부적으로 스킵됨)
+    /// </summary>
+    public void ResetCameraDamping()
+    {
+        if (_cameraTarget == null) return;
+        _cameraTarget.ResetDamping();
+    }
+
+    /// <summary>
     /// 저격 모드 여부
     /// </summary>
     public void SetSniperMode(bool isSniper)

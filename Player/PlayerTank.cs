@@ -361,7 +361,7 @@ public class PlayerTank : TankBase
         _destroyedVisual.SetActive(false); // 파괴된 모델 비활성화
         _miniMapTankIcon.Hide(); // 미니맵 아이콘 숨기기
         _isAttack = false; // 공격 버튼 끄기
-        _turret.CameraTarget.DisableDamping(); // 카메라 즉시 이동
+        _turret.DisableCameraDamping(); // 카메라 즉시 이동
 
         // 반짝 이펙트
         GameManager.Instance.EffectManager.SpawnEffect(EffectType.Twinkle, spawnPos);
@@ -369,7 +369,7 @@ public class PlayerTank : TankBase
         // 이펙트 지속시간 대기
         yield return new WaitForSeconds(1f);
 
-        _turret.CameraTarget.ResetDamping(); // 카메라 덤핑 값 복구
+        _turret.ResetCameraDamping(); // 카메라 덤핑 값 복구
 
         // 탱크 생성
         _isDead = false; // 살았음
