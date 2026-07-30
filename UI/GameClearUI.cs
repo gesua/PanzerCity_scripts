@@ -12,9 +12,10 @@ public class GameClearUI : MonoBehaviour
 {
     [Header("----- 컴포넌트 -----")]
     [SerializeField] GameObject _gameClearPanel;
-    [SerializeField] Image _backgroundImage;  // 클리어 배경 이미지
-    [SerializeField] Image _darkOverlay;      // 어둡게 깔거
-    [SerializeField] CanvasGroup _buttonsGroup; // 버튼 그룹
+    [SerializeField] Image _backgroundImage;       // 클리어 배경 이미지
+    [SerializeField] Image _darkOverlay;           // 어둡게 깔거
+    [SerializeField] CanvasGroup _messageGroup;    // 메시지 그룹
+    [SerializeField] CanvasGroup _statisticsGroup; // 통계 그룹
 
     [Header("----- 통계 텍스트 -----")]
     [SerializeField] TextMeshProUGUI _goldText;       // 획득한 총 골드
@@ -27,7 +28,8 @@ public class GameClearUI : MonoBehaviour
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _bgFadeDuration = 2f;
     [SerializeField] float _darkFadeDuration = 1f;
-    [SerializeField] float _buttonsFadeDuration = 0.5f;
+    [SerializeField] float _groupFadeDuration = 0.5f;
+    [SerializeField] float _waitTime = 5f;
 
     public event Action TitleRequested;
 
@@ -41,7 +43,8 @@ public class GameClearUI : MonoBehaviour
         _gameClearPanel.SetActive(false);
         SetAlpha(_backgroundImage, 0f);
         SetAlpha(_darkOverlay, 0f);
-        _buttonsGroup.alpha = 0f;
+        _messageGroup.alpha = 0f;
+        _statisticsGroup.alpha = 0f;
     }
 
     public void Show(int totalGoldEarned, int itemsUsed, int shellKills, int deathCount, int finalStage, float playTime)
@@ -75,11 +78,17 @@ public class GameClearUI : MonoBehaviour
         // 어둡게 페이드 인 (알파 값 200까지만)
         yield return FadeRoutine(_darkOverlay, _darkFadeDuration, 200f / 255f);
 
+        // 메시지 그룹 페이드 인
+        yield return FadeCanvasGroupRoutine(_messageGroup, _groupFadeDuration);
+
+        // 잠시 대기
+        yield return new WaitForSeconds(_waitTime);
+
+        // 통계 그룹 페이드 인
+        yield return FadeCanvasGroupRoutine(_statisticsGroup, _groupFadeDuration);
+
         // 마우스 커서 보이게
         Cursor.lockState = CursorLockMode.None;
-
-        // 버튼 그룹 페이드 인
-        yield return FadeCanvasGroupRoutine(_buttonsGroup, _buttonsFadeDuration);
     }
 
     IEnumerator FadeRoutine(Graphic graphic, float duration, float targetAlpha = 1f)
