@@ -753,6 +753,9 @@ public class GameScene : MonoBehaviour
         }
         else
         {
+            // 남아있는 포탄, 아이템 등을 모든 Pool로 강제 반환
+            GameManager.Instance.PoolManager.ReturnAllPools();
+
             StartCoroutine(LoadStageRoutine(_currentStage.SceneName));
         }
     }
@@ -837,6 +840,9 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleTitleRequested()
     {
+        // 남아있는 포탄, 아이템 등을 모든 Pool로 강제 반환
+        GameManager.Instance.PoolManager.ReturnAllPools();
+
         Time.timeScale = 1f;
         UnsubscribeStage();
 

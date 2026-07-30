@@ -48,7 +48,6 @@ public class EnemySpawner : MonoBehaviour
     public event Action OnAllEnemiesDefeated;        // 모든 적 격파
     public event Action<DroppedItem> OnItemDropped;  // StageScene에 연결 용도
 
-    Coroutine _spawnEnemyRoutine;
     Coroutine _retryRoutine;
     Coroutine _empRoutine;
 
@@ -76,7 +75,7 @@ public class EnemySpawner : MonoBehaviour
         if (_isMultiplayer && NetworkManager.Singleton.IsServer == false) return;
 
         // 적 생성 코루틴 실행
-        _spawnEnemyRoutine = StartCoroutine(SpawnEnemyRoutine());
+        StartCoroutine(SpawnEnemyRoutine());
     }
 
     /// <summary>
