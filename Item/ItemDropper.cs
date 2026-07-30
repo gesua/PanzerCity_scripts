@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -8,6 +9,16 @@ using UnityEngine;
 public class ItemDropper : MonoBehaviour
 {
     public event Action<DroppedItem> OnItemDropped;
+
+    bool _isMultiplayer; // 멀티플레이 여부(EnemyTank가 SetNetworkOwner 시점에 전달)
+
+    /// <summary>
+    /// 멀티플레이 여부 설정(EnemyTank가 호출)
+    /// </summary>
+    public void SetNetworkMode(bool isMultiplayer)
+    {
+        _isMultiplayer = isMultiplayer;
+    }
 
     /// <summary>
     /// 드랍 확률 체크 및 아이템 선택
@@ -58,11 +69,24 @@ public class ItemDropper : MonoBehaviour
         ItemConfig itemConfig = GameManager.Instance.DataManager.GetItemConfig(itemID);
         if (itemConfig == null) return;
 
-        GameObject itemGo = GameManager.Instance.PoolManager.GetFromPool("DroppedItem");
+        string poolKey = (_isMultiplayer) ? "DroppedItem_Multi" : "DroppedItem";
+        GameObject itemGo = GameManager.Instance.PoolManager.GetFromPool(poolKey);
+
         itemGo.transform.position = transform.position + Vector3.up;
         if (itemGo.TryGetComponent(out DroppedItem droppedItem))
         {
             droppedItem.Initialize(itemConfig);
+        }
+
+        // 멀티플레이:네트워크 오브젝트로 스폰(클라이언트에 자동 복제)
+        if (_isMultiplayer && itemGo.TryGetComponent(out NetworkObject networkObject))
+        {
+            if (itemGo.TryGetComponent(out DroppedItemNetworkOwner networkOwner))
+            {
+                networkOwner.SetItemId(itemID); // 클라이언트 아이콘 동기화용(스폰 전에 값 세팅 필요)
+            }
+
+            networkObject.Spawn();
         }
 
         // 아이템 드랍 소리(3D)

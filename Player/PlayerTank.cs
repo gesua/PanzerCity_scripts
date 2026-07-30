@@ -167,6 +167,7 @@ public class PlayerTank : TankBase
     public void SetNetworkOwner(PlayerNetworkOwner networkOwner)
     {
         _networkOwner = networkOwner;
+        _itemPickup.SetNetworkOwner(networkOwner);
     }
 
     /// <summary>

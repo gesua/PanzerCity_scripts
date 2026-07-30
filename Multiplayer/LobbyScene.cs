@@ -465,7 +465,7 @@ public class LobbyScene : MonoBehaviour
     IEnumerator StartMultiplayerRoutine(AsyncOperation firstSceneOp)
     {
         // Pool 미리 만들기
-        GameManager.Instance.PoolManager.GetPool("DroppedItem");
+        GameManager.Instance.PoolManager.GetPool("DroppedItem_Multi");
         GameManager.Instance.PoolManager.GetPool("Shell_Multi");
 
         LoadingUI loadingUI = GameManager.Instance.LoadingUI;

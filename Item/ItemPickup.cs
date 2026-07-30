@@ -27,6 +27,8 @@ public class ItemPickup : MonoBehaviour
     bool _isLocalControl = true; // 로컬 소유인지(싱글 플레이:항상 true)
     bool _isInitialized; // Initialize() 호출 여부(멀티에서 스폰 직후 몇 프레임 동안 아직 안 됐을 수 있음)
 
+    PlayerNetworkOwner _networkOwner; // 멀티플레이:네트워크 오너 참조(null이면 싱글 플레이)
+
     public event Action<ItemConfig> OnAutoUsed; // 즉시 사용 아이템 획득
     Func<bool> _isDeadCheck; // 플레이어 죽었는지 넘겨받는 용도
 
@@ -52,6 +54,15 @@ public class ItemPickup : MonoBehaviour
     public void SetLocalControl(bool isLocal)
     {
         _isLocalControl = isLocal;
+    }
+
+    /// <summary>
+    /// 멀티플레이:네트워크 오너 참조 세팅(PlayerTank가 호출)
+    /// null이 아니면 멀티플레이로 간주
+    /// </summary>
+    public void SetNetworkOwner(PlayerNetworkOwner networkOwner)
+    {
+        _networkOwner = networkOwner;
     }
 
     void Update()
@@ -152,21 +163,40 @@ public class ItemPickup : MonoBehaviour
         _pickupUI.transform.SetParent(transform);
         _pickupUI.SetActive(false);
 
-        // 즉시 사용 아이템 — 인벤토리 거치지 않고 바로 효과 발동
-        if (_nearestItem.ItemConfig.AutoUse)
+        // 멀티플레이:서버에 픽업 승인 요청(동시 픽업 경합은 서버가 판정)
+        if (_networkOwner != null)
         {
-            OnAutoUsed?.Invoke(_nearestItem.ItemConfig);
-            _nearestItem.Pickup();
+            if (_nearestItem.TryGetComponent(out DroppedItemNetworkOwner droppedItemNetworkOwner))
+            {
+                droppedItemNetworkOwner.RequestPickupServerRpc();
+            }
             _nearestItem = null;
             return;
         }
 
-        // 일반 아이템 — 인벤토리에 추가
-        ItemModel item = new ItemModel(_nearestItem.ItemConfig);
-        if (_inventoryPresenter.AddItem(item))
+        // 싱글플레이
+        if (ApplyPickupResult(_nearestItem.ItemConfig))
         {
             _nearestItem.Pickup();
             _nearestItem = null;
         }
+    }
+
+    /// <summary>
+    /// 아이템 효과 적용(즉시사용/인벤토리 추가) — 제거는 호출부 책임
+    /// 싱글플레이(TryPickup)와 멀티플레이(서버 승인 후 DroppedItemNetworkOwner가 호출) 양쪽에서 재사용
+    /// </summary>
+    public bool ApplyPickupResult(ItemConfig config)
+    {
+        // 즉시 사용 아이템 — 인벤토리 거치지 않고 바로 효과 발동
+        if (config.AutoUse)
+        {
+            OnAutoUsed?.Invoke(config);
+            return true;
+        }
+
+        // 일반 아이템 — 인벤토리에 추가
+        ItemModel item = new ItemModel(config);
+        return _inventoryPresenter.AddItem(item);
     }
 }

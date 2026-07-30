@@ -201,6 +201,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     public void SetNetworkOwner(EnemyNetworkOwner networkOwner)
     {
         _networkOwner = networkOwner;
+        _itemDropper.SetNetworkMode(networkOwner != null); // 아이템 드랍도 멀티 여부를 알아야 함
     }
 
     /// <summary>

@@ -39,7 +39,7 @@ public class DroppedItem : MonoBehaviour
         float scale = _iconSize / maxSide;
         _icon.transform.localScale = new Vector3(scale, scale, 1f);
 
-        scale *= 2f; // 미니맵에선 크기 3배
+        scale *= 3f; // 미니맵 아이콘은 크게 그리기
         _minimapIcon.transform.localScale = new Vector3(scale, scale, 1f);
     }
 
