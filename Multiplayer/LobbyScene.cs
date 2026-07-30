@@ -184,6 +184,7 @@ public class LobbyScene : MonoBehaviour
 
             // 방 이름 중복 검사
             Lobby existingLobby = await LobbyManager.Instance.FindLobbyByNameAsync(roomName);
+            if (this == null) return;
 
             if (existingLobby != null)
             {
@@ -195,6 +196,7 @@ public class LobbyScene : MonoBehaviour
             _createPanel.SetActive(false);
 
             await LobbyManager.Instance.CreateLobbyAsync(roomName, password);
+            if (this == null) return;
 
             // 생성 실패 시 방 패널로 넘어가지 않음
             if (LobbyManager.Instance.CurrentLobby == null)
@@ -256,6 +258,7 @@ public class LobbyScene : MonoBehaviour
         {
             string password = _joinRoomPasswordInput.text.Trim();
             await LobbyManager.Instance.JoinLobbyAsync(lobbyId, password);
+            if (this == null) return;
 
             // 참가 실패 시 패널 전환 안 함
             if (LobbyManager.Instance.CurrentLobby == null) return;
@@ -284,6 +287,7 @@ public class LobbyScene : MonoBehaviour
         try
         {
             await LobbyManager.Instance.QuickJoinLobbyAsync();
+            if (this == null) return;
 
             // 참가 실패(또는 빈 방 없음) 시 패널 전환 안 함
             if (LobbyManager.Instance.CurrentLobby == null) return;
@@ -322,9 +326,12 @@ public class LobbyScene : MonoBehaviour
         }
         finally
         {
-            _refreshButton.interactable = true;
-            _quickStartButton.interactable = true;
-            _isRefreshing = false;
+            if (this != null)
+            {
+                _refreshButton.interactable = true;
+                _quickStartButton.interactable = true;
+                _isRefreshing = false;
+            }
         }
     }
 

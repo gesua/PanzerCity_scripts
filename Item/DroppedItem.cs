@@ -19,10 +19,14 @@ public class DroppedItem : MonoBehaviour
     float _blinkInterval = 0.5f;
     Coroutine _blinkRoutine;
 
+    int _originalChildCount; // 멀티플레이:despawn 시 외부에서 붙은 자식(픽업 UI 등)과 프리팹 원본 자식을 구분하는 기준값
+
     public ItemConfig ItemConfig => _itemConfig;
 
     void Awake()
     {
+        _originalChildCount = transform.childCount; // 프리팹 원본 자식 개수 캐싱(풀링돼도 Awake는 최초 1회만 호출됨)
+
         // 씬에 배치된 경우 자동 초기화
         if (_initialItemConfig != null) Initialize(_initialItemConfig);
     }
@@ -74,6 +78,18 @@ public class DroppedItem : MonoBehaviour
         {
             _minimapIcon.enabled = !_minimapIcon.enabled;
             yield return new WaitForSeconds(_blinkInterval);
+        }
+    }
+
+    /// <summary>
+    /// 멀티플레이:despawn 직전 외부에서 임시로 붙은 자식(픽업 UI 등)만 분리
+    /// 프리팹 원본 자식(아이콘 등)은 _originalChildCount 이내라 영향받지 않음
+    /// </summary>
+    public void DetachForeignChildren()
+    {
+        while (transform.childCount > _originalChildCount)
+        {
+            transform.GetChild(transform.childCount - 1).SetParent(null);
         }
     }
 }

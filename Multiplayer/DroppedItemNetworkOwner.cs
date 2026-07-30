@@ -11,27 +11,44 @@ public class DroppedItemNetworkOwner : NetworkBehaviour
     [SerializeField] DroppedItem _droppedItem;
 
     bool _isPickedUp; // 중복 픽업 방지(서버 전용 판정, 클라에 노출할 필요 없어서 NetworkVariable 아님)
+    int _pendingItemId; // 스폰 전 임시 저장(일반 필드라 스폰 타이밍 제약이 없음)
 
-    // 서버만 쓰기 가능, 전원이 읽음(스폰 값이 그대로 동기화되어 늦게 접속한 클라이언트도 자동 수신)
+    // 서버만 쓰기 가능, 전원이 읽음(스폰 시점 값이 동기화되고 늦게 접속한 클라이언트도 자동 수신)
     NetworkVariable<int> _itemId = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     /// <summary>
-    /// 스폰 전 아이템 ID 설정(ItemDropper가 Spawn() 호출 직전 호출)
+    /// 스폰 전 아이템 ID 임시 저장(ItemDropper가 Spawn() 호출 직전 호출)
+    /// NetworkVariable은 스폰 전에 쓰면 안 되므로, 일반 필드에 담아뒀다가 OnNetworkSpawn에서 옮겨 담음
     /// </summary>
-    public void SetItemId(int itemId)
+    public void SetPendingItemId(int itemId)
     {
-        if (IsServer == false) return; // 방어적 가드(정상 경로로는 서버에서만 호출됨)
-        _itemId.Value = itemId;
+        _pendingItemId = itemId;
     }
 
     public override void OnNetworkSpawn()
     {
+        // 서버:스폰된 시점(IsServer가 유효해진 시점)에 NetworkVariable로 옮겨 담음
+        if (IsServer)
+        {
+            _itemId.Value = _pendingItemId;
+        }
+
+        // 초기 스폰 메시지에 값이 아직 안 실렸을 수 있어 변경 이벤트도 함께 구독(공식 권장 패턴)
+        _itemId.OnValueChanged += HandleItemIdChanged;
+        ApplyItemConfig(_itemId.Value);
+    }
+
+    void HandleItemIdChanged(int previousValue, int currentValue)
+    {
+        ApplyItemConfig(currentValue);
+    }
+
+    void ApplyItemConfig(int itemId)
+    {
         if (IsServer) return; // 호스트 자신은 로컬에서 Initialize()가 이미 처리했으므로 중복 방지
+        ItemConfig itemConfig = GameManager.Instance.DataManager.GetItemConfig(itemId);
 
-        // 클라이언트:아이콘/데이터 동기화(스폰 값이 이미 반영된 상태라 늦게 접속한 클라이언트도 정상 동작)
-        ItemConfig itemConfig = GameManager.Instance.DataManager.GetItemConfig(_itemId.Value);
         if (itemConfig == null) return;
-
         _droppedItem.Initialize(itemConfig);
     }
 
@@ -76,10 +93,9 @@ public class DroppedItemNetworkOwner : NetworkBehaviour
     /// </summary>
     public override void OnNetworkDespawn()
     {
-        while (transform.childCount > 0)
-        {
-            transform.GetChild(0).SetParent(null);
-        }
+        _itemId.OnValueChanged -= HandleItemIdChanged; // 풀 재사용 시 중복 구독 방지
+
+        _droppedItem.DetachForeignChildren(); // 픽업 UI 등 외부에서 붙은 자식만 분리(아이콘 등 원본 자식은 보존)
 
         if (TryGetComponent(out Poolable poolable))
         {

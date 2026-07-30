@@ -83,9 +83,8 @@ public class ItemDropper : MonoBehaviour
         {
             if (itemGo.TryGetComponent(out DroppedItemNetworkOwner networkOwner))
             {
-                networkOwner.SetItemId(itemID); // 클라이언트 아이콘 동기화용(스폰 전에 값 세팅 필요)
+                networkOwner.SetPendingItemId(itemID); // 클라이언트 아이콘 동기화용(스폰 전에 값 세팅 필요)
             }
-
             networkObject.Spawn();
         }
 
