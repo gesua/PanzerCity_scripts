@@ -19,7 +19,7 @@ public class Turret : MonoBehaviour
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _minAngle = -10f;
     [SerializeField] float _maxAngle = 20f;
-    [SerializeField] float _minAimDistance = 10f; // 최소 조준거리
+    [SerializeField] float _minAimDistance = 4f; // 최소 조준거리
     [SerializeField] float _fallbackAimDistance = 10f; // 너무 가까울 때 대신 사용할 거리
 
     [SerializeField] LayerMask _aimLayerMask = 1 << 6 | 1 << 7 | 1 << 9; // 맵, 외곽벽, 적
@@ -167,26 +167,37 @@ public class Turret : MonoBehaviour
         float screenY = GetCurrentScreenY();
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, screenY, 0f));
 
-        // 카메라와 포탑 사이 거리보다 가까운 히트는 무시 (bedrock이 카메라 뒤에 걸리는 상황 방지)
+        // 카메라와 포탑 사이 거리
         float minDist = Vector3.Distance(Camera.main.transform.position, _barrel.position);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, _aimLayerMask))
+        // RaycastAll을 사용하여 광선 상의 모든 물체를 가져옴 (카메라와 탱크 사이 장애물 투과용)
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000f, _aimLayerMask);
+
+        // 카메라에서 가까운 순으로 정렬
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (RaycastHit hit in hits)
         {
-            if (hit.distance >= minDist) // 카메라와 포탑 사이 무시
+            // 카메라와 탱크 사이에 걸린 물체는 무시
+            if (hit.distance < minDist) continue;
+
+            // 거리를 비교할 때 '카메라' 기준이 아닌 '포탑' 기준으로 실제 거리를 다시 계산
+            float distFromBarrel = Vector3.Distance(_barrel.position, hit.point);
+
+            // 저격 모드, 물체가 포탑에서 충분히 멀리 떨어져 있다면 정상 조준
+            if (distFromBarrel >= _minAimDistance || _isSniping)
             {
-                // 저격 모드에선 가까워도 제대로 조준
-                if (hit.distance >= _minAimDistance || _isSniping)
-                {
-                    return hit.point;
-                }
-                else // 가까운 물체면 특정 거리 조준(포신이 과하게 들리는 것을 방지)
-                {
-                    return ray.origin + ray.direction * _fallbackAimDistance;
-                }
+                return hit.point;
+            }
+            else
+            {
+                // 탱크 앞의 벽을 조준했을 때 포신이 과하게 들리는 현상 방지
+                // 카메라 광선을 따라 '탱크 앞쪽(_fallbackAimDistance)'을 조준하도록 보정
+                return ray.origin + ray.direction * (minDist + _fallbackAimDistance);
             }
         }
 
-        // 아무것도 안 맞으면 멀리 있는 지점을 기준으로 사용
+        // 아무것도 안 맞으면 멀리 조준
         return ray.origin + ray.direction * 1000f;
     }
 
