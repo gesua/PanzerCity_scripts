@@ -31,6 +31,7 @@ public class DroppedItemNetworkOwner : NetworkBehaviour
         if (IsServer)
         {
             _itemId.Value = _pendingItemId;
+            _isPickedUp = false;
         }
 
         // 초기 스폰 메시지에 값이 아직 안 실렸을 수 있어 변경 이벤트도 함께 구독(공식 권장 패턴)

@@ -172,7 +172,7 @@ public class ItemPickup : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"{_nearestItem.name}에서 DroppedItemNetworkOwner를 찾을 수 없습니다. DroppedItem_Multi 프리팹 구성을 확인해주세요.");
+                Debug.Log($"{_nearestItem.name}에서 DroppedItemNetworkOwner를 찾을 수 없습니다. DroppedItem_Multi 프리팹 구성을 확인해주세요.");
             }
 
             _nearestItem = null;
