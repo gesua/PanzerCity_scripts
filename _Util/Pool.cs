@@ -16,6 +16,7 @@ public class Pool
     bool _includeInReturnAll;   // PoolManager.ReturnAllPools() 강제 반환 대상인지(필드 아이템/포탄용 Pool: true, UI용 Pool 등: false)
 
     public bool IncludeInReturnAll => _includeInReturnAll;
+    public GameObject Prefab => _prefab; // 네트워크 프리팹 핸들러 등록(AddHandler) 등, 원본 프리팹 참조가 필요한 경우 사용
 
     /// <summary>
     /// Pool 생성자
@@ -124,7 +125,8 @@ public class Pool
             handler.OnBeforeReturnToPool();
         }
 
-        // NetworkObject는 Despawn 이후 다시 재부모화가 금지되므로 부모를 건드리지 않음(DontDestroyOnLoad는 CreatePoolObj에서 이미 걸려있음)
+        // NetworkObject는 CreatePoolObj()에서 Pool 부모를 벗어난 적이 없으므로(사용 중에도 재부모화하지 않음) 되돌릴 필요가 없음
+        // (반면 일반 오브젝트는 사용 중 호출부에서 다른 부모로 옮겨졌다가 돌아오는 구조라 여기서 복원이 필요함)
         if (go.TryGetComponent(out NetworkObject networkObject) == false)
         {
             go.transform.SetParent(_parent);

@@ -30,10 +30,6 @@ public class EnemySpawner : MonoBehaviour
     [Header("----- 아이템 효과 -----")]
     [SerializeField] float _blinkStartTime = 2f;  // 깜빡이기 시작할 시간
     [SerializeField] float _blinkInterval = 0.1f; // 깜빡임 간격
-    [Header("----- 멀티플레이 -----")] // 네트워크 풀링 핸들러 등록용
-    [SerializeField] GameObject _lightTankMultiPrefab;  
-    [SerializeField] GameObject _mediumTankMultiPrefab; 
-    [SerializeField] GameObject _heavyTankMultiPrefab;  
 
     List<EnemyTank> _enemies = new(); // 생성된 적 리스트
 
@@ -76,14 +72,16 @@ public class EnemySpawner : MonoBehaviour
         GameManager.Instance.PoolManager.GetPool($"Tank/201Light{suffix}");
         GameManager.Instance.PoolManager.GetPool($"Tank/202Medium{suffix}");
         GameManager.Instance.PoolManager.GetPool($"Tank/203Heavy{suffix}");
+        GameManager.Instance.PoolManager.GetPool($"Tank/204Destroyer{suffix}");
 
         // 멀티플레이:네트워크 프리팹의 스폰/디스폰이 Pool을 타도록 핸들러 등록(서버·클라이언트 모두 실행)
         // 세션당 1회만 등록하면 되므로 static 플래그로 중복 등록 방지
         if (_isMultiplayer && _isNetworkPoolHandlerRegistered == false)
         {
-            RegisterNetworkPoolHandler(_lightTankMultiPrefab, $"Tank/201Light{suffix}");
-            RegisterNetworkPoolHandler(_mediumTankMultiPrefab, $"Tank/202Medium{suffix}");
-            RegisterNetworkPoolHandler(_heavyTankMultiPrefab, $"Tank/203Heavy{suffix}");
+            RegisterNetworkPoolHandler($"Tank/201Light{suffix}");
+            RegisterNetworkPoolHandler($"Tank/202Medium{suffix}");
+            RegisterNetworkPoolHandler($"Tank/203Heavy{suffix}");
+            RegisterNetworkPoolHandler($"Tank/204Destroyer{suffix}");
             _isNetworkPoolHandlerRegistered = true;
         }
 
@@ -100,15 +98,12 @@ public class EnemySpawner : MonoBehaviour
     /// 등록 후에는 non-authority 클라이언트의 Instantiate와, 서버·클라이언트 공통의 Destroy(Despawn destroy:true)가
     /// 모두 PoolManager를 거치게 됨
     /// </summary>
-    void RegisterNetworkPoolHandler(GameObject prefab, string poolKey)
+    void RegisterNetworkPoolHandler(string prefabPath)
     {
-        if (prefab == null)
-        {
-            Debug.LogWarning($"{poolKey}에 대응하는 멀티 프리팹이 연결되지 않았습니다.");
-            return;
-        }
+        Pool pool = GameManager.Instance.PoolManager.GetPool(prefabPath);
+        if (pool == null) return;
 
-        NetworkManager.Singleton.PrefabHandler.AddHandler(prefab, new NetworkPoolPrefabHandler(poolKey));
+        NetworkManager.Singleton.PrefabHandler.AddHandler(pool.Prefab, new NetworkPoolPrefabHandler(prefabPath));
     }
 
     /// <summary>
