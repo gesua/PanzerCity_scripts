@@ -106,7 +106,7 @@ public class Pool
         // 이미 Pool에 반환되어 있는 오브젝트면 무시(중복 반환 방지)
         if (_activeObjects.Contains(go) == false)
         {
-            Debug.LogWarning($"{go.name}이 이미 Pool에 반환되어 있음(중복 Push 무시)");
+            //Debug.LogWarning($"{go.name}이 이미 Pool에 반환되어 있음(중복 Push 무시)");
             return;
         }
         // 씬 전환되면서 사라질 때 오류 방지

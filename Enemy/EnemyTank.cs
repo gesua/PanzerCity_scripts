@@ -703,6 +703,9 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         // 엔진 끄기
         SetEngineEffect(false);
 
+        // EMP 파직거리는 이펙트 강제 종료
+        SetEMPEffect(false);
+
         // 폭발 이펙트 재생
         GameManager.Instance.EffectManager.SpawnEffect(EffectType.SmallExplosion, _turret.position); // transform 위치로 하면 바닥에서 폭발함
 

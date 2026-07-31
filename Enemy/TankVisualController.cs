@@ -70,6 +70,12 @@ public class TankVisualController : MonoBehaviour
     /// </summary>
     public void SetModelVisible(bool visible)
     {
+        // 적 멈춤 아이템이 다시 켜는 것을 방지
+        if (visible && _destroyedModel != null && _destroyedModel.activeSelf)
+        {
+            return;
+        }
+
         // 멀티 때문에 렌더러로 꺼야함
         foreach (MeshRenderer renderer in _normalVisualRenderers)
         {
