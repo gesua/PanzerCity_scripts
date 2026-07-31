@@ -30,6 +30,10 @@ public class EnemySpawner : MonoBehaviour
     [Header("----- 아이템 효과 -----")]
     [SerializeField] float _blinkStartTime = 2f;  // 깜빡이기 시작할 시간
     [SerializeField] float _blinkInterval = 0.1f; // 깜빡임 간격
+    [Header("----- 멀티플레이 -----")] // 네트워크 풀링 핸들러 등록용
+    [SerializeField] GameObject _lightTankMultiPrefab;  
+    [SerializeField] GameObject _mediumTankMultiPrefab; 
+    [SerializeField] GameObject _heavyTankMultiPrefab;  
 
     List<EnemyTank> _enemies = new(); // 생성된 적 리스트
 
@@ -42,6 +46,8 @@ public class EnemySpawner : MonoBehaviour
 
     bool _isEMPActive; // 적 멈추는 아이템 사용했는지
     bool _isMultiplayer; // 멀티플레이 여부(풀 경로, 서버 권위 판정용)
+
+    static bool _isNetworkPoolHandlerRegistered; // 네트워크 프리팹 풀링 핸들러 중복 등록 방지용(NetworkManager.Singleton 기준 세션당 1회만 등록되면 됨)
 
     public event Action<List<int>> OnSpawnListReady; // 스폰 리스트 준비됨
     public event Action<int> OnEnemySpawned;         // 적 스폰됨
@@ -71,11 +77,38 @@ public class EnemySpawner : MonoBehaviour
         GameManager.Instance.PoolManager.GetPool($"Tank/202Medium{suffix}");
         GameManager.Instance.PoolManager.GetPool($"Tank/203Heavy{suffix}");
 
+        // 멀티플레이:네트워크 프리팹의 스폰/디스폰이 Pool을 타도록 핸들러 등록(서버·클라이언트 모두 실행)
+        // 세션당 1회만 등록하면 되므로 static 플래그로 중복 등록 방지
+        if (_isMultiplayer && _isNetworkPoolHandlerRegistered == false)
+        {
+            RegisterNetworkPoolHandler(_lightTankMultiPrefab, $"Tank/201Light{suffix}");
+            RegisterNetworkPoolHandler(_mediumTankMultiPrefab, $"Tank/202Medium{suffix}");
+            RegisterNetworkPoolHandler(_heavyTankMultiPrefab, $"Tank/203Heavy{suffix}");
+            _isNetworkPoolHandlerRegistered = true;
+        }
+
         // 멀티플레이:적 스폰 판정은 서버만 수행(클라이언트는 NetworkObject.Spawn()으로 자동 복제됨)
         if (_isMultiplayer && NetworkManager.Singleton.IsServer == false) return;
 
         // 적 생성 코루틴 실행
         StartCoroutine(SpawnEnemyRoutine());
+    }
+
+    /// <summary>
+    /// 멀티플레이:네트워크 프리팹(_Multi)에 Pool 기반 스폰/디스폰 핸들러 등록
+    /// DroppedItem_Multi와 동일하게 NetworkPoolPrefabHandler를 재사용함
+    /// 등록 후에는 non-authority 클라이언트의 Instantiate와, 서버·클라이언트 공통의 Destroy(Despawn destroy:true)가
+    /// 모두 PoolManager를 거치게 됨
+    /// </summary>
+    void RegisterNetworkPoolHandler(GameObject prefab, string poolKey)
+    {
+        if (prefab == null)
+        {
+            Debug.LogWarning($"{poolKey}에 대응하는 멀티 프리팹이 연결되지 않았습니다.");
+            return;
+        }
+
+        NetworkManager.Singleton.PrefabHandler.AddHandler(prefab, new NetworkPoolPrefabHandler(poolKey));
     }
 
     /// <summary>
@@ -193,7 +226,14 @@ public class EnemySpawner : MonoBehaviour
     {
         // 탱크 미리 생성
         GameObject enemyGo = GameManager.Instance.PoolManager.GetFromPool(prefabPath);
-        enemyGo.transform.SetParent(transform);
+
+        // 멀티(NetworkObject 포함)는 Pool이 부모를 직접 관리(생성 시 DontDestroyOnLoad)하므로 재부모화하지 않음
+        // 여기서 재부모화하면 Despawn 시 Pool.Push()가 NetworkObject는 부모를 되돌리지 않아서
+        // 씬 로컬 부모 밑에 남게 되고, 스테이지 전환 때 DontDestroyOnLoad 보호를 잃고 함께 파괴돼버림
+        if (_isMultiplayer == false)
+        {
+            enemyGo.transform.SetParent(transform);
+        }
         enemyGo.transform.position = spawnPos;
 
         // 초기화

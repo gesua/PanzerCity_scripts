@@ -21,6 +21,13 @@ public class EnemyNetworkOwner : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        // 클라이언트는 Pool에서 재사용된 오브젝트를 받을 수 있어 상태 초기화가 필요함
+        // (서버는 EnemySpawner.SpawnRoutine()에서 GetFromPool 직후 이미 Initialize()를 호출하므로 여기서는 제외)
+        if (IsServer == false)
+        {
+            _enemyTank.Initialize();
+        }
+
         // 서버만 AI/이동 판정 주체
         _enemyTank.SetNetworkControl(IsServer);
 
