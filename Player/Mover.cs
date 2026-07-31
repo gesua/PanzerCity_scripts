@@ -22,6 +22,7 @@ public class Mover : MonoBehaviour
     // 물리 연산 관련
     Rigidbody _rigid;
     Vector3 _velocity;
+    private Vector3 _prevPosition; // 이전 위치(충돌 판정)
     float _currentSpeed;   // 로컬 전진 방향에 대한 현재 속도(음수면 후진)
     float _targetSpeed;    // 목표 속도
     float _dirX;           // 좌우 방향
@@ -29,6 +30,7 @@ public class Mover : MonoBehaviour
     private void Awake()
     {
         _rigid = GetComponent<Rigidbody>();
+        _prevPosition = _rigid.position;
     }
 
     public void Initialize(TankModel tankModel)
@@ -87,6 +89,9 @@ public class Mover : MonoBehaviour
         // Kinematic이면(멀티에서 남의 탱크) 물리 연산 자체가 의미 없으므로 스킵
         if (_rigid.isKinematic) return;
 
+        // 충돌 체크
+        CheckMovementBlocked();
+
         // 현재 수직(중력) 속도는 유지
         float currentY = _rigid.linearVelocity.y;
 
@@ -115,22 +120,27 @@ public class Mover : MonoBehaviour
         OnMoved?.Invoke(_velocity);
     }
 
-    private void OnCollisionStay(Collision collision)
+    /// <summary>
+    /// 충돌 체크(속력 0으로 만듦)
+    /// </summary>
+    void CheckMovementBlocked()
     {
-        // 뭔가에 충돌했을 때 가속도 제거
-        bool blocked = false;
-        foreach (ContactPoint contact in collision.contacts)
-        {
-            float dot = Vector3.Dot(transform.forward, contact.normal);
-            if (_targetSpeed > 0f && dot < -0.5f) { blocked = true; break; }
-            if (_targetSpeed < 0f && dot > 0.5f) { blocked = true; break; }
-        }
+        // 실제 이동 거리
+        float actualMove = Vector3.Distance(_rigid.position, _prevPosition);
 
-        if (blocked)
+        // 기대 이동 거리
+        float expectedMove = Mathf.Abs(_currentSpeed * _speedMultiplier) * Time.fixedDeltaTime;
+
+        // 일정 속도 이상인데 거의 못 움직였으면 벽에 막힌 것으로 판단
+        if (expectedMove > 0.1f && actualMove < expectedMove * 0.3f)
         {
+            Debug.Log("충돌 후 속력 0됨");
             _currentSpeed = 0f;
             _targetSpeed = 0f;
         }
+
+        // 다음 프레임 비교를 위해 위치 저장
+        _prevPosition = _rigid.position;
     }
 
     /// <summary>
