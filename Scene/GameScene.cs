@@ -207,7 +207,10 @@ public class GameScene : MonoBehaviour
         }
 
         // 아이템 효과들
-        // 목숨 증가
+        // 공유 스테이지 오브젝트(BaseWall, EnemySpawner)를 건드리는 효과는 멀티에서 서버 권위로 처리해야 함
+        bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+
+        // 목숨 증가 — 로컬 개인 자원이라 싱글/멀티 구분 없이 그대로 로컬 처리
         _itemEffectHandler.OnLifeUp += () =>
         {
             GameManager.Instance.PlayerData.AddLife(1);
@@ -216,9 +219,16 @@ public class GameScene : MonoBehaviour
         // 기지 무적
         _itemEffectHandler.OnBaseShield += duration =>
         {
-            _currentStage.BaseWall.ActivateShield(duration);
+            if (isMultiplayer)
+            {
+                NetworkGameManager.Instance.RequestBaseShieldServerRpc(duration);
+            }
+            else
+            {
+                _currentStage.BaseWall.ActivateShield(duration);
+            }
         };
-        // 나 무적
+        // 나 무적 — 로컬 개인 상태라 싱글/멀티 구분 없이 그대로 로컬 처리
         _itemEffectHandler.OnHyperShield += duration =>
         {
             if (_hyperShieldRoutine != null) StopCoroutine(_hyperShieldRoutine);
@@ -227,12 +237,26 @@ public class GameScene : MonoBehaviour
         // 적 멈춤
         _itemEffectHandler.OnEMPField += duration =>
         {
-            _currentStage.EnemySpawner.StartEMPField(duration);
+            if (isMultiplayer)
+            {
+                NetworkGameManager.Instance.RequestEMPFieldServerRpc(duration);
+            }
+            else
+            {
+                _currentStage.EnemySpawner.StartEMPField(duration);
+            }
         };
         // 폭탄
         _itemEffectHandler.OnAirSupport += () =>
         {
-            _currentStage.EnemySpawner.DestroyAllEnemies();
+            if (isMultiplayer)
+            {
+                NetworkGameManager.Instance.RequestAirSupportServerRpc();
+            }
+            else
+            {
+                _currentStage.EnemySpawner.DestroyAllEnemies();
+            }
         };
 
         // 이어줌

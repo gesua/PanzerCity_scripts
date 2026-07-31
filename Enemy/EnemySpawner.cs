@@ -349,6 +349,9 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     public void StartEMPField(float duration)
     {
+        // 멀티플레이:AI 판정은 서버만 수행(호출 주체는 NetworkGameManager)
+        if (_isMultiplayer && NetworkManager.Singleton.IsServer == false) return;
+
         if (_empRoutine != null)
         {
             StopCoroutine(_empRoutine);
@@ -383,6 +386,56 @@ public class EnemySpawner : MonoBehaviour
     }
 
     /// <summary>
+    /// 멀티플레이:현재 생존한 적들의 NetworkObjectId 목록 반환(EMP 시각 연출 브로드캐스트용)
+    /// </summary>
+    public ulong[] GetActiveEnemyNetworkObjectIds()
+    {
+        List<ulong> ids = new List<ulong>();
+        foreach (EnemyTank enemy in _enemies)
+        {
+            if (enemy.TryGetComponent(out NetworkObject networkObject) == false) continue;
+            ids.Add(networkObject.NetworkObjectId);
+        }
+        return ids.ToArray();
+    }
+
+    /// <summary>
+    /// 멀티플레이:클라이언트가 서버의 EMP 신호를 받았을 때 호출 — 판정 없이 시각 연출(이펙트+깜빡임)만 재생
+    /// AI 정지 자체는 서버 권위 이동이 NetworkTransform으로 그대로 반영되므로 클라이언트에서 별도 처리 불필요
+    /// </summary>
+    public void PlayEMPVisual(List<EnemyTank> targets, float duration)
+    {
+        StartCoroutine(EMPVisualRoutine(targets, duration));
+    }
+
+    IEnumerator EMPVisualRoutine(List<EnemyTank> targets, float duration)
+    {
+        foreach (EnemyTank enemy in targets)
+            enemy.SetEMPEffect(true);
+
+        yield return new WaitForSeconds(duration - _blinkStartTime);
+
+        // 깜빡이기
+        float elapsed = 0f;
+        while (elapsed < _blinkStartTime)
+        {
+            foreach (EnemyTank enemy in targets)
+                enemy.SetRenderersVisible(false);
+
+            yield return new WaitForSeconds(_blinkInterval);
+
+            foreach (EnemyTank enemy in targets)
+                enemy.SetRenderersVisible(true);
+
+            yield return new WaitForSeconds(_blinkInterval);
+            elapsed += _blinkInterval * 2f;
+        }
+
+        foreach (EnemyTank enemy in targets)
+            enemy.SetEMPEffect(false);
+    }
+
+    /// <summary>
     /// 모든 적의 AI 켜고 끄기
     /// </summary>
     public void SetAllEnemiesAIActive(bool active)
@@ -408,6 +461,9 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     public void DestroyAllEnemies()
     {
+        // 멀티플레이:데미지 판정은 서버만 수행(결과는 기존 HP/디스폰 동기화 경로로 클라이언트에 자동 전파됨)
+        if (_isMultiplayer && NetworkManager.Singleton.IsServer == false) return;
+
         List<EnemyTank> targets = _enemies.ToList();
         bool killedAny = targets.Count > 0;
 

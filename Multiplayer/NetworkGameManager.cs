@@ -206,6 +206,78 @@ public class NetworkGameManager : NetworkBehaviour
     }
 
     /// <summary>
+    /// 기지 무적 아이템 동기화 — 클라이언트가 아이템 사용 시 요청(GameScene이 호출)
+    /// </summary>
+    [ServerRpc(RequireOwnership = false)]
+    public void RequestBaseShieldServerRpc(float duration)
+    {
+        if (_stageScene == null) return;
+
+        _stageScene.BaseWall.ActivateShield(duration); // 서버(호스트) 자신의 로컬 적용
+
+        NotifyBaseShieldClientRpc(duration);
+    }
+
+    [ClientRpc]
+    void NotifyBaseShieldClientRpc(float duration)
+    {
+        // 호스트 자신은 위에서 이미 직접 처리했으므로 중복 방지
+        if (IsServer) return;
+
+        if (_stageScene == null) return;
+        _stageScene.BaseWall.ActivateShield(duration);
+    }
+
+    /// <summary>
+    /// 적 멈춤 아이템 동기화 — 클라이언트가 아이템 사용 시 요청(GameScene이 호출)
+    /// AI 정지 판정은 서버 권위 이동이 NetworkTransform으로 그대로 반영되므로 별도 전파가 필요 없고,
+    /// 이펙트/깜빡임 같은 시각 연출만 대상 목록과 함께 클라이언트에 전달함
+    /// </summary>
+    [ServerRpc(RequireOwnership = false)]
+    public void RequestEMPFieldServerRpc(float duration)
+    {
+        if (_stageScene == null) return;
+
+        _stageScene.EnemySpawner.StartEMPField(duration); // 서버 권위 판정 + 호스트 자신의 연출
+
+        ulong[] enemyIds = _stageScene.EnemySpawner.GetActiveEnemyNetworkObjectIds();
+        NotifyEMPVisualClientRpc(enemyIds, duration);
+    }
+
+    [ClientRpc]
+    void NotifyEMPVisualClientRpc(ulong[] enemyNetworkObjectIds, float duration)
+    {
+        // 호스트 자신은 위에서 이미 직접 처리했으므로 중복 방지
+        if (IsServer) return;
+
+        if (_stageScene == null) return;
+
+        // 신호를 보낸 시점에 생존해 있던 적들만 대상 — 판정 없이 이펙트/깜빡임 연출만 재생
+        List<EnemyTank> targets = new List<EnemyTank>();
+        foreach (ulong id in enemyNetworkObjectIds)
+        {
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id, out NetworkObject targetObject) == false) continue;
+            if (targetObject.TryGetComponent(out EnemyTank enemyTank) == false) continue;
+
+            targets.Add(enemyTank);
+        }
+
+        _stageScene.EnemySpawner.PlayEMPVisual(targets, duration);
+    }
+
+    /// <summary>
+    /// 폭탄 아이템 동기화 — 클라이언트가 아이템 사용 시 요청(GameScene이 호출)
+    /// 결과(HP 변화/디스폰)는 기존 데미지 처리 경로를 통해 클라이언트에 자동으로 전파되므로 별도 브로드캐스트가 필요 없음
+    /// </summary>
+    [ServerRpc(RequireOwnership = false)]
+    public void RequestAirSupportServerRpc()
+    {
+        if (_stageScene == null) return;
+
+        _stageScene.EnemySpawner.DestroyAllEnemies();
+    }
+
+    /// <summary>
     /// 연결된 모든 클라이언트에 플레이어 스폰
     /// </summary>
     void SpawnAllPlayers()

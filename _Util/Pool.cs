@@ -47,7 +47,8 @@ public class Pool
         // 원본 프리팹을 복제해서 새 게임오브젝트 생성
         GameObject go = Object.Instantiate(_prefab);
 
-        // NetworkObject는 스폰되기 전까지 재부모화가 금지되므로(NGO 제약), Pool 부모 대신 자기 자신을 DontDestroyOnLoad로 보호
+        // NetworkObject는 스폰되기 전까지 재부모화가 금지되므로(NGO 제약: 부모가 NetworkObject인지 여부와 무관하게 막힘),
+        // Pool 부모 대신 자기 자신을 DontDestroyOnLoad로 보호
         if (go.TryGetComponent(out NetworkObject networkObject) == false)
         {
             // 새 게임오브젝트의 부모를 Pool의 부모로 설정
@@ -125,8 +126,7 @@ public class Pool
             handler.OnBeforeReturnToPool();
         }
 
-        // NetworkObject는 CreatePoolObj()에서 Pool 부모를 벗어난 적이 없으므로(사용 중에도 재부모화하지 않음) 되돌릴 필요가 없음
-        // (반면 일반 오브젝트는 사용 중 호출부에서 다른 부모로 옮겨졌다가 돌아오는 구조라 여기서 복원이 필요함)
+        // NetworkObject는 Despawn 이후 다시 재부모화가 금지되므로 부모를 건드리지 않음(DontDestroyOnLoad는 CreatePoolObj에서 이미 걸려있음)
         if (go.TryGetComponent(out NetworkObject networkObject) == false)
         {
             go.transform.SetParent(_parent);
