@@ -64,6 +64,7 @@ public class LobbyScene : MonoBehaviour
         LobbyManager.Instance.OnNetworkSceneLoadStarted += HandleNetworkSceneLoadStarted;
 
         LobbyManager.Instance.PendingLobbyAudioListener = _audioListener; // AudioListener 메시지 처리용
+        LobbyManager.Instance.PendingLobbyEventSystem = _eventSystem; // EventSystem 중복 방지용
 
         ShowPanel(_nicknamePanel);
     }

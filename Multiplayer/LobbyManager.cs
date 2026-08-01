@@ -12,6 +12,7 @@ using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 /// <summary>
@@ -47,6 +48,7 @@ public class LobbyManager : MonoBehaviour
     public bool IsHost => _currentLobby != null &&
         _currentLobby.HostId == AuthenticationService.Instance.PlayerId;
     public AudioListener PendingLobbyAudioListener { get; set; } // AudioListener 메시지 처리용
+    public EventSystem PendingLobbyEventSystem { get; set; } // EventSystem 중복 방지용
 
     public event Action<List<Lobby>> OnLobbyListUpdated;
     public event Action<Lobby> OnLobbyUpdated; // 룸 상태 갱신
