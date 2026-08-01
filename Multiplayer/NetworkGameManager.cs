@@ -10,7 +10,8 @@ using UnityEngine.SceneManagement;
 public class NetworkGameManager : NetworkBehaviour
 {
     [SerializeField] GameObject _playerPrefab;
-    [SerializeField] GameObject _droppedItemMultiPrefab; // NetworkPoolPrefabHandler 등록용
+    [SerializeField] GameObject _droppedItemMultiPrefab;
+    [SerializeField] GameObject _shellMultiPrefab;
 
     // 모든 클라이언트의 씬 로드 완료 여부
     bool _waitForSceneLoaded;
@@ -43,6 +44,17 @@ public class NetworkGameManager : NetworkBehaviour
         else
         {
             NetworkManager.Singleton.PrefabHandler.AddHandler(_droppedItemMultiPrefab, new NetworkPoolPrefabHandler("DroppedItem_Multi"));
+        }
+
+        // 클라이언트 측 Shell_Multi 스폰을 Pool 시스템으로 위임
+        // (디스폰은 destroy:false라 Destroy()가 호출되지 않으므로, 클라이언트 반환은 ShellNetworkOwner.OnNetworkDespawn()이 담당)
+        if (_shellMultiPrefab == null)
+        {
+            Debug.LogWarning("ShellMultiPrefab이 연결되지 않았습니다.");
+        }
+        else
+        {
+            NetworkManager.Singleton.PrefabHandler.AddHandler(_shellMultiPrefab, new NetworkPoolPrefabHandler("Shell_Multi"));
         }
     }
 

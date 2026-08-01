@@ -64,4 +64,19 @@ public class ShellNetworkOwner : NetworkBehaviour
             networkObject.Despawn(false);
         }
     }
+
+    /// <summary>
+    /// 클라이언트 전용 Pool 반환 — despawn 시점에 destroy 값과 무관하게 항상 호출됨
+    /// 서버는 Remove() → OnBeforeReturnToPool() → RequestDespawn() 경로에서 이미 처리하므로 제외
+    /// (destroy:false라 INetworkPrefabInstanceHandler.Destroy()는 호출되지 않아, 클라이언트 반환은 여기서 별도 처리해야 함)
+    /// </summary>
+    public override void OnNetworkDespawn()
+    {
+        if (IsServer) return;
+
+        if (TryGetComponent(out Poolable poolable))
+        {
+            poolable.ReturnToPool();
+        }
+    }
 }
