@@ -15,6 +15,7 @@ public class ShopUI : MonoBehaviour
     [SerializeField] GameObject _equipmentSlotRoot; // 장비 슬롯 + 라벨 등 묶은 부모 오브젝트 (선택)
     [SerializeField] TrashCanUI _trashCanUI; // 쓰레기통
     [SerializeField] GameObject _clickBlocker; // 종료 버튼 눌렀을 때 다른 거 못 누르게 막는 용도
+    [SerializeField] ItemTooltipUI _itemTooltipUI; // 툴팁 UI
 
     InventoryUI _inventoryUI;
     EquipmentUI _equipmentUI;
@@ -45,10 +46,14 @@ public class ShopUI : MonoBehaviour
             ItemConfig config = GameManager.Instance.DataManager.GetItemConfig(storeItemIDs[i]);
             _itemSlots[i].Initialize(config);
             _itemSlots[i].OnClicked += HandleItemClicked;
+            _itemSlots[i].OnHoverEnter += HandleItemHoverEnter;
+            _itemSlots[i].OnHoverExit += HandleItemHoverExit;
         }
 
         // 장비 슬롯 이벤트 구독
         _equipmentSlot.OnClicked += HandleEquipmentClicked;
+        _equipmentSlot.OnHoverEnter += HandleItemHoverEnter;
+        _equipmentSlot.OnHoverExit += HandleItemHoverExit;
     }
 
     public void SetShopActive(bool active)
@@ -62,6 +67,11 @@ public class ShopUI : MonoBehaviour
 
             _shopOwnerUI.ShowWelcome(); // 인사
             RollEquipmentItem(); // 열릴 때마다 장비 새로 뽑기
+        }
+        else
+        {
+            // 상점이 닫힐 때 툴팁 숨김
+            if (_itemTooltipUI != null) _itemTooltipUI.Hide();
         }
     }
 
@@ -143,6 +153,28 @@ public class ShopUI : MonoBehaviour
     }
 
     /// <summary>
+    /// 아이템 호버 시작 (툴팁 켜기)
+    /// </summary>
+    void HandleItemHoverEnter(ItemConfig itemConfig, Vector3 pos)
+    {
+        if (_itemTooltipUI != null)
+        {
+            _itemTooltipUI.Show(itemConfig, pos);
+        }
+    }
+
+    /// <summary>
+    /// 아이템 호버 종료 (툴팁 끄기)
+    /// </summary>
+    void HandleItemHoverExit()
+    {
+        if (_itemTooltipUI != null)
+        {
+            _itemTooltipUI.Hide();
+        }
+    }
+
+    /// <summary>
     /// 소모품 구매
     /// </summary>
     void HandleItemClicked(ItemConfig itemConfig)
@@ -189,6 +221,7 @@ public class ShopUI : MonoBehaviour
 
         _shopOwnerUI.ShowBuySuccess();
         _equipmentSlot.SetSoldOut(true); // 구매 후 매진
+        if (_itemTooltipUI != null) _itemTooltipUI.Hide(); // 툴팁 가림
     }
 
     /// <summary>
@@ -203,6 +236,12 @@ public class ShopUI : MonoBehaviour
 
         _equipmentSlot.SetInteractable(isInteractable);
         _shopOwnerUI.SetInteractable(isInteractable);
+        
+        // 상호작용 막힐 때 툴팁도 바로 꺼줌
+        if (isInteractable == false && _itemTooltipUI != null)
+        {
+            _itemTooltipUI.Hide();
+        }
     }
 
     /// <summary>

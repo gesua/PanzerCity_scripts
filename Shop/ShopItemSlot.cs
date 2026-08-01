@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// <summary>
 /// 상점 아이템 슬롯
 /// </summary>
-public class ShopItemSlot : MonoBehaviour, IPointerClickHandler
+public class ShopItemSlot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] Image _icon;
     [SerializeField] TextMeshProUGUI _priceText;
@@ -18,6 +18,10 @@ public class ShopItemSlot : MonoBehaviour, IPointerClickHandler
     bool _isInteractable = true;
 
     public event Action<ItemConfig> OnClicked;
+
+    // 툴팁을 위한 호버 이벤트 추가
+    public event Action<ItemConfig, Vector3> OnHoverEnter;
+    public event Action OnHoverExit;
 
     public void Initialize(ItemConfig itemConfig)
     {
@@ -50,5 +54,22 @@ public class ShopItemSlot : MonoBehaviour, IPointerClickHandler
         if (_isSoldOut) return;
         if (_isInteractable == false) return;
         OnClicked?.Invoke(_itemConfig);
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (_itemConfig != null && _isInteractable)
+        {
+            // 아이콘의 월드 위치
+            OnHoverEnter?.Invoke(_itemConfig, transform.position);
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (_isInteractable)
+        {
+            OnHoverExit?.Invoke();
+        }
     }
 }
