@@ -476,11 +476,11 @@ public class LobbyScene : MonoBehaviour
         GameManager.Instance.PoolManager.GetPool("DroppedItem_Multi");
         GameManager.Instance.PoolManager.GetPool("Shell_Multi");
 
-        LoadingUI loadingUI = GameManager.Instance.LoadingUI;
-        yield return loadingUI.ShowRoutine();
-
         if (_audioListener != null) _audioListener.enabled = false;
         if (_eventSystem != null) _eventSystem.gameObject.SetActive(false);
+
+        LoadingUI loadingUI = GameManager.Instance.LoadingUI;
+        yield return loadingUI.ShowRoutine();
 
         // 멀티용 Game 씬 로드 (호스트만 요청, 클라이언트는 Netcode가 자동으로 밀어줌)
         yield return LoadNetworkedSceneRoutine("Game_Multi", 0f, 0.297f, firstSceneOp); // 33%(0.9f가 100%)
