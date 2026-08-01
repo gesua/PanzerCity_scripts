@@ -402,6 +402,8 @@ public class EnemySpawner : MonoBehaviour
         List<ulong> ids = new List<ulong>();
         foreach (EnemyTank enemy in _enemies)
         {
+            if (enemy.IsAlive == false) continue; // 이미 죽은 적은 제외
+
             if (enemy.TryGetComponent(out NetworkObject networkObject) == false) continue;
             ids.Add(networkObject.NetworkObjectId);
         }
@@ -451,6 +453,8 @@ public class EnemySpawner : MonoBehaviour
     {
         foreach (EnemyTank enemy in _enemies)
         {
+            if (enemy.IsAlive == false) continue; // 이미 죽은 적은 제외(AI 비활성화가 사망 상태 타이머까지 멈춰버림)
+
             enemy.SetAIActive(active);
             enemy.SetEMPEffect(!active); // 파직거리는 이펙트
         }
@@ -462,7 +466,10 @@ public class EnemySpawner : MonoBehaviour
     void SetAllEnemiesVisible(bool visible)
     {
         foreach (EnemyTank enemy in _enemies)
+        {
+            if (enemy.IsAlive == false) continue; // 이미 죽은 적은 깜빡임 대상에서 제외
             enemy.SetRenderersVisible(visible);
+        }
     }
 
     /// <summary>

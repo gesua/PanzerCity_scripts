@@ -81,8 +81,8 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     bool _isNetworkControlled = true; // 멀티플레이:AI/이동 판정 주체 여부(기본값 true — 싱글에서는 항상 자기 자신이 주체)
 
     public float SpawnEffectTime => _spawnEffectTime;
-
     public EnemyPersonality Personality => _personality;
+    public bool IsAlive => _model.IsAlive; // 죽은 적을 걸러내야 하는 곳(EMP 등)에서 사용
 
     /// <summary>
     /// 적 제거 이벤트
