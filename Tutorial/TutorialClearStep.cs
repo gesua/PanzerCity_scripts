@@ -13,8 +13,6 @@ public class TutorialClearStep : TutorialStep
     [SerializeField] float _clearDelay = 5f;  // 클리어 연출까지 대기 시간
     [SerializeField] float _shopDelay = 3f;   // 클리어 연출 후 상점 오픈까지 대기 시간
 
-    [SerializeField] GameObject _tutorialControlsUI; // 튜토리얼 조작키 안내 UI
-
     private void OnEnable()
     {
         StartCoroutine(ClearRoutine());
@@ -31,9 +29,6 @@ public class TutorialClearStep : TutorialStep
         gameScene.ShowTutorialClearEffect();
 
         yield return new WaitForSeconds(_shopDelay);
-
-        // 조작키UI 비활성화
-        _tutorialControlsUI.SetActive(false);
 
         // 상점 오픈
         gameScene.TutorialClear();

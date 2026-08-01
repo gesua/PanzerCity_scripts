@@ -12,6 +12,8 @@ public class PlayerNetworkOwner : NetworkBehaviour
 
     // 목숨 UI 동기화용:Owner만 로컬에서 직접 쓸 수 있음(목숨은 서버 권위가 아니라 각자 로컬 판단 기반)
     NetworkVariable<int> _life = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    // 무적 판정 동기화용:서버가 자기 쪽 TankModel 사본에도 반영해야 데미지 판정에서 실제로 걸러짐(연출과 별개)
+    NetworkVariable<bool> _isInvincible = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     public int CurrentLife => _life.Value; // 다른 클라이언트가 초기 UI 세팅 시 조회용
 
@@ -38,7 +40,8 @@ public class PlayerNetworkOwner : NetworkBehaviour
         _playerTank.OnPlayerRespawn += HandleRemoteRespawn;
         // 목숨 UI:전원이 이 값의 변경을 받아서 NetworkGameManager로 릴레이
         _life.OnValueChanged += HandleLifeValueChanged;
-
+        // 무적 판정:전원(서버 포함)이 이 값의 변경을 받아서 각자 로컬 TankModel에 반영
+        _isInvincible.OnValueChanged += HandleInvincibleValueChanged;
 
         // 로컬 소유일 때만 GameScene에 스폰 완료를 알림
         if (IsOwner)
@@ -62,6 +65,23 @@ public class PlayerNetworkOwner : NetworkBehaviour
     void HandleLifeValueChanged(int previousValue, int currentValue)
     {
         NetworkGameManager.Instance.NotifyLifeChanged((int)OwnerClientId, currentValue);
+    }
+
+    /// <summary>
+    /// 무적 판정 네트워크 반영(PlayerTank가 호출) — 소유 클라이언트만 쓸 수 있음
+    /// </summary>
+    public void SetInvincible(bool invincible)
+    {
+        _isInvincible.Value = invincible;
+    }
+
+    /// <summary>
+    /// 무적 판정 동기화 — 서버를 포함한 모든 관찰자가 각자 로컬 TankModel에 반영
+    /// 이래야 서버의 데미지 판정(Shell)에서도 실제로 걸러짐(연출은 PlayerTank.ActivateShieldVisual이 별도 담당)
+    /// </summary>
+    void HandleInvincibleValueChanged(bool previousValue, bool currentValue)
+    {
+        _playerTank.Model.SetNoDamage(currentValue);
     }
 
     /// <summary>
@@ -143,5 +163,4 @@ public class PlayerNetworkOwner : NetworkBehaviour
         if (IsOwner) return;
         _playerTank.PlayShieldVisual(duration);
     }
-
 }

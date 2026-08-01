@@ -886,11 +886,13 @@ public class GameScene : MonoBehaviour
     IEnumerator HyperShieldRoutine(float duration)
     {
         _player.Model.SetNoDamage(true);
+        _player.SetNetworkInvincible(true); // 멀티:서버의 데미지 판정에도 반영
         _player.ActivateShieldVisual(duration); // 본인 화면 로컬 재생 + 멀티면 다른 클라이언트에도 전파
 
         yield return new WaitForSeconds(duration);
 
         _player.Model.SetNoDamage(false);
+        _player.SetNetworkInvincible(false);
     }
 
     void Update()

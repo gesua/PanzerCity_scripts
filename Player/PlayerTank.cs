@@ -471,7 +471,14 @@ public class PlayerTank : TankBase
         }
     }
 
-
+    /// <summary>
+    /// 무적 판정을 네트워크에 반영 — 멀티면 서버도 알아야 데미지 판정에서 실제로 걸러짐(싱글이면 아무 것도 안 함)
+    /// SetNoDamage 자체는 호출자(GameScene)가 로컬에서 별도로 호출함
+    /// </summary>
+    public void SetNetworkInvincible(bool invincible)
+    {
+        if (_networkOwner != null) _networkOwner.SetInvincible(invincible);
+    }
 
     /// <summary>
     /// 중력 설정
