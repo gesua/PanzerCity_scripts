@@ -41,6 +41,7 @@ public class EnemySpawner : MonoBehaviour
     int _stageSpawnCount; // 스테이지당 스폰할 횟수
 
     bool _isEMPActive; // 적 멈추는 아이템 사용했는지
+    float _empEndTime; // EMP 종료 예정 시각(멀티:늦게 스폰된 적의 남은 지속시간 계산용)
     bool _isMultiplayer; // 멀티플레이 여부(풀 경로, 서버 권위 판정용)
 
     static bool _isNetworkPoolHandlerRegistered; // 네트워크 프리팹 풀링 핸들러 중복 등록 방지용(NetworkManager.Singleton 기준 세션당 1회만 등록되면 됨)
@@ -278,6 +279,13 @@ public class EnemySpawner : MonoBehaviour
         {
             enemy.SetAIActive(false);
             enemy.SetEMPEffect(true);
+
+            // 멀티플레이:이 적은 EMP 시작 시점의 스냅샷에 없었으므로 남은 지속시간만큼 별도로 알림(호스트 자신은 위에서 이미 적용함)
+            if (_isMultiplayer && enemy.TryGetComponent(out NetworkObject enemyNetworkObject))
+            {
+                float remainingDuration = _empEndTime - Time.time;
+                NetworkGameManager.Instance.NotifyLateEMPVisual(enemyNetworkObject.NetworkObjectId, remainingDuration);
+            }
         }
 
         _enemies.Add(enemy); // 리스트에 추가
@@ -357,6 +365,7 @@ public class EnemySpawner : MonoBehaviour
             StopCoroutine(_empRoutine);
             SetAllEnemiesVisible(true); // 깜빡임 도중 꺼진 렌더러 복구
         }
+        _empEndTime = Time.time + duration;
         _empRoutine = StartCoroutine(EMPFieldRoutine(duration));
     }
 

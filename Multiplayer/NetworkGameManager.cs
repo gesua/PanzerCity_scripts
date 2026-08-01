@@ -208,7 +208,7 @@ public class NetworkGameManager : NetworkBehaviour
     /// <summary>
     /// 기지 무적 아이템 동기화 — 클라이언트가 아이템 사용 시 요청(GameScene이 호출)
     /// </summary>
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestBaseShieldServerRpc(float duration)
     {
         if (_stageScene == null) return;
@@ -233,7 +233,7 @@ public class NetworkGameManager : NetworkBehaviour
     /// AI 정지 판정은 서버 권위 이동이 NetworkTransform으로 그대로 반영되므로 별도 전파가 필요 없고,
     /// 이펙트/깜빡임 같은 시각 연출만 대상 목록과 함께 클라이언트에 전달함
     /// </summary>
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestEMPFieldServerRpc(float duration)
     {
         if (_stageScene == null) return;
@@ -266,10 +266,19 @@ public class NetworkGameManager : NetworkBehaviour
     }
 
     /// <summary>
+    /// EMP 지속 중 새로 스폰된 적의 시각 연출 동기화 — 서버가 호출(EnemySpawner가 호출)
+    /// 대상이 하나뿐이라 별도 ClientRpc를 만들지 않고 기존 NotifyEMPVisualClientRpc를 재사용함
+    /// </summary>
+    public void NotifyLateEMPVisual(ulong enemyNetworkObjectId, float remainingDuration)
+    {
+        NotifyEMPVisualClientRpc(new ulong[] { enemyNetworkObjectId }, remainingDuration);
+    }
+
+    /// <summary>
     /// 폭탄 아이템 동기화 — 클라이언트가 아이템 사용 시 요청(GameScene이 호출)
     /// 결과(HP 변화/디스폰)는 기존 데미지 처리 경로를 통해 클라이언트에 자동으로 전파되므로 별도 브로드캐스트가 필요 없음
     /// </summary>
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestAirSupportServerRpc()
     {
         if (_stageScene == null) return;
