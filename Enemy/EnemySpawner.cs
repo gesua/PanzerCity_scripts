@@ -470,11 +470,14 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     public void DestroyAllEnemies()
     {
-        // 멀티플레이:데미지 판정은 서버만 수행(결과는 기존 HP/디스폰 동기화 경로로 클라이언트에 자동 전파됨)
+        // 멀티플레이:데미지 판정은 서버만 수행(TakeDamage 자체는 전파되지 않으므로 아래에서 대상을 별도로 알림)
         if (_isMultiplayer && NetworkManager.Singleton.IsServer == false) return;
 
         List<EnemyTank> targets = _enemies.ToList();
         bool killedAny = targets.Count > 0;
+
+        // 멀티플레이:죽기 전에 대상 스냅샷 확보(호스트 자신의 처리와 별개로 클라이언트에 알릴 목적)
+        ulong[] killedIds = (_isMultiplayer) ? GetActiveEnemyNetworkObjectIds() : null;
 
         GameManager.Instance.AudioManager.StartMassKillMode();
 
@@ -488,6 +491,12 @@ public class EnemySpawner : MonoBehaviour
 
         // 탱크 터지는 소리
         GameManager.Instance.AudioManager.EndMassKillMode(killedAny);
+
+        // 멀티플레이:각 클라이언트가 로컬로 동일한 사망 연출(폭발/시체/디스폰 타이머)을 재생하도록 대상을 알림
+        if (_isMultiplayer)
+        {
+            NetworkGameManager.Instance.NotifyAirSupportKill(killedIds);
+        }
     }
 
     private void OnDrawGizmosSelected()

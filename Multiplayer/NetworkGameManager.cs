@@ -276,14 +276,39 @@ public class NetworkGameManager : NetworkBehaviour
 
     /// <summary>
     /// 폭탄 아이템 동기화 — 클라이언트가 아이템 사용 시 요청(GameScene이 호출)
-    /// 결과(HP 변화/디스폰)는 기존 데미지 처리 경로를 통해 클라이언트에 자동으로 전파되므로 별도 브로드캐스트가 필요 없음
     /// </summary>
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestAirSupportServerRpc()
     {
         if (_stageScene == null) return;
 
-        _stageScene.EnemySpawner.DestroyAllEnemies();
+        _stageScene.EnemySpawner.DestroyAllEnemies(); // 서버 권위 처리 + 호스트 자신의 로컬 연출(내부에서 대상 브로드캐스트까지 호출함)
+    }
+
+    /// <summary>
+    /// 폭탄 처치 대상 동기화 — 서버가 처치를 마친 뒤 호출(EnemySpawner가 호출)
+    /// TakeDamage 호출 자체는 전파되지 않아서, 각 클라이언트가 동일한 사망 연출(폭발/시체/디스폰 타이머)을
+    /// 로컬로 재생하도록 대상 NetworkObjectId만 전달하고 클라이언트가 직접 TakeDamage를 재호출함
+    /// </summary>
+    public void NotifyAirSupportKill(ulong[] targetNetworkObjectIds)
+    {
+        NotifyAirSupportKillClientRpc(targetNetworkObjectIds);
+    }
+
+    [ClientRpc]
+    void NotifyAirSupportKillClientRpc(ulong[] targetNetworkObjectIds)
+    {
+        // 호스트 자신은 서버 로컬에서 이미 직접 처리했으므로 중복 방지
+        if (IsServer) return;
+
+        foreach (ulong id in targetNetworkObjectIds)
+        {
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id, out NetworkObject targetObject) == false) continue;
+            if (targetObject.TryGetComponent(out TankModel tankModel) == false) continue;
+
+            // AtkTank(공격 주체)를 특정할 수 없어 false로 전달 — HitData.AtkTank는 null로 처리되어 서버와 동일하게 아이템 격파로 집계됨
+            tankModel.TakeDamage(new HitData(9999, targetObject.transform.position, false));
+        }
     }
 
     /// <summary>
