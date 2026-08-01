@@ -112,4 +112,36 @@ public class PlayerNetworkOwner : NetworkBehaviour
         if (IsOwner) return;
         _playerTank.PlayLocalAttack();
     }
+
+    /// <summary>
+    /// 무적 연출 신호를 전원에게 전달(서버 전용)
+    /// 호스트 자신의 아이템 사용(PlayerTank가 직접 호출) / 비호스트 클라이언트의 요청(RequestHyperShieldServerRpc) 양쪽에서 사용
+    /// </summary>
+    public void HandleHyperShieldOnServer(float duration)
+    {
+        if (IsServer == false) return; // 방어적 가드
+
+        NotifyHyperShieldClientRpc(duration);
+    }
+
+    /// <summary>
+    /// 비호스트 클라이언트가 무적 연출 시작을 서버에 요청(소유자만 호출 가능)
+    /// </summary>
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestHyperShieldServerRpc(float duration)
+    {
+        HandleHyperShieldOnServer(duration);
+    }
+
+    /// <summary>
+    /// 서버가 전원에게 무적 연출 신호 전달
+    /// 소유 클라이언트 본인은 아이템 사용 즉시 로컬에서 이미 재생 중이므로 제외
+    /// </summary>
+    [ClientRpc]
+    void NotifyHyperShieldClientRpc(float duration)
+    {
+        if (IsOwner) return;
+        _playerTank.PlayShieldVisual(duration);
+    }
+
 }

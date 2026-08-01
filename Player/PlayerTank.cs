@@ -66,6 +66,8 @@ public class PlayerTank : TankBase
     public event Action OnPlayerRespawn;  // 리스폰
     public event Action<float> OnRespawnComplete; // 리스폰 완료<무적 지속시간>
 
+    Coroutine _shieldVisualRoutine; // 재시작 시 중복 방지용 핸들
+
     protected override void Awake()
     {
         base.Awake();
@@ -425,6 +427,51 @@ public class PlayerTank : TankBase
         var main = _shieldParticle.main;
         main.startColor = color;
     }
+
+    /// <summary>
+    /// 무적 실드 연출 재생(이펙트 on → 색상 서서히 변화 → 이펙트 off)
+    /// 로컬 재생(GameScene.HyperShieldRoutine)과 원격 관찰자 재현(PlayerNetworkOwner의 ClientRpc) 양쪽에서 공용으로 사용
+    /// 소유 여부와 무관하게 항상 안전하게 호출 가능한 순수 시각 효과임
+    /// </summary>
+    public void PlayShieldVisual(float duration)
+    {
+        if (_shieldVisualRoutine != null) StopCoroutine(_shieldVisualRoutine);
+        _shieldVisualRoutine = StartCoroutine(ShieldVisualRoutine(duration));
+    }
+
+    IEnumerator ShieldVisualRoutine(float duration)
+    {
+        SetShieldEffect(true);
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float ratio = 1f - (elapsed / duration); // 1에서 0으로 감소
+            UpdateShieldColor(ratio);
+            yield return null;
+        }
+
+        SetShieldEffect(false);
+        _shieldVisualRoutine = null;
+    }
+
+    /// <summary>
+    /// 무적 연출 시작 — 본인 화면은 즉시 로컬로 재생하고, 멀티면 다른 클라이언트에도 전파함
+    /// SetNoDamage(실제 무적 판정)는 호출자(GameScene)가 별도로 처리함
+    /// </summary>
+    public void ActivateShieldVisual(float duration)
+    {
+        PlayShieldVisual(duration); // 본인 화면 로컬 재생
+
+        if (_networkOwner != null)
+        {
+            if (_networkOwner.IsServer) _networkOwner.HandleHyperShieldOnServer(duration); // 호스트 자신이면 바로 처리
+            else _networkOwner.RequestHyperShieldServerRpc(duration); // 비호스트면 서버에 요청
+        }
+    }
+
+
 
     /// <summary>
     /// 중력 설정

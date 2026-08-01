@@ -886,20 +886,11 @@ public class GameScene : MonoBehaviour
     IEnumerator HyperShieldRoutine(float duration)
     {
         _player.Model.SetNoDamage(true);
-        _player.SetShieldEffect(true);
+        _player.ActivateShieldVisual(duration); // 본인 화면 로컬 재생 + 멀티면 다른 클라이언트에도 전파
 
-        // 이펙트 색 변경
-        float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float ratio = 1f - (elapsed / duration); // 1에서 0으로 감소
-            _player.UpdateShieldColor(ratio);
-            yield return null;
-        }
+        yield return new WaitForSeconds(duration);
 
         _player.Model.SetNoDamage(false);
-        _player.SetShieldEffect(false);
     }
 
     void Update()

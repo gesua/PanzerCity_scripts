@@ -134,7 +134,6 @@ public class Mover : MonoBehaviour
         // 일정 속도 이상인데 거의 못 움직였으면 벽에 막힌 것으로 판단
         if (expectedMove > 0.1f && actualMove < expectedMove * 0.3f)
         {
-            Debug.Log("충돌 후 속력 0됨");
             _currentSpeed = 0f;
             _targetSpeed = 0f;
         }
