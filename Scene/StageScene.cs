@@ -19,6 +19,8 @@ public class StageScene : MonoBehaviour
     string _nextStageName;
     List<DroppedItem> _droppedItems = new(); // 씬 전환시 사라질 아이템들
 
+    bool _isMultiplayer; // 멀티플레이 여부(스테이지 클리어 결과 전파용)
+
     public int StageID => _stageID;
     public EnemySpawner EnemySpawner => _enemySpawner;
     public BaseWall BaseWall => _baseWall;
@@ -45,8 +47,8 @@ public class StageScene : MonoBehaviour
 
         _baseWall.OnBaseWallDestroyed += HandleBaseWallDestroyed;
 
-        bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
-        if (isMultiplayer) // 멀티플레이:전원 씬 로드 완료 신호를 받은 뒤에 적 스폰 시작
+        _isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+        if (_isMultiplayer) // 멀티플레이:전원 씬 로드 완료 신호를 받은 뒤에 적 스폰 시작
         {
             NetworkGameManager.Instance.OnAllClientsReady += HandleAllClientsReady;
         }
@@ -90,6 +92,19 @@ public class StageScene : MonoBehaviour
     IEnumerator StageClearRoutine()
     {
         yield return new WaitForSeconds(3f);
+        TriggerStageClear();
+
+        // 멀티플레이:이 코루틴 자체가 서버(호스트)에서만 도달 가능 — 결과를 클라이언트에 전파
+        if (_isMultiplayer) NetworkGameManager.Instance.NotifyStageCleared();
+    }
+
+    /// <summary>
+    /// 스테이지 클리어 확정 처리(정리 + 이벤트 발행)
+    /// 싱글:위 코루틴에서 직접 호출 / 멀티:서버는 위 코루틴에서, 클라이언트는 NetworkGameManager의 신호를 받아 호출
+    /// (서버가 이미 대기까지 마친 뒤 보낸 신호이므로 클라이언트는 곧바로 반영)
+    /// </summary>
+    public void TriggerStageClear()
+    {
         Cleanup();
         OnStageClear?.Invoke();
     }

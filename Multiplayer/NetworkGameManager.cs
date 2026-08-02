@@ -161,6 +161,24 @@ public class NetworkGameManager : NetworkBehaviour
     }
 
     /// <summary>
+    /// 스테이지 클리어 동기화 — 서버가 클리어 판정(3초 대기 포함)을 마친 뒤 호출(StageScene이 호출)
+    /// </summary>
+    public void NotifyStageCleared()
+    {
+        NotifyStageClearedClientRpc();
+    }
+
+    [ClientRpc]
+    void NotifyStageClearedClientRpc()
+    {
+        // 호스트 자신은 서버 로컬에서 StageClearRoutine이 이미 직접 처리했으므로 중복 방지
+        if (IsServer) return;
+
+        if (_stageScene == null) return;
+        _stageScene.TriggerStageClear();
+    }
+
+    /// <summary>
     /// 포탄 폭발 범위 피해 동기화 — 서버가 폭발 판정을 마친 뒤 호출(Shell이 호출)
     /// 벽/큐브 파괴, 폭발 피해를 받는 대상(경전차 등)의 판정을 클라이언트에도 동일하게 재현시킴
     /// HitData의 AtkTank(MonoBehaviour 참조)는 RPC로 못 보내서 isPlayerAttack(bool)만 별도 전달
