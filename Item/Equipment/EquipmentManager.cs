@@ -22,6 +22,9 @@ public class EquipmentManager : MonoBehaviour
     public void Initialize(TankModel playerModel)
     {
         _playerModel = playerModel;
+        _mainGunSlot = null;
+        _turretSlot = null;
+        _hullSlot = null;
     }
 
     /// <summary>
