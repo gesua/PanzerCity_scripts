@@ -331,6 +331,9 @@ public class NetworkGameManager : NetworkBehaviour
         // 호스트 자신은 서버 로컬에서 이미 직접 처리했으므로 중복 방지
         if (IsServer) return;
 
+        // 호스트 쪽과 동일하게 일괄 처치 마스크 적용(개별 3D 파괴음/드랍음이 겹쳐 커지는 것 방지)
+        GameManager.Instance.AudioManager.StartMassKillMode();
+
         foreach (ulong id in targetNetworkObjectIds)
         {
             if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id, out NetworkObject targetObject) == false) continue;
@@ -339,6 +342,8 @@ public class NetworkGameManager : NetworkBehaviour
             // AtkTank(공격 주체)를 특정할 수 없어 false로 전달 — HitData.AtkTank는 null로 처리되어 서버와 동일하게 아이템 격파로 집계됨
             tankModel.TakeDamage(new HitData(9999, targetObject.transform.position, false));
         }
+
+        GameManager.Instance.AudioManager.EndMassKillMode();
     }
 
     /// <summary>
