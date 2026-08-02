@@ -453,7 +453,9 @@ public class EnemySpawner : MonoBehaviour
     {
         foreach (EnemyTank enemy in _enemies)
         {
-            if (enemy.IsAlive == false) continue; // 이미 죽은 적은 제외(AI 비활성화가 사망 상태 타이머까지 멈춰버림)
+            // 끌 때(EMP 시작)만 이미 죽은 적 제외 — 켤 때(EMP 종료)는 죽은 적도 포함해야
+            // EMP 도중 멈춰있던 사망 상태 타이머가 다시 흐르기 시작함(안 그러면 시체가 영영 안 사라짐)
+            if (active == false && enemy.IsAlive == false) continue;
 
             enemy.SetAIActive(active);
             enemy.SetEMPEffect(!active); // 파직거리는 이펙트
