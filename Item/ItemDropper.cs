@@ -88,8 +88,15 @@ public class ItemDropper : MonoBehaviour
             networkObject.Spawn();
         }
 
-        // 아이템 드랍 소리(3D)
-        GameManager.Instance.AudioManager.PlaySfxAtPoint(SfxType.ItemDrop, itemGo.transform.position);
+        // 아이템 드랍 소리(일괄 처치 중엔 개별 3D 재생 대신 큐잉 -> 종료 시 한 번만 2D 재생)
+        if (GameManager.Instance.AudioManager.IsMassKillInProgress)
+        {
+            GameManager.Instance.AudioManager.QueueMassKillSfx(SfxType.ItemDrop);
+        }
+        else
+        {
+            GameManager.Instance.AudioManager.PlaySfxAtPoint(SfxType.ItemDrop, itemGo.transform.position);
+        }
 
         OnItemDropped?.Invoke(droppedItem);
     }

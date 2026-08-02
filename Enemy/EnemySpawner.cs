@@ -481,7 +481,6 @@ public class EnemySpawner : MonoBehaviour
         if (_isMultiplayer && NetworkManager.Singleton.IsServer == false) return;
 
         List<EnemyTank> targets = _enemies.ToList();
-        bool killedAny = targets.Count > 0;
 
         // 멀티플레이:죽기 전에 대상 스냅샷 확보(호스트 자신의 처리와 별개로 클라이언트에 알릴 목적)
         ulong[] killedIds = (_isMultiplayer) ? GetActiveEnemyNetworkObjectIds() : null;
@@ -496,8 +495,8 @@ public class EnemySpawner : MonoBehaviour
             }
         }
 
-        // 탱크 터지는 소리
-        GameManager.Instance.AudioManager.EndMassKillMode(killedAny);
+        // 탱크 터지는 소리 + 아이템 드랍 소리(일괄 처치 중 큐잉된 것들, 타입당 한 번씩만)
+        GameManager.Instance.AudioManager.EndMassKillMode();
 
         // 멀티플레이:각 클라이언트가 로컬로 동일한 사망 연출(폭발/시체/디스폰 타이머)을 재생하도록 대상을 알림
         if (_isMultiplayer)

@@ -57,8 +57,12 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     /// </summary>
     void HandleDeadSound(HitData hitData)
     {
-        // 일괄 처치 아이템 사용 중엔 개별 3D 재생을 스킵, 대신 2D 대표음이 한번만 남
-        if (GameManager.Instance.AudioManager.IsMassKillInProgress) return;
+        // 일괄 처치 아이템 사용 중엔 개별 3D 재생 대신 큐잉 -> 종료 시 한 번만 2D 재생
+        if (GameManager.Instance.AudioManager.IsMassKillInProgress)
+        {
+            GameManager.Instance.AudioManager.QueueMassKillSfx(SfxType.TankDestroy);
+            return;
+        }
 
         GameManager.Instance.AudioManager.PlaySfxAtPoint(SfxType.TankDestroy, transform.position);
     }

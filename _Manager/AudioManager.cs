@@ -53,7 +53,8 @@ public class AudioManager : MonoBehaviour
     string _pooledSfxPrefabPath = "Audio/SFX_Pool"; // PooledSfx 컴포넌트가 붙은 프리팹 경로
     Dictionary<BgmType, AudioClip> _bgmDict;
 
-    bool _isMassKillInProgress; // 일괄 처치 아이템 사용 중인지(탱크 개별 3D 파괴음을 스킵시키는 용도)
+    bool _isMassKillInProgress; // 일괄 처치 아이템 사용 중인지(개별 3D 재생을 스킵시키는 용도)
+    HashSet<SfxType> _pendingMassKillSfx = new(); // 일괄 처치 중 큐잉된 타입(종료 시 타입별 한 번씩만 재생)
 
     public bool IsMassKillInProgress => _isMassKillInProgress;
 
@@ -135,21 +136,34 @@ public class AudioManager : MonoBehaviour
 
     /// <summary>
     /// 일괄 처치 모드 시작(적 모두 격파 아이템 등)
-    /// 진행 중엔 탱크 개별 3D 파괴음이 스킵됨
+    /// 진행 중엔 개별 3D 재생 대신 QueueMassKillSfx로 등록하고, 종료 시 타입별로 한 번씩만 재생됨
     /// </summary>
     public void StartMassKillMode()
     {
         _isMassKillInProgress = true;
+        _pendingMassKillSfx.Clear();
     }
 
     /// <summary>
-    /// 일괄 처치 모드 종료 + 2D 대표 파괴음 재생
+    /// 일괄 처치 중 개별 재생 대신 호출. 같은 타입은 한 번만 기록됨
     /// </summary>
-    /// <param name="killedAny">실제로 죽은 대상이 있었는지(있을 때만 대표음 재생)</param>
-    public void EndMassKillMode(bool killedAny)
+    public void QueueMassKillSfx(SfxType sfxType)
+    {
+        _pendingMassKillSfx.Add(sfxType);
+    }
+
+    /// <summary>
+    /// 일괄 처치 모드 종료. 큐잉된 타입들을 2D로 한 번씩 재생
+    /// </summary>
+    public void EndMassKillMode()
     {
         _isMassKillInProgress = false;
-        if (killedAny) PlaySfx(SfxType.TankDestroy);
+
+        foreach (SfxType sfxType in _pendingMassKillSfx)
+        {
+            PlaySfx(sfxType);
+        }
+        _pendingMassKillSfx.Clear();
     }
 
     /// <summary>
