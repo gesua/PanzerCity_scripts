@@ -9,7 +9,6 @@ public class SingleEventSystem : MonoBehaviour
 {
     void Awake()
     {
-        Debug.Log($"[SingleEventSystem] Awake, Pending={LobbyManager.Instance.PendingLobbyEventSystem}");
         if (LobbyManager.Instance.PendingLobbyEventSystem == null) return;
 
         LobbyManager.Instance.PendingLobbyEventSystem.gameObject.SetActive(false);
