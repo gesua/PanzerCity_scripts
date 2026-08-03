@@ -44,6 +44,18 @@ public class ItemTooltipUI : MonoBehaviour
     }
 
     /// <summary>
+    /// 커스텀 오프셋을 사용하는 툴팁 표시 (상점 등에서 툴팁 위치를 다르게 할 때 사용)
+    /// </summary>
+    public void Show(ItemConfig config, Vector3 iconPos, Vector3 customOffset)
+    {
+        SetContent(config);
+
+        // 아이콘 위치 기준으로 고정 (아이템 크기에 따라 위치 보정)
+        transform.position = iconPos + customOffset + GetSizeOffset(config);
+        gameObject.SetActive(true);
+    }
+
+    /// <summary>
     /// 튜토리얼 전용 — 로컬(anchoredPosition) 좌표로 직접 위치 지정
     /// 아이콘 기준 오프셋/크기 보정 없이 지정한 위치에 그대로 표시
     /// </summary>

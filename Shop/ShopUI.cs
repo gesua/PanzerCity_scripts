@@ -11,11 +11,13 @@ public class ShopUI : MonoBehaviour
     [SerializeField] Transform _rightPanelTr;
     [SerializeField] ShopOwnerUI _shopOwnerUI; // 상점 주인 대화
     [SerializeField] ShopItemSlot[] _itemSlots; // 상점에서 파는 소모품들
-    [SerializeField] ShopItemSlot _equipmentSlot;   // 장비 슬롯 (1개)
-    [SerializeField] GameObject _equipmentSlotRoot; // 장비 슬롯 + 라벨 등 묶은 부모 오브젝트 (선택)
+    [SerializeField] ShopItemSlot _equipmentSlot;   // 상점에서 파는 장비 (1개)
+    [SerializeField] GameObject _equipmentSlotRoot; // 장비 슬롯 + 라벨 등 묶은 부모 오브젝트
     [SerializeField] TrashCanUI _trashCanUI; // 쓰레기통
     [SerializeField] GameObject _clickBlocker; // 종료 버튼 눌렀을 때 다른 거 못 누르게 막는 용도
     [SerializeField] ItemTooltipUI _itemTooltipUI; // 툴팁 UI
+    
+    Vector3 _tooltipOffset = new Vector3(0f, 200f, 0f); // 상점 아이템용 툴팁 위치 오프셋
 
     InventoryUI _inventoryUI;
     EquipmentUI _equipmentUI;
@@ -159,7 +161,8 @@ public class ShopUI : MonoBehaviour
     {
         if (_itemTooltipUI != null)
         {
-            _itemTooltipUI.Show(itemConfig, pos);
+            // 상점 전용 오프셋
+            _itemTooltipUI.Show(itemConfig, pos, _tooltipOffset);
         }
     }
 
