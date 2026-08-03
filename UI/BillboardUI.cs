@@ -7,8 +7,9 @@ public class BillboardUI : MonoBehaviour
 {
     Camera _camera;
 
-    private void Start()
+    private void OnEnable()
     {
+        if (_camera != null) return;
         _camera = Camera.main;
     }
 

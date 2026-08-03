@@ -322,7 +322,7 @@ public class GameScene : MonoBehaviour
         // 이벤트 구독
         _currentStage.OnHQDestroyed += HandleHQDestroyed; // 아군 기지 파괴
         _currentStage.OnBaseWallDestroyed += HandleBaseWallDestroyed; // 기지 벽 파괴
-        _currentStage.EnemySpawner.OnAllEnemiesDefeated += HandleAllEnemiesDefeated; // 모든 적 격파(UI 띄울 용도)
+        _currentStage.OnAllEnemiesDefeatedNotify += HandleAllEnemiesDefeated; // 모든 적 격파(UI 띄울 용도)
         _currentStage.OnStageClear += HandleStageClear; // 스테이지 클리어
 
         // 적 스폰 UI 연동
@@ -373,7 +373,7 @@ public class GameScene : MonoBehaviour
 
         _currentStage.OnHQDestroyed -= HandleHQDestroyed;
         _currentStage.OnStageClear -= HandleStageClear;
-        _currentStage.EnemySpawner.OnAllEnemiesDefeated -= HandleAllEnemiesDefeated;
+        _currentStage.OnAllEnemiesDefeatedNotify -= HandleAllEnemiesDefeated;
         _currentStage.EnemySpawner.OnSpawnListReady -= _enemySpawnUI.Initialize;
         _currentStage.EnemySpawner.OnEnemySpawned -= _enemySpawnUI.SetEnemySpawn;
         _currentStage.OnStageLoaded -= HandleStageLoaded;

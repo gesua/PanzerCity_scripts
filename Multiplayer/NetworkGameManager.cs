@@ -161,6 +161,25 @@ public class NetworkGameManager : NetworkBehaviour
     }
 
     /// <summary>
+    /// 모든 적 격파 알림 동기화 — 서버가 전멸 판정을 마친 직후 호출(StageScene이 호출)
+    /// 클리어 배너 표시용 — 3초 대기 후의 최종 결과(NotifyStageCleared)와는 별도로 즉시 전파
+    /// </summary>
+    public void NotifyAllEnemiesDefeated()
+    {
+        NotifyAllEnemiesDefeatedClientRpc();
+    }
+
+    [ClientRpc]
+    void NotifyAllEnemiesDefeatedClientRpc()
+    {
+        // 호스트 자신은 서버 로컬에서 StageScene.HandleAllEnemiesDefeated가 이미 직접 처리했으므로 중복 방지
+        if (IsServer) return;
+
+        if (_stageScene == null) return;
+        _stageScene.TriggerAllEnemiesDefeatedNotify();
+    }
+
+    /// <summary>
     /// 스테이지 클리어 동기화 — 서버가 클리어 판정(3초 대기 포함)을 마친 뒤 호출(StageScene이 호출)
     /// </summary>
     public void NotifyStageCleared()

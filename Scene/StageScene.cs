@@ -32,6 +32,7 @@ public class StageScene : MonoBehaviour
     public event Action<Vector3> OnStageLoaded; // 스폰 위치 전달
     public event Action OnStageClear; // 스테이지 클리어
     public event Action OnBaseWallDestroyed; // 기지 벽 파괴
+    public event Action OnAllEnemiesDefeatedNotify; // 모든 적 격파 알림(UI용, 멀티 동기화 대상)
 
     void Start()
     {
@@ -78,7 +79,21 @@ public class StageScene : MonoBehaviour
 
     void HandleAllEnemiesDefeated()
     {
+        TriggerAllEnemiesDefeatedNotify();
+
+        // 멀티플레이:이 메서드 자체가 서버(호스트)에서만 도달 가능 — 결과를 클라이언트에 전파
+        if (_isMultiplayer) NetworkGameManager.Instance.NotifyAllEnemiesDefeated();
+
         StartCoroutine(StageClearRoutine());
+    }
+
+    /// <summary>
+    /// 모든 적 격파 알림(배너 표시용) — 정리/카운트다운 시작 전, 즉시 전달되어야 하는 이벤트
+    /// 싱글:위에서 직접 호출 / 멀티:서버는 위에서, 클라이언트는 NetworkGameManager의 신호를 받아 호출
+    /// </summary>
+    public void TriggerAllEnemiesDefeatedNotify()
+    {
+        OnAllEnemiesDefeatedNotify?.Invoke();
     }
 
     /// <summary>
