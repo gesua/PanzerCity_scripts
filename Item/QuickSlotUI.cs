@@ -27,9 +27,8 @@ public class QuickSlotUI : MonoBehaviour
         for (int i = 0; i < _slots.Length; i++)
         {
             int itemID = SlotItemIDs[i];
-            ItemModel item = FindItemById(itemID);
-            bool hasItem = (item != null);
-            _slots[i].SetAvailable(hasItem);
+            int count = CountItemsById(itemID);
+            _slots[i].SetCount(count);
         }
     }
 
@@ -42,12 +41,13 @@ public class QuickSlotUI : MonoBehaviour
         _presenter.TryUseItemById(SlotItemIDs[slotIndex]);
     }
 
-    ItemModel FindItemById(int itemID)
+    int CountItemsById(int itemID)
     {
+        int count = 0;
         foreach (ItemModel item in _presenter.Items)
         {
-            if (item.Config.Id == itemID) return item;
+            if (item.Config.Id == itemID) count++;
         }
-        return null;
+        return count;
     }
 }
