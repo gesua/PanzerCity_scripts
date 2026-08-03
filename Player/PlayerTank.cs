@@ -20,6 +20,7 @@ public class PlayerTank : TankBase
     [SerializeField] GameObject _destroyedBarrel; // 파괴된 주포
     [SerializeField] CommanderController _commander; // 전차장 캐릭터
     [SerializeField] ItemPickup _itemPickup; // 아이템 줍기 단축키
+    [SerializeField] ItemDropper _itemDropper; // 아이템 바닥에 버리는 용도
     [SerializeField] LoopEffect _shieldEffect; // 실드 이펙트
     [SerializeField] ParticleSystem _shieldParticle; // 실드 파티클 색 변경 용도
     [Header("----- 런타임 데이터 -----")]
@@ -170,6 +171,7 @@ public class PlayerTank : TankBase
     {
         _networkOwner = networkOwner;
         _itemPickup.SetNetworkOwner(networkOwner);
+        _itemDropper.SetNetworkMode(true);
     }
 
     /// <summary>
@@ -205,6 +207,33 @@ public class PlayerTank : TankBase
     public void SpawnShellOnServer(Vector3 firePosition, Quaternion fireRotation)
     {
         SpawnShell(firePosition, fireRotation);
+    }
+
+    /// <summary>
+    /// 인벤토리 아이템 드롭
+    /// 멀티플레이에선 서버에 실제 스폰을 요청(호스트면 직접 처리) — 공격과 달리 즉시 재생할 로컬 연출은 없음
+    /// </summary>
+    public void DropItem(ItemConfig config)
+    {
+        Vector3 dropPosition = transform.position + transform.forward * 2f + Vector3.up;
+
+        if (_networkOwner != null)
+        {
+            if (_networkOwner.IsServer) _networkOwner.HandleDropItemOnServer(config.Id, dropPosition); // 호스트 자신이면 바로 처리
+            else _networkOwner.RequestDropItemServerRpc(config.Id, dropPosition); // 비호스트면 서버에 요청
+        }
+        else
+        {
+            _itemDropper.DropItem(config.Id, dropPosition); // 싱글플레이
+        }
+    }
+
+    /// <summary>
+    /// 멀티플레이:서버가 드롭 요청을 처리하며 실제 아이템을 생성할 때 호출(PlayerNetworkOwner가 호출)
+    /// </summary>
+    public void DropItemOnServer(int itemID, Vector3 position)
+    {
+        _itemDropper.DropItem(itemID, position);
     }
 
     /// <summary>

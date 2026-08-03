@@ -58,21 +58,31 @@ public class ItemDropper : MonoBehaviour
 
         if (selectedDrop == null) return;
 
-        SpawnDroppedItem(selectedDrop.ItemID);
+        DroppedItem droppedItem = SpawnDroppedItem(selectedDrop.ItemID, transform.position + Vector3.up);
+        OnItemDropped?.Invoke(droppedItem); // 적 처치 드랍 전용 신호(플레이어가 직접 버리는 DropItem 경로에선 발동 안 함)
+    }
+
+    /// <summary>
+    /// 특정 아이템을 지정 위치에 즉시 드랍(확률 없이 — 플레이어 인벤토리 드롭 등)
+    /// OnItemDropped은 적 처치 드랍 전용이라 여기선 발동시키지 않음
+    /// </summary>
+    public void DropItem(int itemID, Vector3 position)
+    {
+        SpawnDroppedItem(itemID, position);
     }
 
     /// <summary>
     /// 아이템 스폰
     /// </summary>
-    void SpawnDroppedItem(int itemID)
+    DroppedItem SpawnDroppedItem(int itemID, Vector3 position)
     {
         ItemConfig itemConfig = GameManager.Instance.DataManager.GetItemConfig(itemID);
-        if (itemConfig == null) return;
+        if (itemConfig == null) return null;
 
         string poolKey = (_isMultiplayer) ? "DroppedItem_Multi" : "DroppedItem";
         GameObject itemGo = GameManager.Instance.PoolManager.GetFromPool(poolKey);
 
-        itemGo.transform.position = transform.position + Vector3.up;
+        itemGo.transform.position = position;
         if (itemGo.TryGetComponent(out DroppedItem droppedItem))
         {
             droppedItem.Initialize(itemConfig);
@@ -98,6 +108,6 @@ public class ItemDropper : MonoBehaviour
             GameManager.Instance.AudioManager.PlaySfxAtPoint(SfxType.ItemDrop, itemGo.transform.position);
         }
 
-        OnItemDropped?.Invoke(droppedItem);
+        return droppedItem;
     }
 }

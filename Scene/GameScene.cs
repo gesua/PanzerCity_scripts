@@ -631,12 +631,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleItemDropped(ItemConfig config)
     {
-        GameObject itemGo = GameManager.Instance.PoolManager.GetFromPool("DroppedItem");
-        itemGo.transform.position = _player.transform.position + _player.transform.forward * 2f + Vector3.up;
-        if (itemGo.TryGetComponent(out DroppedItem droppedItem))
-        {
-            droppedItem.Initialize(config);
-        }
+        _player.DropItem(config);
     }
 
     /// <summary>

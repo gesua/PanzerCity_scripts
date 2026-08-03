@@ -163,4 +163,24 @@ public class PlayerNetworkOwner : NetworkBehaviour
         if (IsOwner) return;
         _playerTank.PlayShieldVisual(duration);
     }
+
+    /// <summary>
+    /// 실제 아이템 드롭 스폰 처리(서버 전용)
+    /// 호스트 자신의 드롭(PlayerTank가 직접 호출) / 비호스트 클라이언트의 드롭 요청(RequestDropItemServerRpc) 양쪽에서 사용
+    /// </summary>
+    public void HandleDropItemOnServer(int itemID, Vector3 position)
+    {
+        if (IsServer == false) return; // 방어적 가드
+
+        _playerTank.DropItemOnServer(itemID, position);
+    }
+
+    /// <summary>
+    /// 비호스트 클라이언트가 아이템 드롭 입력을 받았을 때 서버에 요청(소유자만 호출 가능)
+    /// </summary>
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestDropItemServerRpc(int itemID, Vector3 position)
+    {
+        HandleDropItemOnServer(itemID, position);
+    }
 }
