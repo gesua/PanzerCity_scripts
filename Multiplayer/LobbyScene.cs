@@ -320,7 +320,7 @@ public class LobbyScene : MonoBehaviour
         {
             await LobbyManager.Instance.RefreshLobbyListAsync();
 
-            UpdateStatus("UI_MP_MSG_REFRESH_SUCCESS");
+            //UpdateStatus("UI_MP_MSG_REFRESH_SUCCESS");
 
             // 새로고침 최소 간격 2초
             await Task.Delay(2000);
@@ -434,7 +434,7 @@ public class LobbyScene : MonoBehaviour
         Debug.Log("방장이 연결 끊음");
         ShutdownNetwork();
         ShowPanel(_lobbyPanel);
-        UpdateStatus("");
+        UpdateStatus("UI_MP_MSG_HOST_LEFT");
     }
 
     /// <summary>
@@ -445,7 +445,7 @@ public class LobbyScene : MonoBehaviour
         Debug.Log("강퇴당함");
         ShutdownNetwork();
         ShowPanel(_lobbyPanel);
-        UpdateStatus("");
+        UpdateStatus("UI_MP_MSG_KICKED");
     }
 
     /// <summary>
