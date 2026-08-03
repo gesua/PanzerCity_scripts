@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -16,11 +18,15 @@ public class ShopUI : MonoBehaviour
     [SerializeField] TrashCanUI _trashCanUI; // 쓰레기통
     [SerializeField] GameObject _clickBlocker; // 종료 버튼 눌렀을 때 다른 거 못 누르게 막는 용도
     [SerializeField] ItemTooltipUI _itemTooltipUI; // 툴팁 UI
-    
+    [SerializeField] TextMeshProUGUI _readyCountText; // 다음 스테이지 준비 인원 표시(멀티 전용)
+
     Vector3 _tooltipOffset = new Vector3(0f, 200f, 0f); // 상점 아이템용 툴팁 위치 오프셋
 
     InventoryUI _inventoryUI;
     EquipmentUI _equipmentUI;
+
+    bool _isMultiplayer;
+    bool _isReadyForNextStage;
 
     const int EquipDropGroupID = 8301; // 장비 확률
 
@@ -56,6 +62,23 @@ public class ShopUI : MonoBehaviour
         _equipmentSlot.OnClicked += HandleEquipmentClicked;
         _equipmentSlot.OnHoverEnter += HandleItemHoverEnter;
         _equipmentSlot.OnHoverExit += HandleItemHoverExit;
+
+        _isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+        if (_isMultiplayer)
+        {
+            NetworkGameManager.Instance.OnNextStageReadyCountChanged += HandleNextStageReadyCountChanged;
+            NetworkGameManager.Instance.OnAllReadyForNextStage += HandleAllReadyForNextStage;
+        }
+    }
+
+    void OnDestroy()
+    {
+        // 신호가 오기 전에 파괴되는 경우(씬 전환 등) 구독 해제
+        if (NetworkGameManager.Instance != null)
+        {
+            NetworkGameManager.Instance.OnNextStageReadyCountChanged -= HandleNextStageReadyCountChanged;
+            NetworkGameManager.Instance.OnAllReadyForNextStage -= HandleAllReadyForNextStage;
+        }
     }
 
     public void SetShopActive(bool active)
@@ -66,6 +89,7 @@ public class ShopUI : MonoBehaviour
         if (active)
         {
             SetInteractable(true); // 상점 열릴 때 상호작용 잠금 해제
+            _isReadyForNextStage = false; // 새 상점이니 준비 상태 초기화(멀티)
 
             _shopOwnerUI.ShowWelcome(); // 인사
             RollEquipmentItem(); // 열릴 때마다 장비 새로 뽑기
@@ -261,6 +285,16 @@ public class ShopUI : MonoBehaviour
     /// </summary>
     public void OnClickExit()
     {
+        if (_isMultiplayer)
+        {
+            if (_isReadyForNextStage) return; // 중복 클릭 방지
+
+            _isReadyForNextStage = true;
+            SetInteractable(false); // 준비 완료 후 구매/주인 클릭 막기
+            NetworkGameManager.Instance.RequestNextStageReadyServerRpc(); // 실제 퇴장은 전원 준비 완료 신호를 받은 뒤(HandleAllReadyForNextStage)
+            return;
+        }
+
         SetInteractable(false); // 나가는 동안 구매/주인 클릭 막기
         _clickBlocker.SetActive(true); // 그냥 물리적으로 다 막기
 
@@ -275,5 +309,32 @@ public class ShopUI : MonoBehaviour
         yield return new WaitForSeconds(3f);
         gameObject.SetActive(false);
         OnExitClicked?.Invoke();
+    }
+
+    /// <summary>
+    /// 멀티플레이:다음 스테이지 준비 인원 변경(카운트 표시용)
+    /// </summary>
+    void HandleNextStageReadyCountChanged(int readyCount, int totalCount)
+    {
+        UpdateReadyCountText(readyCount, totalCount);
+    }
+
+    /// <summary>
+    /// 멀티플레이:전원 준비 완료 — 그제서야 실제 나가기 연출 시작
+    /// </summary>
+    void HandleAllReadyForNextStage()
+    {
+        _clickBlocker.SetActive(true); // 그냥 물리적으로 다 막기
+
+        _shopOwnerUI.ShowExit(); // 나가기 인사
+        StartCoroutine(ExitRoutine());
+    }
+
+    /// <summary>
+    /// 다음 스테이지 준비 인원 텍스트 갱신(멀티 전용, 미할당 시 무시)
+    /// </summary>
+    void UpdateReadyCountText(int readyCount, int totalCount)
+    {
+        if (_readyCountText != null) _readyCountText.text = $"{readyCount}/{totalCount}명 준비 완료";
     }
 }

@@ -16,6 +16,8 @@ public class NetworkGameManager : NetworkBehaviour
     // 모든 클라이언트의 씬 로드 완료 여부
     bool _waitForSceneLoaded;
 
+    HashSet<ulong> _readyForNextStageClientIds = new(); // 상점에서 다음 스테이지 준비 완료한 클라이언트 목록
+
     StageScene _stageScene;
 
     public static NetworkGameManager Instance { get; private set; }
@@ -24,6 +26,8 @@ public class NetworkGameManager : NetworkBehaviour
     public event Action<PlayerTank> OnLocalPlayerSpawned; // 로컬 플레이어 스폰 완료 알림
     public event Action OnAllClientsReady; // 모든 클라이언트 씬 로드 완료(로딩창/적 스폰 동시 시작용, 로컬 신호)
     public event Action<int, int> OnPlayerLifeChanged; // 목숨 UI 갱신용(playerIndex, life)
+    public event Action<int, int> OnNextStageReadyCountChanged; // 상점 다음 스테이지 준비 인원 변경(readyCount, totalCount)
+    public event Action OnAllReadyForNextStage; // 전원 준비 완료 — 다음 스테이지로 이동 신호
 
     void Awake()
     {
@@ -363,6 +367,44 @@ public class NetworkGameManager : NetworkBehaviour
         }
 
         GameManager.Instance.AudioManager.EndMassKillMode();
+    }
+
+    /// <summary>
+    /// 다음 스테이지 준비 요청 — 상점에서 나가기 버튼 클릭 시 각 클라이언트가 호출(ShopUI가 호출)
+    /// </summary>
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestNextStageReadyServerRpc(RpcParams rpcParams = default)
+    {
+        ulong senderId = rpcParams.Receive.SenderClientId;
+        _readyForNextStageClientIds.Add(senderId);
+
+        int readyCount = _readyForNextStageClientIds.Count;
+        int totalCount = NetworkManager.Singleton.ConnectedClientsIds.Count;
+        NotifyNextStageReadyCountClientRpc(readyCount, totalCount);
+
+        if (readyCount >= totalCount)
+        {
+            _readyForNextStageClientIds.Clear(); // 다음 스테이지 상점을 위해 초기화
+            NotifyAllReadyForNextStageClientRpc();
+        }
+    }
+
+    /// <summary>
+    /// 다음 스테이지 준비 인원 변경 동기화 — 전원(호스트 포함)에게 카운트 표시용으로 전달
+    /// </summary>
+    [ClientRpc]
+    void NotifyNextStageReadyCountClientRpc(int readyCount, int totalCount)
+    {
+        OnNextStageReadyCountChanged?.Invoke(readyCount, totalCount);
+    }
+
+    /// <summary>
+    /// 전원 준비 완료 동기화 — 전원(호스트 포함)에게 다음 스테이지 이동 신호 전달
+    /// </summary>
+    [ClientRpc]
+    void NotifyAllReadyForNextStageClientRpc()
+    {
+        OnAllReadyForNextStage?.Invoke();
     }
 
     /// <summary>
