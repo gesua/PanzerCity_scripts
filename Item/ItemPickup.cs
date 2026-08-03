@@ -177,7 +177,12 @@ public class ItemPickup : MonoBehaviour
 
             if (_nearestItem.TryGetComponent(out DroppedItemNetworkOwner droppedItemNetworkOwner))
             {
-                droppedItemNetworkOwner.RequestPickupServerRpc();
+                // 연타 시 despawn이 로컬에 아직 반영 안 된 프레임에 같은 아이템이 재탐지될 수 있음
+                // 이미 unspawn된 뒤라면 RPC 호출 자체가 예외를 던지므로 사전에 걸러냄
+                if (droppedItemNetworkOwner.IsSpawned)
+                {
+                    droppedItemNetworkOwner.RequestPickupServerRpc();
+                }
             }
             else
             {
