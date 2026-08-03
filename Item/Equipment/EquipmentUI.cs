@@ -25,6 +25,20 @@ public class EquipmentUI : MonoBehaviour
         // 장착/해제 이벤트 구독
         _equipmentManager.OnEquipped += HandleEquipped;
         _equipmentManager.OnUnequipped += HandleUnequipped;
+
+        // LoadFromSaveData가 Initialize보다 먼저 실행돼 OnEquipped를 놓칠 수 있으므로
+        // 현재 장착 상태를 직접 읽어와 초기 표시에 반영
+        _mainGunSlotUI.SetItem(_equipmentManager.MainGunSlot);
+        _turretSlotUI.SetItem(_equipmentManager.TurretSlot);
+        _hullSlotUI.SetItem(_equipmentManager.HullSlot);
+    }
+
+    void OnDestroy()
+    {
+        if (_equipmentManager == null) return;
+
+        _equipmentManager.OnEquipped -= HandleEquipped;
+        _equipmentManager.OnUnequipped -= HandleUnequipped;
     }
 
     /// <summary>

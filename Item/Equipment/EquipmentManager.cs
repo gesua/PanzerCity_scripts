@@ -19,12 +19,18 @@ public class EquipmentManager : MonoBehaviour
     public event Action<EquipSlot, ItemModel> OnEquipped;   // 장착
     public event Action<EquipSlot, ItemModel> OnUnequipped; // 해제
 
+    /// <summary>
+    /// 새 플레이어 세션 바인딩. GameManager에 종속된 영속 인스턴스라
+    /// 이전 세션(이전 세이브)의 장착 슬롯과 이벤트 구독자가 남아있을 수 있어 함께 초기화함
+    /// </summary>
     public void Initialize(TankModel playerModel)
     {
         _playerModel = playerModel;
         _mainGunSlot = null;
         _turretSlot = null;
         _hullSlot = null;
+        OnEquipped = null;
+        OnUnequipped = null;
     }
 
     /// <summary>
