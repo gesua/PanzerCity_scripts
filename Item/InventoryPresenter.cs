@@ -44,6 +44,15 @@ public class InventoryPresenter
     }
 
     /// <summary>
+    /// 아이템이 들어갈 자리가 있는지만 확인(실제로 넣지는 않음, 멀티플레이 픽업 사전 확인용)
+    /// </summary>
+    public bool HasSpaceFor(ItemConfig config)
+    {
+        ItemModel tempItem = new ItemModel(config);
+        return _model.TryGetEmptyPosition(tempItem, out _);
+    }
+
+    /// <summary>
     /// 드래그 시작
     /// </summary>
     void HandleDragBegin(ItemModel item, Vector2 screenPos)

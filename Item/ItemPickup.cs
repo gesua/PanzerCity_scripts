@@ -166,6 +166,15 @@ public class ItemPickup : MonoBehaviour
         // 멀티플레이:서버에 픽업 승인 요청(동시 픽업 경합은 서버가 판정)
         if (_networkOwner != null)
         {
+            // 즉시사용 아이템이 아니면 요청 전에 자리부터 확인
+            // (서버는 인벤토리 공간을 모른 채 무조건 승인하고 despawn하므로,
+            //  자리가 없는데 요청을 보내면 클라 쪽에서 실패해도 이미 사라진 뒤라 복구 불가)
+            if (_nearestItem.ItemConfig.AutoUse == false && _inventoryPresenter.HasSpaceFor(_nearestItem.ItemConfig) == false)
+            {
+                _nearestItem = null;
+                return;
+            }
+
             if (_nearestItem.TryGetComponent(out DroppedItemNetworkOwner droppedItemNetworkOwner))
             {
                 droppedItemNetworkOwner.RequestPickupServerRpc();
