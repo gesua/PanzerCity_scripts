@@ -48,7 +48,12 @@ public class EquipmentUI : MonoBehaviour
     {
         ItemModel item = _equipmentManager.Unequip(slot);
         if (item == null) return;
-        _inventoryPresenter.AddItem(item);
+
+        bool added = _inventoryPresenter.AddItem(item);
+        if (added == false)
+        {
+            _equipmentManager.Equip(item); // 자리가 없으면 다시 장착
+        }
     }
 
     /// <summary>

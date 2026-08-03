@@ -116,8 +116,17 @@ public class InventoryPresenter
             // 장비 장착
             RemoveItem(item);
             ItemModel prevItem = _equipmentManager.Equip(item);
+
             // 기존 장착 아이템 인벤토리로 반환
-            if (prevItem != null) AddItem(prevItem);
+            if (prevItem == null) return;
+
+            bool added = AddItem(prevItem);
+            if (added == false)
+            {
+                // 자리가 없으면 장착을 되돌림
+                _equipmentManager.Equip(prevItem);
+                AddItem(item);
+            }
         }
     }
 
@@ -143,8 +152,8 @@ public class InventoryPresenter
     /// </summary>
     public bool AddItem(ItemModel item)
     {
-        if (!_model.TryGetEmptyPosition(item, out Vector2Int pos)) return false;
-        if (!_model.TryAddItem(item, pos)) return false;
+        if (_model.TryGetEmptyPosition(item, out Vector2Int pos) == false) return false;
+        if (_model.TryAddItem(item, pos) == false) return false;
 
         _view.AddItemView(item);
         OnInventoryChanged?.Invoke();
