@@ -190,6 +190,15 @@ public class ShopUI : MonoBehaviour
             return;
         }
 
+        // 목숨 증가는 인벤토리에 넣지 않고 즉시 적용
+        if (itemConfig.Id == 1001)
+        {
+            GameManager.Instance.PlayerData.AddLife(1);
+            GameManager.Instance.AudioManager.PlaySfx(SfxType.LifeUp);
+            _shopOwnerUI.ShowBuySuccess();
+            return;
+        }
+
         // 인벤토리에 추가
         ItemModel item = new ItemModel(itemConfig);
         if (_inventoryUI.Presenter.AddItem(item) == false)
