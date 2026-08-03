@@ -497,7 +497,21 @@ public class GameScene : MonoBehaviour
         _isPaused = !_isPaused;
         _inputSystemHandler.SetInputDisabled(_isPaused);
         _pauseUI.SetActive(_isPaused);
-        Time.timeScale = _isPaused ? 0f : 1f;
+
+        // 멀티플레이 중인지 확인 (싱글플레이일 때만 시간을 멈춤)
+        bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        if (isMultiplayer == false)
+        {
+            Time.timeScale = _isPaused ? 0f : 1f;
+        }
+        /* 현재 _Multi씬에서 재도전 버튼 지움
+        else
+        {
+            // 멀티플레이 중이라면 재도전 버튼을 숨김
+            // TODO:호스트만 보이게 하고 누를 수 있게 하기
+            _pauseUI.RetryBtn.SetActive(false);
+        }
+        */
 
         // 일시정지 소리
         if (_isPaused) GameManager.Instance.AudioManager.PlaySfx(SfxType.Pause);

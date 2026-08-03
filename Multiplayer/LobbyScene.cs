@@ -44,11 +44,11 @@ public class LobbyScene : MonoBehaviour
     [Header("----- UI 잠금 -----")]
     [SerializeField] GameObject _clickBlocker;
 
-    bool _isRefreshing;      // 새로고침 연타 방지
-    bool _isCreatingRoom;    // 방 만들기 중복 클릭 방지
-    bool _isJoining;         // 방 참가 중복 클릭 방지
-    bool _isFindingRoom;     // 방 이름 검색 중복 클릭 방지
-    bool _isGameStarting;    // 게임 중복 실행 방지
+    bool _isRefreshing;   // 새로고침 연타 방지
+    bool _isCreatingRoom; // 방 만들기 중복 클릭 방지
+    bool _isJoining;      // 방 참가 중복 클릭 방지
+    bool _isFindingRoom;  // 방 이름 검색 중복 클릭 방지
+    bool _isGameStarting; // 게임 중복 실행 방지
 
     Coroutine _autoRefreshCoroutine; // 자동 새로고침 코루틴 추적용
 
@@ -320,7 +320,7 @@ public class LobbyScene : MonoBehaviour
         {
             await LobbyManager.Instance.RefreshLobbyListAsync();
 
-            //UpdateStatus("UI_MP_MSG_REFRESH_SUCCESS");
+            //UpdateStatus("UI_MP_MSG_REFRESH_SUCCESS"); 새로고침 메시지가 다른 메시지를 가려서 주석 처리
 
             // 새로고침 최소 간격 2초
             await Task.Delay(2000);
