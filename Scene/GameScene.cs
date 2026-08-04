@@ -319,13 +319,17 @@ public class GameScene : MonoBehaviour
         // 튜토리얼 모드 여부 전달(씬 이름 기준)
         if (_player != null)
         {
-            _player.ItemPickup.SetTutorialMode(_currentStage.gameObject.scene.name == "Stage00");
+            bool isTutorialScene = _currentStage.gameObject.scene.name == "Stage00";
+            _player.ItemPickup.SetTutorialMode(isTutorialScene);
 
-            // 튜토리얼 시작시 소모품 아이템 지급 (퀵슬롯 1~4키 입력을 암시적으로 전달)
-            AddCheatItem(1002);
-            AddCheatItem(1003); AddCheatItem(1003);
-            AddCheatItem(1004); AddCheatItem(1004); AddCheatItem(1004);
-            AddCheatItem(1005); AddCheatItem(1005); AddCheatItem(1005); AddCheatItem(1005);
+            if (isTutorialScene)
+            {
+                // 튜토리얼 시작시 소모품 아이템 지급 (퀵슬롯 1~4키 입력을 암시적으로 전달)
+                AddCheatItem(1002);
+                AddCheatItem(1003); AddCheatItem(1003);
+                AddCheatItem(1004); AddCheatItem(1004); AddCheatItem(1004);
+                AddCheatItem(1005); AddCheatItem(1005); AddCheatItem(1005); AddCheatItem(1005);
+            }
         }
 
         // 이벤트 구독
