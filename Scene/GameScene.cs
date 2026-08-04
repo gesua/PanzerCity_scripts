@@ -153,6 +153,9 @@ public class GameScene : MonoBehaviour
 
             // 목숨 UI:다른 플레이어의 목숨 변경 수신(내 것은 아래 로컬 PlayerData 구독으로 별도 처리)
             NetworkGameManager.Instance.OnPlayerLifeChanged += HandleOtherPlayerLifeChanged;
+
+            // 멀티플레이: 모든 클라이언트 로딩 완료(게임 실제 시작 시점) 수신
+            NetworkGameManager.Instance.OnAllClientsReady += HandleAllClientsReady;
         }
         else
         {
@@ -300,6 +303,7 @@ public class GameScene : MonoBehaviour
         if (NetworkGameManager.Instance != null)
         {
             NetworkGameManager.Instance.OnLocalPlayerSpawned -= HandleLocalPlayerSpawned;
+            NetworkGameManager.Instance.OnAllClientsReady -= HandleAllClientsReady;
         }
     }
 
@@ -389,11 +393,22 @@ public class GameScene : MonoBehaviour
         // 멀티에서는 여기서 리스폰 안 함(Initialize가 각자 올바른 위치로 직접 처리)
         // 이 값은 항상 1P 스폰 지점(인덱스 0)이라 멀티에 그대로 쓰면 안 됨
         bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
-        if (isMultiplayer == false && _player != null) _player.Respawn(_playerSpawnPoint, _cinemachineBrain);
+        if (isMultiplayer == false && _player != null)
+        {
+            _player.Respawn(_playerSpawnPoint, _cinemachineBrain);
 
-        // 스테이지 시작 소리
+            // 스테이지 시작 소리 (싱글플레이 전용)
+            GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);
+        }
+    }
+
+    /// <summary>
+    /// 멀티플레이: 모든 클라이언트 준비 완료 (게임 시작)
+    /// </summary>
+    void HandleAllClientsReady()
+    {
+        // 스테이지 시작 소리 (멀티플레이 전용)
         GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);
-
     }
 
     /// <summary>
