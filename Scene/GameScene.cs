@@ -416,6 +416,8 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleMoveInput(Vector2 inputVector)
     {
+        if (_isShopOpen || _isPaused) return; // 상점이나 ESC메뉴 중엔 무시
+
         // x,y 축을 x,z축으로 변경
         Vector3 moveVector = Vector3.forward * inputVector.y + Vector3.right * inputVector.x;
         _player.Move(moveVector);
@@ -426,6 +428,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleCameraRotateInput(Vector2 inputVector)
     {
+        if (_isShopOpen || _isPaused) return; // 상점이나 ESC메뉴 중엔 무시
         if (_OnCursor) return; // 커서 보일 땐 잠금
 
         _cameraTarget.Rotate(inputVector);
@@ -436,6 +439,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleAttackInput(bool isAttack)
     {
+        if (_isShopOpen || _isPaused) return; // 상점이나 ESC메뉴 중엔 무시
         if (_OnCursor) return; // 커서 보일 땐 잠금
         if (_player.IsDead) return;
 
@@ -444,6 +448,7 @@ public class GameScene : MonoBehaviour
 
     void HandleCameraZoomInput(Vector2 inputVector)
     {
+        if (_isShopOpen || _isPaused) return; // 상점이나 ESC메뉴 중엔 무시
         _cameraTarget.Zoom(inputVector);
     }
 
@@ -452,6 +457,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleSniperInput()
     {
+        if (_isShopOpen || _isPaused) return; // 상점이나 ESC메뉴 중엔 무시
         if (_player.IsDead) return;
 
         _sniperMode.ToggleSniperMode();
@@ -569,8 +575,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleCursorInput(bool isActive)
     {
-        if (_isShopOpen) return; // 상점 열렸을 땐 항상 보이기
-        if (_isPaused) return; // 일시정지 중엔 항상 보이기
+        if (_isShopOpen || _isPaused) return; // 상점이나 일시정지 중엔 항상 보이기
 
         _OnCursor = isActive;
         Cursor.lockState = isActive ? CursorLockMode.None : CursorLockMode.Locked;
