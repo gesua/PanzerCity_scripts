@@ -165,8 +165,14 @@ public class Mover : MonoBehaviour
     {
         _rigid.position = pos;
         _rigid.rotation = rotation;
-        _rigid.linearVelocity = Vector3.zero;
-        _rigid.angularVelocity = Vector3.zero;
+
+        // 물리 연산 중일 때만 속도를 0으로 초기화 (isKinematic 경고 방지)
+        if (_rigid.isKinematic == false)
+        {
+            _rigid.linearVelocity = Vector3.zero;
+            _rigid.angularVelocity = Vector3.zero;
+        }
+
         _currentSpeed = 0f;
         _targetSpeed = 0f;
     }
