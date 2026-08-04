@@ -42,6 +42,10 @@ public class LobbyManager : MonoBehaviour
     bool _isHeartbeating; // 하트비트 중복 방지용(응답이 주기보다 늦게 오면 재진입 가능)
     bool _isPolling; // 폴링 중복 방지용(GetLobbyAsync 응답이 폴링 주기보다 늦게 오면 재진입해서 두 번 실행될 수 있음)
 
+    // 최근 검색된 로비 목록 캐싱 및 API Rate Limit 대응용
+    List<Lobby> _cachedLobbies = new List<Lobby>();
+    float _lastQueryTime;
+
     public Lobby CurrentLobby => _currentLobby;
     public string Nickname => _nickname;
     public string FirstStageName { get; private set; } = "Stage01"; // 멀티 시작 스테이지
@@ -298,8 +302,10 @@ public class LobbyManager : MonoBehaviour
                 Count = 50
             };
 
+            _lastQueryTime = Time.time;
             QueryResponse response = await LobbyService.Instance.QueryLobbiesAsync(options);
-            OnLobbyListUpdated?.Invoke(response.Results);
+            _cachedLobbies = response.Results ?? new List<Lobby>();
+            OnLobbyListUpdated?.Invoke(_cachedLobbies);
         }
         catch (Exception e)
         {
@@ -400,7 +406,47 @@ public class LobbyManager : MonoBehaviour
         {
             OnStatusChanged?.Invoke("UI_MP_MSG_QUICK_SEARCHING", null);
 
-            // 1. 방 검색 옵션 설정
+            // 이미 새로고침되어 갖고 있는 캐시 목록에서 조건에 맞는 방(비밀번호 없음, 미잠금, 빈자리 있음) 필터링
+            List<Lobby> candidates = new List<Lobby>();
+            if (_cachedLobbies != null && _cachedLobbies.Count > 0)
+            {
+                foreach (Lobby lobby in _cachedLobbies)
+                {
+                    if (lobby.HasPassword == false &&
+                        lobby.IsLocked == false &&
+                        lobby.AvailableSlots > 0)
+                    {
+                        candidates.Add(lobby);
+                    }
+                }
+            }
+
+            // 인원이 가장 많은 순서대로 정렬 (남은 자리가 적은 순)
+            candidates.Sort((a, b) => a.AvailableSlots.CompareTo(b.AvailableSlots));
+
+            // 캐시된 후보 방이 있다면 참가를 시도 (네트워크 Query 없이 즉시 실행)
+            foreach (Lobby targetLobby in candidates)
+            {
+                try
+                {
+                    await JoinLobbyAsync(targetLobby.Id, null);
+                    return; // 성공 시 즉시 종료
+                }
+                catch
+                {
+                    // 그 사이 다른 사람이 들어가서 실패한 경우 다음 후보 방 시도
+                    continue;
+                }
+            }
+
+            // 캐시 목록에 입장 가능한 방이 없는 경우 직접 UGS 서버에 검색 쿼리
+            // 단, 마지막 검색 후 1.2초가 지나지 않았다면 Rate Limit 방지를 위해 대기 후 검색
+            float timeSinceLastQuery = Time.time - _lastQueryTime;
+            if (timeSinceLastQuery < 1.2f)
+            {
+                await Task.Delay((int)((1.2f - timeSinceLastQuery) * 1000));
+            }
+
             QueryLobbiesOptions queryOptions = new QueryLobbiesOptions
             {
                 Count = 20, // 최대 20개 탐색
@@ -416,28 +462,29 @@ public class LobbyManager : MonoBehaviour
                 }
             };
 
+            _lastQueryTime = Time.time;
             QueryResponse response = await LobbyService.Instance.QueryLobbiesAsync(queryOptions);
 
-            // 2. 검색된 목록 중 완벽한 조건의 방 하나 찾기
-            Lobby targetLobby = null;
+            // 목록 중 완벽한 조건의 방 하나 찾기
+            Lobby fallbackLobby = null;
             foreach (Lobby lobby in response.Results)
             {
                 // 비밀번호가 없고, 게임이 아직 시작되지 않은 방(잠기지 않은 방)
                 if (lobby.HasPassword == false && lobby.IsLocked == false)
                 {
-                    targetLobby = lobby;
+                    fallbackLobby = lobby;
                     break; // 가장 먼저 찾은(가장 인원 많은) 방 채택
                 }
             }
 
-            if (targetLobby == null)
+            if (fallbackLobby == null)
             {
                 OnStatusChanged?.Invoke("UI_MP_ERR_QUICK_EMPTY", null);
                 return;
             }
 
-            // 3. 찾은 방의 ID를 활용해 기존 참가 로직 그대로 실행
-            await JoinLobbyAsync(targetLobby.Id, null);
+            // 찾은 방의 ID를 활용해 기존 참가 로직 그대로 실행
+            await JoinLobbyAsync(fallbackLobby.Id, null);
         }
         catch (Exception e)
         {

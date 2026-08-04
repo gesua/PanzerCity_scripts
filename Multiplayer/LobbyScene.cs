@@ -122,7 +122,8 @@ public class LobbyScene : MonoBehaviour
             if (_lobbyPanel.activeSelf == false) break;
             if (_isRefreshing || _isJoining || _isFindingRoom || _isCreatingRoom) continue;
 
-            _ = LobbyManager.Instance.RefreshLobbyListAsync();
+            // 새로고침 버튼 누름
+            OnRefreshClicked();
         }
     }
 
@@ -314,7 +315,6 @@ public class LobbyScene : MonoBehaviour
         _isRefreshing = true;
 
         _refreshButton.interactable = false;
-        _quickStartButton.interactable = false; // 빠른 시작 버튼도 새로고침 사용하니까 같이 막아야 함(HTTP 에러)
 
         try
         {
@@ -330,7 +330,6 @@ public class LobbyScene : MonoBehaviour
             if (this != null)
             {
                 _refreshButton.interactable = true;
-                _quickStartButton.interactable = true;
                 _isRefreshing = false;
             }
         }
