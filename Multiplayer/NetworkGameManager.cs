@@ -17,6 +17,7 @@ public class NetworkGameManager : NetworkBehaviour
     bool _waitForSceneLoaded;
 
     HashSet<ulong> _readyForNextStageClientIds = new(); // 상점에서 다음 스테이지 준비 완료한 클라이언트 목록
+    HashSet<ulong> _stageLoadedClientIds = new(); // 스테이지 전환 시 씬 로드 완료 보고한 클라이언트 목록
 
     StageScene _stageScene;
 
@@ -115,6 +116,24 @@ public class NetworkGameManager : NetworkBehaviour
 
         // 전원 씬 로드 완료 시점 — 로딩창 종료 및 적 스폰을 동시에 시작하라는 신호
         NotifyAllClientsReadyClientRpc();
+    }
+
+    /// <summary>
+    /// 스테이지 전환 씬 로드 완료 보고 — 각 클라이언트가 자기 쪽 다음 스테이지 로드를 마치면 호출(GameScene이 호출)
+    /// 스테이지 전환은 일반 SceneManager로 로드되어 위 OnLoadEventCompleted(NGO 동기화 전용)가 발동하지 않으므로 별도 경로로 처리
+    /// SpawnAllPlayers는 호출하지 않음 — 전환 시점엔 플레이어가 이미 스폰되어 있음
+    /// </summary>
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestStageLoadedServerRpc(RpcParams rpcParams = default)
+    {
+        ulong senderId = rpcParams.Receive.SenderClientId;
+        _stageLoadedClientIds.Add(senderId);
+
+        if (_stageLoadedClientIds.Count >= NetworkManager.Singleton.ConnectedClientsIds.Count)
+        {
+            _stageLoadedClientIds.Clear(); // 다음 전환을 위해 초기화
+            NotifyAllClientsReadyClientRpc();
+        }
     }
 
     /// <summary>

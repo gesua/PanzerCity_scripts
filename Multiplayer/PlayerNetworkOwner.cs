@@ -183,4 +183,28 @@ public class PlayerNetworkOwner : NetworkBehaviour
     {
         HandleDropItemOnServer(itemID, position);
     }
+
+    /// <summary>
+    /// 이 플레이어에게만 골드 지급을 알림(서버 전용, EnemyTank가 처치 판정 후 호출)
+    /// </summary>
+    public void NotifyGoldEarned(int amount)
+    {
+        if (IsServer == false) return; // 방어적 가드
+
+        ClientRpcParams targetParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams { TargetClientIds = new ulong[] { OwnerClientId } }
+        };
+        NotifyGoldEarnedClientRpc(amount, targetParams);
+    }
+
+    /// <summary>
+    /// 골드 지급 반영 — 소유 클라이언트(자기 자신)에게만 전달됨
+    /// </summary>
+    [ClientRpc]
+    void NotifyGoldEarnedClientRpc(int amount, ClientRpcParams rpcParams = default)
+    {
+        GameManager.Instance.PlayerData.AddGold(amount);
+        GameManager.Instance.GameStatistics.AddGoldEarned(amount);
+    }
 }

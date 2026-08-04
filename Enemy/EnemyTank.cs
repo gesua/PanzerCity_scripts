@@ -723,11 +723,19 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         // 클라이언트는 서버의 폭발 판정을 재현하는 과정에서 여기까지 도달할 수 있어서 가드 필요
         if (_networkOwner != null && _networkOwner.IsServer == false) return;
 
-        // 골드 추가
-        GameManager.Instance.PlayerData.AddGold(_tankData.RewardGold);
-
-        // 통계 기록
-        GameManager.Instance.GameStatistics.AddGoldEarned(_tankData.RewardGold);
+        // 골드 지급
+        if (_networkOwner == null)
+        {
+            // 싱글플레이
+            GameManager.Instance.PlayerData.AddGold(_tankData.RewardGold);
+            GameManager.Instance.GameStatistics.AddGoldEarned(_tankData.RewardGold); // 통계 기록
+        }
+        else if (hitData.AtkTank is PlayerTank attackerPlayerTank)
+        {
+            // 멀티플레이:실제로 처치한 플레이어에게만 타겟 RPC로 지급(호스트 자신이든 클라이언트든 동일 경로)
+            // 멀티플레이에서 폭탄은 아무에게도 골드 지급하지 않음
+            attackerPlayerTank.NetworkOwner?.NotifyGoldEarned(_tankData.RewardGold);
+        }
 
         // 격파 통계(아이템으로 죽었으면 AtkTank가 null)
         bool isItemKill = (hitData.AtkTank == null);

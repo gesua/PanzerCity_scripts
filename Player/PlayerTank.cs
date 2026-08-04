@@ -59,8 +59,8 @@ public class PlayerTank : TankBase
     protected override bool ShowEffects => !_isSniperMode;
     public bool IsDead => _isDead;
     public MeshRenderer[] NormalVisualRenderers => _normalVisualRenderers;
-
     public CommanderController Commander => _commander;
+    public PlayerNetworkOwner NetworkOwner => _networkOwner;
 
     public event Action<int> OnDamaged;   // 대미지 받음<현재 HP>
     public event Action<HitData> OnHit;   // 피격
@@ -250,8 +250,6 @@ public class PlayerTank : TankBase
         _reloadIndicator = reloadIndicator;
         _turret.SetSceneReferences(cameraTarget, centerCrosshair, turretCrosshair, centerCrosshairImage);
     }
-
-
 
     private void Update()
     {

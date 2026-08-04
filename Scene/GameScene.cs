@@ -53,6 +53,7 @@ public class GameScene : MonoBehaviour
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점(싱글 전용)
     int _localSpawnIndex; // 멀티플레이:로컬 플레이어의 스폰 인덱스
+    bool _hasCompletedFirstStageLoad; // 멀티플레이:스테이지 전환(2번째 이후) 판별용
 
     StageScene _currentStage; // 현재 스테이지
 
@@ -369,6 +370,10 @@ public class GameScene : MonoBehaviour
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
             NetworkGameManager.Instance?.OnStageReady(_currentStage);
+
+            // 스테이지 전환(2번째 이후 로드)은 NGO 동기화 씬로드를 안 타서 OnLoadEventCompleted가 안 옴 — 별도 신호로 적 스폰 트리거
+            if (_hasCompletedFirstStageLoad) NetworkGameManager.Instance.RequestStageLoadedServerRpc();
+            _hasCompletedFirstStageLoad = true;
         }
     }
 
@@ -394,25 +399,26 @@ public class GameScene : MonoBehaviour
     {
         _playerSpawnPoint = pos;
 
-        // 멀티에서는 여기서 리스폰 안 함(Initialize가 각자 올바른 위치로 직접 처리)
-        // 이 값은 항상 1P 스폰 지점(인덱스 0)이라 멀티에 그대로 쓰면 안 됨
+        // pos는 항상 1P 스폰 지점(인덱스 0)이라 멀티에 그대로 쓰면 안 됨
+        // 최초 스폰 배치는 Initialize(PlayerTank)가 처리하지만 그건 최초 1회뿐이라, 전환 시엔 여기서 다시 해줘야 함
         bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
-        if (isMultiplayer == false && _player != null)
+        if (_player != null)
         {
-            _player.Respawn(_playerSpawnPoint, _cinemachineBrain);
-
-            // 스테이지 시작 소리 (싱글플레이 전용)
-            GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);
+            Vector3 spawnPos = (isMultiplayer) ? _currentStage.GetSpawnPoint(_localSpawnIndex) : _playerSpawnPoint;
+            _player.Respawn(spawnPos, _cinemachineBrain);
         }
+
+        // 스테이지 시작 소리
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);
     }
 
     /// <summary>
-    /// 멀티플레이: 모든 클라이언트 준비 완료 (게임 시작)
+    /// 멀티플레이:모든 클라이언트 준비 완료 (게임 시작)
     /// </summary>
     void HandleAllClientsReady()
     {
         // 스테이지 시작 소리 (멀티플레이 전용)
-        GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart); // HACK:2번 나오거나 필요없을 수도 있겠음
     }
 
     /// <summary>
