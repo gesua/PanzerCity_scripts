@@ -178,9 +178,12 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
     {
         _isReleased = true;
 
-        // rigidbody 초기화
-        _rigid.linearVelocity = Vector3.zero;
-        _rigid.angularVelocity = Vector3.zero;
+        // rigidbody 초기화 (물리 연산 중일 때만 속도를 0으로 초기화)
+        if (_rigid.isKinematic == false)
+        {
+            _rigid.linearVelocity = Vector3.zero;
+            _rigid.angularVelocity = Vector3.zero;
+        }
 
         // 멀티플레이:서버만 네트워크 디스폰(destroy: false → GameObject는 유지해서 Pool 재사용)
         _networkOwner?.RequestDespawn();
