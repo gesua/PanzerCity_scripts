@@ -314,8 +314,6 @@ public class LobbyScene : MonoBehaviour
         if (_isRefreshing) return;
         _isRefreshing = true;
 
-        _refreshButton.interactable = false;
-
         try
         {
             await LobbyManager.Instance.RefreshLobbyListAsync();
@@ -329,7 +327,6 @@ public class LobbyScene : MonoBehaviour
         {
             if (this != null)
             {
-                _refreshButton.interactable = true;
                 _isRefreshing = false;
             }
         }
