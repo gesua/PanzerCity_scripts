@@ -40,10 +40,4 @@ public class TutorialManager : MonoBehaviour
         _currentIndex++;
         StartStep(_currentIndex);
     }
-
-    void ShowMessage(string msg)
-    {
-        // UI 매니저와 연결해서 메시지 출력
-        Debug.Log(msg);
-    }
 }
