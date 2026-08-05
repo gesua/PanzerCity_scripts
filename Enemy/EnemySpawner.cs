@@ -53,6 +53,7 @@ public class EnemySpawner : MonoBehaviour
 
     Coroutine _retryRoutine;
     Coroutine _empRoutine;
+    List<Coroutine> _empVisualRoutines = new List<Coroutine>();
 
     public void Initialize(int stageID)
     {
@@ -414,9 +415,20 @@ public class EnemySpawner : MonoBehaviour
     /// 멀티플레이:클라이언트가 서버의 EMP 신호를 받았을 때 호출 — 판정 없이 시각 연출(이펙트+깜빡임)만 재생
     /// AI 정지 자체는 서버 권위 이동이 NetworkTransform으로 그대로 반영되므로 클라이언트에서 별도 처리 불필요
     /// </summary>
-    public void PlayEMPVisual(List<EnemyTank> targets, float duration)
+    public void PlayEMPVisual(List<EnemyTank> targets, float duration, bool isNewTrigger)
     {
-        StartCoroutine(EMPVisualRoutine(targets, duration));
+        // 새로 트리거된 EMP면 이전에 돌던 연출(본 트리거 + 늦게 합류한 것들)을 전부 정지하고 새로 시작
+        // 지속 중 신규 합류(신규 스폰 적 1명)는 기존 연출을 안 건드리고 별도로 하나 더 추가
+        if (isNewTrigger)
+        {
+            foreach (Coroutine routine in _empVisualRoutines)
+            {
+                if (routine != null) StopCoroutine(routine);
+            }
+            _empVisualRoutines.Clear();
+        }
+
+        _empVisualRoutines.Add(StartCoroutine(EMPVisualRoutine(targets, duration)));
     }
 
     IEnumerator EMPVisualRoutine(List<EnemyTank> targets, float duration)

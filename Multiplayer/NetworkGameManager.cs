@@ -313,11 +313,11 @@ public class NetworkGameManager : NetworkBehaviour
         _stageScene.EnemySpawner.StartEMPField(duration); // 서버 권위 판정 + 호스트 자신의 연출
 
         ulong[] enemyIds = _stageScene.EnemySpawner.GetActiveEnemyNetworkObjectIds();
-        NotifyEMPVisualClientRpc(enemyIds, duration);
+        NotifyEMPVisualClientRpc(enemyIds, duration, true); // 새 연출 시작
     }
 
     [ClientRpc]
-    void NotifyEMPVisualClientRpc(ulong[] enemyNetworkObjectIds, float duration)
+    void NotifyEMPVisualClientRpc(ulong[] enemyNetworkObjectIds, float duration, bool isNewTrigger)
     {
         // 호스트 자신은 위에서 이미 직접 처리했으므로 중복 방지
         if (IsServer) return;
@@ -334,7 +334,7 @@ public class NetworkGameManager : NetworkBehaviour
             targets.Add(enemyTank);
         }
 
-        _stageScene.EnemySpawner.PlayEMPVisual(targets, duration);
+        _stageScene.EnemySpawner.PlayEMPVisual(targets, duration, isNewTrigger);
     }
 
     /// <summary>
@@ -343,7 +343,7 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     public void NotifyLateEMPVisual(ulong enemyNetworkObjectId, float remainingDuration)
     {
-        NotifyEMPVisualClientRpc(new ulong[] { enemyNetworkObjectId }, remainingDuration);
+        NotifyEMPVisualClientRpc(new ulong[] { enemyNetworkObjectId }, remainingDuration, false); // 기존 연출에 합류
     }
 
     /// <summary>

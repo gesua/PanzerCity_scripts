@@ -107,32 +107,42 @@ public class StageScene : MonoBehaviour
     IEnumerator StageClearRoutine()
     {
         yield return new WaitForSeconds(3f);
-        TriggerStageClear();
+        yield return TriggerStageClearRoutine(); // Cleanup 완료까지 기다린 뒤 다음 단계로
 
         // 멀티플레이:이 코루틴 자체가 서버(호스트)에서만 도달 가능 — 결과를 클라이언트에 전파
         if (_isMultiplayer) NetworkGameManager.Instance.NotifyStageCleared();
     }
 
     /// <summary>
-    /// 스테이지 클리어 확정 처리(정리 + 이벤트 발행)
+    /// 스테이지 클리어 확정 처리 진입점 — Cleanup이 끝날 때까지 기다렸다가 이벤트를 발행해야 해서 코루틴으로 시작
     /// 싱글:위 코루틴에서 직접 호출 / 멀티:서버는 위 코루틴에서, 클라이언트는 NetworkGameManager의 신호를 받아 호출
-    /// (서버가 이미 대기까지 마친 뒤 보낸 신호이므로 클라이언트는 곧바로 반영)
+    /// (서버가 이미 대기 및 정리까지 마친 뒤 보낸 신호이므로 클라이언트는 곧바로 반영)
     /// </summary>
     public void TriggerStageClear()
     {
-        Cleanup();
+        StartCoroutine(TriggerStageClearRoutine());
+    }
+
+    IEnumerator TriggerStageClearRoutine()
+    {
+        yield return CleanupRoutine();
         OnStageClear?.Invoke();
     }
 
     /// <summary>
-    /// 바닥에 있는 아이템들 초기화
+    /// 바닥 아이템 정리 — Despawn을 한 프레임에 몰아 부르면 스톨이 생길 수 있어 여러 프레임에 나눠 처리
+    /// TriggerStageClearRoutine에서 완료를 기다리므로, 정리 도중에 다음 스테이지로 못 넘어감이 보장됨
+    /// (2→3스테이지 전환 중 호스트에서 실제로 관찰된 증상: Receive queue full + 씬 로드 지연)
     /// </summary>
-    public void Cleanup()
+    IEnumerator CleanupRoutine()
     {
-        foreach (DroppedItem item in _droppedItems)
+        List<DroppedItem> items = new List<DroppedItem>(_droppedItems);
+        _droppedItems.Clear();
+
+        int processedCount = 0;
+        foreach (DroppedItem item in items)
         {
             // 멀티플레이:네트워크 스폰된 아이템은 Despawn으로 정리해야 풀 반환 시 NGO 스폰 상태도 같이 정리됨
-            // (_droppedItems는 서버에서만 채워지므로 이 분기는 서버에서만 실행됨)
             if (item.TryGetComponent(out NetworkObject networkObject) && networkObject.IsSpawned)
             {
                 networkObject.Despawn();
@@ -141,8 +151,14 @@ public class StageScene : MonoBehaviour
             {
                 item.gameObject.DestroyOrReturnToPool();
             }
+
+            processedCount++;
+            if (processedCount >= 5)
+            {
+                processedCount = 0;
+                yield return null;
+            }
         }
-        _droppedItems.Clear();
     }
 
     /// <summary>
