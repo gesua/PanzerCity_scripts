@@ -75,8 +75,6 @@ public class SniperModeController : MonoBehaviour
     /// </summary>
     void UpdateCameraCloseState()
     {
-        if (_mainCameraTr == null || _playerTarget == null) return;
-
         float hideDistance = Mathf.Max(0f, _hideDistance);
         float showDistance = Mathf.Max(hideDistance, _showDistance);
         float threshold = (_isCameraTooClose) ? showDistance : hideDistance;
@@ -102,39 +100,34 @@ public class SniperModeController : MonoBehaviour
         bool commanderShouldHide = isCameraHide;
 
         // 사망 상태 캐싱 및 갱신 체크
-        bool currentDead = _player != null && _player.IsDead;
+        bool currentDead = _player.IsDead;
         if (_lastPlayerDead != currentDead)
         {
-            _hasAppliedVisual = false; // 사망/부활 상태가 바뀌면 캐시 무시하고 강제로 다시 적용
+            _hasAppliedVisual = false; // 사망/부활 상태가 바뀌면 강제로 다시 적용
             _lastPlayerDead = currentDead;
         }
 
         // 사망 시 예외 처리
         if (currentDead)
         {
-            tankShouldHide = true;       // 죽으면 탱크 모델링은 무조건 숨김
-            commanderShouldHide = false; // 죽으면 전차장은 무조건 보이게 함
+            tankShouldHide = true; // 죽으면 탱크 모델링은 무조건 숨김
+            _lastPlayerDead = false; // 죽으면 전차장은 무조건 보임
         }
 
-        // 탱크 렌더러 상태가 이전과 동일하다면 전차장 상태만 갱신하고 반환
-        if (_hasAppliedVisual && _lastVisualHidden == tankShouldHide)
-        {
-            if (_commander != null) _commander.SetVisible(!commanderShouldHide);
-            return;
-        }
+        // 탱크 렌더러 상태가 이전과 동일하면 나감
+        if (_hasAppliedVisual && _lastVisualHidden == tankShouldHide) return;
 
         _hasAppliedVisual = true;
         _lastVisualHidden = tankShouldHide;
 
-        if (_tankRenderers != null)
+        foreach (Renderer renderer in _tankRenderers)
         {
-            foreach (Renderer renderer in _tankRenderers)
-            {
-                if (renderer != null) renderer.enabled = !tankShouldHide;
-            }
+            renderer.enabled = !tankShouldHide;
         }
 
+        Debug.Log($"사망여부:{currentDead}, 전차장 표시여부:{!commanderShouldHide}");
+
         // 전차장 업데이트
-        if (_commander != null) _commander.SetVisible(!commanderShouldHide);
+        _commander.SetVisible(!commanderShouldHide);
     }
 }
