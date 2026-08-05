@@ -37,6 +37,7 @@ public class TankVisualController : MonoBehaviour
     public void Play()
     {
         SetModelVisible(false); // 원래 모델 비활성화
+        foreach (GameObject hitZone in _hitZone) hitZone.SetActive(false); // 사망 시에만 히트존 비활성화
         _destroyedModel.SetActive(true); // 파괴된 모델 활성화
 
         // 포탑 회전값 동기화
@@ -63,6 +64,7 @@ public class TankVisualController : MonoBehaviour
 
         _destroyedModel.SetActive(false);
         SetModelVisible(true);
+        foreach (GameObject hitZone in _hitZone) hitZone.SetActive(true); // 재사용 시 히트존 복구
     }
 
     /// <summary>
@@ -70,22 +72,13 @@ public class TankVisualController : MonoBehaviour
     /// </summary>
     public void SetModelVisible(bool visible)
     {
-        // 적 멈춤 아이템이 다시 켜는 것을 방지
-        if (visible && _destroyedModel != null && _destroyedModel.activeSelf)
-        {
-            return;
-        }
+        // 이미 파괴 연출이 재생됐으면 이후의 모든 호출(EMP 등)을 방향 상관없이 무시
+        if (_destroyedModel != null && _destroyedModel.activeSelf) return;
 
-        // 멀티 때문에 렌더러로 꺼야함
+        // 렌더러만 토글
         foreach (MeshRenderer renderer in _normalVisualRenderers)
         {
             renderer.enabled = visible;
-        }
-
-        // 히트존 변경
-        foreach (GameObject hitZone in _hitZone)
-        {
-            hitZone.SetActive(visible);
         }
     }
 }

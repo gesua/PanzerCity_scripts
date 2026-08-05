@@ -422,7 +422,10 @@ public class EnemySpawner : MonoBehaviour
     IEnumerator EMPVisualRoutine(List<EnemyTank> targets, float duration)
     {
         foreach (EnemyTank enemy in targets)
+        {
+            if (enemy.IsAlive == false) continue;
             enemy.SetEMPEffect(true);
+        }
 
         yield return new WaitForSeconds(duration - _blinkStartTime);
 
@@ -431,19 +434,28 @@ public class EnemySpawner : MonoBehaviour
         while (elapsed < _blinkStartTime)
         {
             foreach (EnemyTank enemy in targets)
+            {
+                if (enemy.IsAlive == false) continue;
                 enemy.SetRenderersVisible(false);
+            }
 
             yield return new WaitForSeconds(_blinkInterval);
 
             foreach (EnemyTank enemy in targets)
+            {
+                if (enemy.IsAlive == false) continue;
                 enemy.SetRenderersVisible(true);
+            }
 
             yield return new WaitForSeconds(_blinkInterval);
             elapsed += _blinkInterval * 2f;
         }
 
         foreach (EnemyTank enemy in targets)
+        {
+            if (enemy.IsAlive == false) continue;
             enemy.SetEMPEffect(false);
+        }
     }
 
     /// <summary>

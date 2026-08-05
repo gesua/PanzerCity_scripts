@@ -131,7 +131,16 @@ public class StageScene : MonoBehaviour
     {
         foreach (DroppedItem item in _droppedItems)
         {
-            item.gameObject.DestroyOrReturnToPool();
+            // 멀티플레이:네트워크 스폰된 아이템은 Despawn으로 정리해야 풀 반환 시 NGO 스폰 상태도 같이 정리됨
+            // (_droppedItems는 서버에서만 채워지므로 이 분기는 서버에서만 실행됨)
+            if (item.TryGetComponent(out NetworkObject networkObject) && networkObject.IsSpawned)
+            {
+                networkObject.Despawn();
+            }
+            else
+            {
+                item.gameObject.DestroyOrReturnToPool();
+            }
         }
         _droppedItems.Clear();
     }
