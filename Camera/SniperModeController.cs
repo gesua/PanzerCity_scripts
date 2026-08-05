@@ -75,6 +75,8 @@ public class SniperModeController : MonoBehaviour
     /// </summary>
     void UpdateCameraCloseState()
     {
+        if (_mainCameraTr == null || _playerTarget == null) return;
+
         float hideDistance = Mathf.Max(0f, _hideDistance);
         float showDistance = Mathf.Max(hideDistance, _showDistance);
         float threshold = (_isCameraTooClose) ? showDistance : hideDistance;
