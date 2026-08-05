@@ -102,7 +102,7 @@ public class LobbyScene : MonoBehaviour
         // 로비 진입 시 목록 1회 갱신 후, 주기적 자동 갱신 시작
         if (targetPanel == _lobbyPanel)
         {
-            OnRefreshClicked();
+            AutoRefreshLobbyList();
             _autoRefreshCoroutine = StartCoroutine(AutoRefreshRoutine());
         }
     }
@@ -122,8 +122,8 @@ public class LobbyScene : MonoBehaviour
             if (_lobbyPanel.activeSelf == false) break;
             if (_isRefreshing || _isJoining || _isFindingRoom || _isCreatingRoom) continue;
 
-            // 새로고침 버튼 누름
-            OnRefreshClicked();
+            // 로비 목록 새로고침
+            AutoRefreshLobbyList();
         }
     }
 
@@ -307,9 +307,26 @@ public class LobbyScene : MonoBehaviour
     }
 
     /// <summary>
-    /// 로비 목록 새로고침
+    /// 새로고침 클릭
     /// </summary>
-    public async void OnRefreshClicked()
+    public void OnRefreshClicked()
+    {
+        DoRefreshAsync(true);
+    }
+
+    /// <summary>
+    /// 로비 씬 진입 시 또는 5초 주기 등 자동 갱신 시 호출용
+    /// </summary>
+    public void AutoRefreshLobbyList()
+    {
+        DoRefreshAsync(false);
+    }
+
+    /// <summary>
+    /// 로비 목록 새로고침 처리
+    /// </summary>
+    /// <param name="isManual">수동으로 눌렀는지</param>
+    async void DoRefreshAsync(bool isManual)
     {
         if (_isRefreshing) return;
         _isRefreshing = true;
@@ -318,10 +335,13 @@ public class LobbyScene : MonoBehaviour
         {
             await LobbyManager.Instance.RefreshLobbyListAsync();
 
-            //UpdateStatus("UI_MP_MSG_REFRESH_SUCCESS"); 새로고침 메시지가 다른 메시지를 가려서 주석 처리
-
-            // 새로고침 최소 간격 2초
-            await Task.Delay(2000);
+            // 유저가 직접 새로고침 버튼을 눌렀을(수동) 때만 메시지 띄움
+            if (isManual)
+            {
+                UpdateStatus("UI_MP_MSG_REFRESH_SUCCESS");
+                // 버튼 연타 방지용 대기시간 2초 (수동일 때만 쿨타임 적용)
+                await Task.Delay(2000);
+            }
         }
         finally
         {

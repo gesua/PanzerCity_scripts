@@ -93,6 +93,8 @@ public class ShopUI : MonoBehaviour
 
             _shopOwnerUI.ShowWelcome(); // 인사
             RollEquipmentItem(); // 열릴 때마다 장비 새로 뽑기
+
+            _readyCountText.text = ""; // 멀티 준비 완료 텍스트 비워줌
         }
         else
         {

@@ -412,8 +412,11 @@ public class GameScene : MonoBehaviour
             _player.Respawn(spawnPos, _cinemachineBrain);
         }
 
-        // 스테이지 시작 소리
-        GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);
+        // 스테이지 시작 소리 (싱글플레이에서만 여기서 재생, 멀티는 HandleAllClientsReady에서 재생)
+        if (isMultiplayer == false)
+        {
+            GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);
+        }
     }
 
     /// <summary>
