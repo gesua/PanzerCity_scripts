@@ -40,6 +40,13 @@ public class Turret : MonoBehaviour
 
     EnemyTank _targetTank; // 실루엣 켜는 용도
 
+    const float AimRayDistance = 1000f;
+    const int InitialAimHitBufferSize = 32;
+
+    // 카메라 레이는 프레임당 한 번만 쏘고, 충돌 수가 많을 때만 버퍼를 확장한다.
+    RaycastHit[] _aimHits = new RaycastHit[InitialAimHitBufferSize];
+    Camera _aimCamera;
+
     public Transform TurretTr => _turret;
     public Transform BarrelTr => _barrel;
     public Vector3 BarrelForward => _barrel.forward;
@@ -147,67 +154,94 @@ public class Turret : MonoBehaviour
         if (_isLocalControl == false) return;
         if (_centerCrosshair == null) return;
 
+        Camera aimCamera = GetAimCamera();
+        if (aimCamera == null) return;
+
         if (_aimLocked)
         {
-            TurretCrosshair();
+            TurretCrosshair(aimCamera);
             return;
         }
 
-        RotateTurret();
-        RotateBarrel();
-        TurretCrosshair();
-        UpdateCrosshairColor();
+        float screenY = GetCurrentScreenY();
+        Ray aimRay = aimCamera.ViewportPointToRay(new Vector3(0.5f, screenY, 0f));
+        int hitCount = GetAimRayHits(aimRay);
+
+        // 포탑 회전 전/후 포신 위치가 달라질 수 있으므로, 같은 충돌 결과를 각각의 현재 위치로 해석한다.
+        RotateTurret(GetAimPoint(aimCamera, aimRay, hitCount));
+        RotateBarrel(GetAimPoint(aimCamera, aimRay, hitCount), screenY);
+        TurretCrosshair(aimCamera);
+        UpdateCrosshairColor(hitCount);
     }
 
     /// <summary>
-    /// 화면 중앙에서 레이캐스트를 쏴서 조준 지점을 구함
+    /// 화면 중앙 레이의 충돌 결과를 가져옴
     /// </summary>
-    Vector3 GetAimPoint()
+    int GetAimRayHits(Ray ray)
     {
-        float screenY = GetCurrentScreenY();
-        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, screenY, 0f));
+        int hitCount = Physics.RaycastNonAlloc(ray, _aimHits, AimRayDistance, _aimLayerMask);
 
-        // 카메라와 포탑 사이 거리
-        float minDist = Vector3.Distance(Camera.main.transform.position, _barrel.position);
-
-        // RaycastAll을 사용하여 광선 상의 모든 물체를 가져옴 (카메라와 탱크 사이 장애물 투과용)
-        RaycastHit[] hits = Physics.RaycastAll(ray, 1000f, _aimLayerMask);
-
-        // 카메라에서 가까운 순으로 정렬
-        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
-
-        foreach (RaycastHit hit in hits)
+        // NonAlloc은 버퍼가 꽉 찼을 때 일부 충돌이 잘릴 수 있으므로, 필요한 경우에만 한 번씩 확장한다.
+        while (hitCount == _aimHits.Length)
         {
+            System.Array.Resize(ref _aimHits, _aimHits.Length * 2);
+            hitCount = Physics.RaycastNonAlloc(ray, _aimHits, AimRayDistance, _aimLayerMask);
+        }
+
+        return hitCount;
+    }
+
+    /// <summary>
+    /// 화면 중앙 레이의 충돌 결과에서 포신이 겨눌 지점을 구함
+    /// </summary>
+    Vector3 GetAimPoint(Camera aimCamera, Ray ray, int hitCount)
+    {
+        // 카메라와 포탑 사이 거리
+        float minDist = Vector3.Distance(aimCamera.transform.position, _barrel.position);
+
+        // RaycastNonAlloc의 결과 순서는 보장되지 않으므로, 정렬 대신 조건을 만족하는 가장 가까운 충돌만 찾는다.
+        bool hasAimHit = false;
+        RaycastHit nearestAimHit = default;
+        float nearestDistance = float.MaxValue;
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            RaycastHit hit = _aimHits[i];
+
             // 카메라와 탱크 사이에 걸린 물체는 무시
             if (hit.distance < minDist) continue;
+            if (hit.distance >= nearestDistance) continue;
 
+            nearestAimHit = hit;
+            nearestDistance = hit.distance;
+            hasAimHit = true;
+        }
+
+        if (hasAimHit)
+        {
             // 거리를 비교할 때 '카메라' 기준이 아닌 '포탑' 기준으로 실제 거리를 다시 계산
-            float distFromBarrel = Vector3.Distance(_barrel.position, hit.point);
+            float distFromBarrel = Vector3.Distance(_barrel.position, nearestAimHit.point);
 
             // 저격 모드, 물체가 포탑에서 충분히 멀리 떨어져 있다면 정상 조준
             if (distFromBarrel >= _minAimDistance || _isSniping)
             {
-                return hit.point;
+                return nearestAimHit.point;
             }
-            else
-            {
-                // 탱크 앞의 벽을 조준했을 때 포신이 과하게 들리는 현상 방지
-                // 카메라 광선을 따라 '탱크 앞쪽(_fallbackAimDistance)'을 조준하도록 보정
-                return ray.origin + ray.direction * (minDist + _fallbackAimDistance);
-            }
+
+            // 탱크 앞의 벽을 조준했을 때 포신이 과하게 들리는 현상 방지
+            // 카메라 광선을 따라 '탱크 앞쪽(_fallbackAimDistance)'을 조준하도록 보정
+            return ray.origin + ray.direction * (minDist + _fallbackAimDistance);
         }
 
         // 아무것도 안 맞으면 멀리 조준
-        return ray.origin + ray.direction * 1000f;
+        return ray.origin + ray.direction * AimRayDistance;
     }
 
     /// <summary>
     /// 포탑 좌우 회전
     /// </summary>
-    void RotateTurret()
+    void RotateTurret(Vector3 targetPoint)
     {
-        Vector3 targetPoint = GetAimPoint();
-
         // 떨림 방지, LookRotation 에러 방지
         Vector3 direction = targetPoint - _turret.position;
         direction.y = 0f;
@@ -236,13 +270,10 @@ public class Turret : MonoBehaviour
     /// <summary>
     /// 주포 상하 회전
     /// </summary>
-    void RotateBarrel()
+    void RotateBarrel(Vector3 targetPoint, float screenY)
     {
         // 화면조준점 Y 위치는 현재 모드에 맞게 맞춤
-        float screenY = GetCurrentScreenY();
         SetCenterCrosshairScreenY(screenY);
-
-        Vector3 targetPoint = GetAimPoint();
 
         Vector3 direction = targetPoint - _barrel.position;
         Quaternion targetRotation = Quaternion.LookRotation(direction);
@@ -269,27 +300,27 @@ public class Turret : MonoBehaviour
     /// <summary>
     /// 포탑조준점(O) 위치 조절
     /// </summary>
-    void TurretCrosshair()
+    void TurretCrosshair(Camera aimCamera)
     {
+        if (_turretCrosshair == null) return;
+
         Ray ray = new Ray(_barrel.position, _barrel.forward);
 
         Vector3 targetPoint;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, _aimLayerMask))
+        if (Physics.Raycast(ray, out RaycastHit hit, AimRayDistance, _aimLayerMask))
         {
             targetPoint = hit.point;
         }
         else
         {
-            targetPoint = ray.origin + ray.direction * 1000f;
+            targetPoint = ray.origin + ray.direction * AimRayDistance;
         }
 
-        _turretCrosshair.position = Camera.main.WorldToScreenPoint(targetPoint);
-
         // z 보정
-        Vector3 pos = _turretCrosshair.position;
-        pos.z = 0;
-        _turretCrosshair.position = pos;
+        Vector3 screenPosition = aimCamera.WorldToScreenPoint(targetPoint);
+        screenPosition.z = 0f;
+        _turretCrosshair.position = screenPosition;
     }
 
     /// <summary>
@@ -304,46 +335,49 @@ public class Turret : MonoBehaviour
     /// <summary>
     /// 화면조준점(+) 색 조절
     /// </summary>
-    void UpdateCrosshairColor()
+    void UpdateCrosshairColor(int hitCount)
     {
-        // 이전 타겟 실루엣 끄기
-        ClearTargetSilhouette();
+        // 기존 구현은 거리순 첫 번째 '태그가 있는' 충돌만 판정했다.
+        // NonAlloc 결과는 정렬되지 않으므로, 같은 기준의 충돌을 직접 찾는다.
+        bool hasTaggedHit = false;
+        RaycastHit nearestTaggedHit = default;
+        float nearestDistance = float.MaxValue;
 
-        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, GetCurrentScreenY(), 0f));
-        RaycastHit[] hits = Physics.RaycastAll(ray, 1000f, _aimLayerMask);
-
-        // 거리순 정렬
-        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
-
-        foreach (RaycastHit hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
-            if (hit.collider.tag == "Untagged") continue; // 없는 태그 무시
+            RaycastHit hit = _aimHits[i];
+            Collider hitCollider = hit.collider;
+            if (hitCollider == null || hitCollider.CompareTag("Untagged")) continue;
+            if (hit.distance >= nearestDistance) continue;
 
-            // HitZone인지 확인
-            if (hit.collider.TryGetComponent(out HitZone hitZone))
-            {
-                // 실루엣 켜기
-                if (hitZone.Parent.TryGetComponent(out _targetTank))
-                {
-                    _targetTank.ToggleEnemySilhouette(true);
-                }
-
-                // 조준점 색 변경
-                _centerCrosshairImage.color = hitZone.ZoneType switch
-                {
-                    HitZoneType.Front => _frontColor,
-                    HitZoneType.Side => _sideColor,
-                    HitZoneType.Rear => _rearColor,
-                    _ => _rearColor
-                };
-                return;
-            }
-
-            // 기본색
-            break;
+            nearestTaggedHit = hit;
+            nearestDistance = hit.distance;
+            hasTaggedHit = true;
         }
 
-        _centerCrosshairImage.color = _defaultColor;
+        if (hasTaggedHit && nearestTaggedHit.collider.TryGetComponent(out HitZone hitZone))
+        {
+            EnemyTank targetTank = null;
+            if (hitZone.Parent != null)
+            {
+                hitZone.Parent.TryGetComponent(out targetTank);
+            }
+
+            SetTargetSilhouette(targetTank);
+
+            // 조준점 색 변경
+            SetCrosshairColor(hitZone.ZoneType switch
+            {
+                HitZoneType.Front => _frontColor,
+                HitZoneType.Side => _sideColor,
+                HitZoneType.Rear => _rearColor,
+                _ => _rearColor
+            });
+            return;
+        }
+
+        SetTargetSilhouette(null);
+        SetCrosshairColor(_defaultColor);
     }
 
     /// <summary>
@@ -351,10 +385,42 @@ public class Turret : MonoBehaviour
     /// </summary>
     public void ClearTargetSilhouette()
     {
+        SetTargetSilhouette(null);
+    }
+
+    /// <summary>
+    /// 조준 대상이 바뀔 때만 실루엣 상태를 변경
+    /// </summary>
+    void SetTargetSilhouette(EnemyTank targetTank)
+    {
+        if (_targetTank == targetTank)
+        {
+            // Unity에서 파괴된 오브젝트 참조는 null처럼 비교되므로 필드도 정리한다.
+            if (targetTank == null) _targetTank = null;
+            return;
+        }
+
         if (_targetTank != null)
         {
             _targetTank.ToggleEnemySilhouette(false);
-            _targetTank = null;
+        }
+
+        _targetTank = targetTank;
+
+        if (_targetTank != null)
+        {
+            _targetTank.ToggleEnemySilhouette(true);
+        }
+    }
+
+    /// <summary>
+    /// 실제 색이 바뀔 때만 UI Graphic을 갱신
+    /// </summary>
+    void SetCrosshairColor(Color color)
+    {
+        if (_centerCrosshairImage != null && _centerCrosshairImage.color != color)
+        {
+            _centerCrosshairImage.color = color;
         }
     }
 
@@ -370,16 +436,22 @@ public class Turret : MonoBehaviour
 
     Vector3 GetCenterAimPoint()
     {
+        Camera aimCamera = GetAimCamera();
+        if (aimCamera == null)
+        {
+            return _barrel.position + _barrel.forward * AimRayDistance;
+        }
+
         float screenY = GetCurrentScreenY();
 
-        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, screenY, 0f));
+        Ray ray = aimCamera.ViewportPointToRay(new Vector3(0.5f, screenY, 0f));
 
-        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, _aimLayerMask))
+        if (Physics.Raycast(ray, out RaycastHit hit, AimRayDistance, _aimLayerMask))
         {
             return hit.point;
         }
 
-        return ray.origin + ray.direction * 1000f;
+        return ray.origin + ray.direction * AimRayDistance;
     }
 
     /// <summary>
@@ -392,7 +464,22 @@ public class Turret : MonoBehaviour
 
     void SetCenterCrosshairScreenY(float screenY)
     {
-        _centerCrosshair.anchorMin = new Vector2(0.5f, screenY);
-        _centerCrosshair.anchorMax = new Vector2(0.5f, screenY);
+        if (_centerCrosshair == null) return;
+
+        Vector2 anchor = new Vector2(0.5f, screenY);
+        if (_centerCrosshair.anchorMin == anchor && _centerCrosshair.anchorMax == anchor) return;
+
+        _centerCrosshair.anchorMin = anchor;
+        _centerCrosshair.anchorMax = anchor;
+    }
+
+    Camera GetAimCamera()
+    {
+        if (_aimCamera == null || _aimCamera.isActiveAndEnabled == false)
+        {
+            _aimCamera = Camera.main;
+        }
+
+        return _aimCamera;
     }
 }
