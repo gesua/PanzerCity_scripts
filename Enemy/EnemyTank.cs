@@ -87,7 +87,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     /// <summary>
     /// 적 제거 이벤트
     /// </summary>
-    public event Action<EnemyTank> OnRemoved;
+    public event Action<EnemyTank> OnDead;
 
     /// <summary>
     /// 적 캐릭터 상태 객체들
@@ -719,6 +719,9 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         // 사망 효과 재생
         _destructionEffect.Play();
 
+        // 죽는 즉시 스포너에서는 제거된 것으로 처리
+        OnDead?.Invoke(this);
+
         // 멀티플레이:골드/통계/아이템 드랍은 서버(호스트)에서만 처리(중복 지급 방지)
         // 클라이언트는 서버의 폭발 판정을 재현하는 과정에서 여기까지 도달할 수 있어서 가드 필요
         if (_networkOwner != null && _networkOwner.IsServer == false) return;
@@ -750,9 +753,6 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     /// </summary>
     public void Remove()
     {
-        // 자신 제거 이벤트 발행(정상 사망 경로에서만 스포너에 알림)
-        OnRemoved?.Invoke(this);
-
         // 멀티플레이:클라이언트는 자체적으로 제거하지 않음(서버의 Despawn을 통해 자동 정리됨)
         if (_networkOwner != null && _networkOwner.IsServer == false) return;
 
@@ -779,7 +779,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         _isAIActive = false;
 
         // 제거 이벤트 구독 해지(강제 반환 시에도 누수 방지)
-        OnRemoved = null;
+        OnDead = null;
     }
 
     /// <summary>

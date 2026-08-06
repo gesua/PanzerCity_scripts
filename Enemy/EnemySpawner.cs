@@ -290,7 +290,7 @@ public class EnemySpawner : MonoBehaviour
         }
 
         _enemies.Add(enemy); // 리스트에 추가
-        enemy.OnRemoved += HandleEnemyRemoved; // 제거 이벤트 구독
+        enemy.OnDead += HandleEnemyDead; // 사망 이벤트 구독
     }
 
 
@@ -341,8 +341,10 @@ public class EnemySpawner : MonoBehaviour
     /// 적 제거 시 자동으로 실행되는 함수
     /// </summary>
     /// <param name="enemy">제거된 적</param>
-    void HandleEnemyRemoved(EnemyTank enemy)
+    void HandleEnemyDead(EnemyTank enemy)
     {
+        enemy.OnDead -= HandleEnemyDead;
+
         // 생성된 적 목록에서 제거된 적 제거
         _enemies.Remove(enemy);
 
