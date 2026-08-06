@@ -1,4 +1,5 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -78,6 +79,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     bool _isAIActive; // 상태머신 활성화 여부
     bool _isFirstFlee; // 첫 도주 체크용
 
+    bool _isDeadBeforeAIStart; // 스폰 이펙트 재생 중(StartAI 호출 전) 사망했는지 체크용 — StartAI에서 Dead 상태로 시작시키기 위함
     bool _isNetworkControlled = true; // 멀티플레이:AI/이동 판정 주체 여부(기본값 true — 싱글에서는 항상 자기 자신이 주체)
 
     public float SpawnEffectTime => _spawnEffectTime;
@@ -133,6 +135,9 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         _model.Initialize(); // 기본값들 초기화
         _collider.enabled = true;
 
+        // 풀에서 재사용될 때 이전 생애의 사망 기록이 남아있지 않도록 리셋
+        _isDeadBeforeAIStart = false;
+
         // 풀숲 초기화
         ResetBush();
 
@@ -143,7 +148,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        _personality = EnemyPersonality.Aggressive;
+        //_personality = EnemyPersonality.Aggressive;
 
         // 상태 객체들 생성
         // 방치 상태
@@ -159,6 +164,14 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     /// </summary>
     public void StartAI()
     {
+        // 스폰 이펙트 재생 중(상태머신이 없어 ChangeState(Dead)가 무시되던 시점)에 이미 죽었으면
+        // Idle로 되살리지 않고 Dead 상태로 바로 시작(파괴 이펙트는 이미 재생됐고, 여기선 시체 제거 타이머만 정상 작동시키면 됨)
+        if (_isDeadBeforeAIStart)
+        {
+            StartInState(EnemyStateType.Dead);
+            return;
+        }
+
         // 현재 상태 설정
         _currentState = _states[(int)EnemyStateType.Idle];
         _currentState.Enter();
@@ -714,7 +727,11 @@ public class EnemyTank : TankBase, IPoolReturnHandler
 
         // 사망 상태로 변경
         _collider.enabled = false; // 콜라이더 비활성화
-        ChangeState(EnemyStateType.Dead);
+
+        // 스폰 이펙트 재생 중(StartAI 호출 전)이면 아직 상태머신이 없어 ChangeState가 조용히 무시됨
+        // → StartAI가 뒤늦게 Idle로 되살리지 않도록 플래그로 기록해둠
+        if (_currentState == null) _isDeadBeforeAIStart = true;
+        else ChangeState(EnemyStateType.Dead);
 
         // 사망 효과 재생
         _destructionEffect.Play();
@@ -778,8 +795,18 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         // AI 비활성화
         _isAIActive = false;
 
-        // 제거 이벤트 구독 해지(강제 반환 시에도 누수 방지)
+        // 상태머신 참조 해제
+        _currentState = null;
+
+        // 제거 이벤트 구독 해지
         OnDead = null;
+
+        // 멀티플레이:ReturnAllPools() 등 Remove()를 거치지 않는 경로로 강제 반환될 수 있음
+        // (정상 경로는 Remove()가 이미 Despawn을 요청해서 이 시점엔 IsSpawned가 false — 중복 Despawn 방지 위해 체크)
+        if (_networkOwner != null && TryGetComponent(out NetworkObject networkObject) && networkObject.IsSpawned)
+        {
+            _networkOwner.RequestDespawn();
+        }
     }
 
     /// <summary>

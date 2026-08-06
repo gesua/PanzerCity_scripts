@@ -275,6 +275,18 @@ public class EnemySpawner : MonoBehaviour
         // AI 시작
         enemy.StartAI();
 
+        // 스폰 이펙트 재생 중(StartAI 호출 전)에 이미 사망한 경우
+        // HandleDead의 OnDead?.Invoke()는 이 시점 기준으로 아직 구독 전이라 씹혔고, 다시 발동되지 않음
+        // → 아래 _enemies.Add를 그대로 타면 좀비 항목으로 영구히 남아
+        //   이후 이 오브젝트가 풀에서 재사용될 때 EMP의 SetAllEnemiesAIActive가 엉뚱한 시점에 새 생명주기를 건드려
+        //   "_isAIActive는 true인데 _currentState는 null"인 상태로 NPE를 유발함
+        // → 리스트에 추가하지 않고 스포너 정리 로직을 직접 호출해서 마무리
+        if (enemy.IsAlive == false)
+        {
+            HandleEnemyDead(enemy);
+            yield break;
+        }
+
         // 적 멈춤 아이템 사용중이면 멈춰놓음
         if (_isEMPActive)
         {
