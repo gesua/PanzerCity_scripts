@@ -60,5 +60,5 @@ public struct HitData
 /// </summary>
 public interface IDamageable
 {
-    void TakeHit(HitData hitData);
+    void TakeHit(ref HitData hitData);
 }

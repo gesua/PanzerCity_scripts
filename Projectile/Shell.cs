@@ -103,7 +103,7 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
 
         if (other.TryGetComponent(out IDamageable damageable))
         {
-            damageable.TakeHit(hitData);
+            damageable.TakeHit(ref hitData);
 
             // 멀티플레이:클라이언트에도 직격 판정을 재현하도록 신호 전달
             _networkOwner?.NotifyDirectHitDamage(other, hitData);

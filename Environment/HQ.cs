@@ -18,7 +18,7 @@ public class HQ : MonoBehaviour, IDamageable
 
     bool _isDestroy;
 
-    public void TakeHit(HitData hitData)
+    public void TakeHit(ref HitData hitData)
     {
         if (hitData.IsPlayerAttack) return; // 아군이 직접 못 부수게 함(AtkTank는 RPC로 못 넘어가니 IsPlayerAttack 사용)
 

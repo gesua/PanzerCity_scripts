@@ -67,7 +67,7 @@ public class DummyTank : EnemyTank
         }
     }
 
-    public override void TakeHit(HitData hitData)
+    public override void TakeHit(ref HitData hitData)
     {
         if (_isHeavy)
         {
@@ -85,7 +85,7 @@ public class DummyTank : EnemyTank
             }
         }
 
-        base.TakeHit(hitData);
+        base.TakeHit(ref hitData);
     }
 
     private void OnEnable()

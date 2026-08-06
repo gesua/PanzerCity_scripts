@@ -22,9 +22,9 @@ public class HitZone : MonoBehaviour, IDamageable
     public TankBase Parent => _parent;
     public HitZoneType ZoneType => _zoneType;
 
-    public void TakeHit(HitData hitData)
+    public void TakeHit(ref HitData hitData)
     {
         hitData.setZoneType(_zoneType);
-        _parent.TakeHit(hitData);
+        _parent.TakeHit(ref hitData);
     }
 }

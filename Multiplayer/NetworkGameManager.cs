@@ -260,12 +260,12 @@ public class NetworkGameManager : NetworkBehaviour
         // 대상이 이미 디스폰/파괴됐으면 무시(과거 신호가 뒤늦게 도착한 경우 방어)
         if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out NetworkObject targetObject) == false) return;
 
-        // HitZone의 IDamageable 가져옴
-        IDamageable damageable = targetObject.GetComponentInChildren<IDamageable>();
-        if (damageable == null) return;
+        // 실제로 맞은 부위와 무관하게 자식 HitZone을 다시 거치면 부위 보너스가 중복 적용되므로,
+        // HitZone을 거치지 않고 탱크 본체(TankBase)를 직접 찾아 서버가 이미 계산한 최종 데미지를 그대로 적용
+        if (targetObject.TryGetComponent(out TankBase targetTank) == false) return;
 
         HitData hitData = new HitData(damage, hitPosition, isPlayerAttack);
-        damageable.TakeHit(hitData);
+        targetTank.TakeHit(ref hitData);
     }
 
     /// <summary>

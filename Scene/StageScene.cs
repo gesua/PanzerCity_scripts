@@ -79,6 +79,13 @@ public class StageScene : MonoBehaviour
 
     void HandleAllEnemiesDefeated()
     {
+        StartCoroutine(AllEnemiesDefeatedRoutine());
+    }
+
+    IEnumerator AllEnemiesDefeatedRoutine()
+    {
+        yield return new WaitForSeconds(5f); // 적 시체 사라지는거 대기
+
         TriggerAllEnemiesDefeatedNotify();
 
         // 멀티플레이:이 메서드 자체가 서버(호스트)에서만 도달 가능 — 결과를 클라이언트에 전파
@@ -106,7 +113,7 @@ public class StageScene : MonoBehaviour
 
     IEnumerator StageClearRoutine()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(3f); // 클리어 배너 대기
         yield return TriggerStageClearRoutine(); // Cleanup 완료까지 기다린 뒤 다음 단계로
 
         // 멀티플레이:이 코루틴 자체가 서버(호스트)에서만 도달 가능 — 결과를 클라이언트에 전파

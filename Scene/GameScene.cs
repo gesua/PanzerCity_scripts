@@ -720,7 +720,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleAllEnemiesDefeated()
     {
-        GameManager.Instance.AudioManager.PlaySfx(SfxType.StageClear);
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.StageClear); // 클리어 소리
         StartCoroutine(_stageClearUI.Show());
     }
 

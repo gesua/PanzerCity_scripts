@@ -167,7 +167,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         }
     }
 
-    public virtual void TakeHit(HitData hitData)
+    public virtual void TakeHit(ref HitData hitData)
     {
         _model.TakeDamage(hitData);
     }

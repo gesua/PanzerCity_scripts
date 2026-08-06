@@ -25,7 +25,7 @@ public class HeavyTank : EnemyTank
         _model.OnHit += HandleHit;
     }
 
-    public override void TakeHit(HitData hitData)
+    public override void TakeHit(ref HitData hitData)
     {
         switch (hitData.ZoneType)
         {
@@ -40,7 +40,7 @@ public class HeavyTank : EnemyTank
                 break;
         }
 
-        base.TakeHit(hitData);
+        base.TakeHit(ref hitData);
     }
 
     public override void AgentMove()
