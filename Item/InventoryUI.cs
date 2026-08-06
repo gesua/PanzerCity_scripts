@@ -65,6 +65,8 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     public void EnterStore(Transform shopTr)
     {
+        if (_isActive) Toggle(); // 가방 닫기
+
         _isShop = true;
         _inventoryPresenter.SetShopMode(_isShop);
         _playerStatusRect.SetParent(shopTr, false);
@@ -72,7 +74,6 @@ public class InventoryUI : MonoBehaviour
         _group.alpha = 1f;
         _group.interactable = true;
         _group.blocksRaycasts = true;
-        _btnImg.sprite = _close;
     }
 
     /// <summary>
