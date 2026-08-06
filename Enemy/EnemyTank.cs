@@ -143,7 +143,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        //_personality = EnemyPersonality.Coward;
+        _personality = EnemyPersonality.Aggressive;
 
         // 상태 객체들 생성
         // 방치 상태
