@@ -129,7 +129,7 @@ public class SniperModeController : MonoBehaviour
         if (currentDead)
         {
             tankShouldHide = true; // 죽으면 탱크 모델링은 무조건 숨김
-            _lastPlayerDead = false; // 죽으면 전차장은 무조건 보임
+            commanderShouldHide = false; // 죽으면 전차장은 무조건 보임
         }
 
         // 탱크 렌더러 상태가 이전과 동일하면 나감
