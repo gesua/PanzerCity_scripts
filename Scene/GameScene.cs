@@ -138,7 +138,7 @@ public class GameScene : MonoBehaviour
                 _localSpawnIndex = (int)networkOwner.OwnerClientId;
             }
 
-            _player.Respawn(_currentStage.GetSpawnPoint(_localSpawnIndex), _cinemachineBrain);
+            RespawnPlayer(_currentStage.GetSpawnPoint(_localSpawnIndex));
 
             // 목숨 UI:접속 인원 수만큼만 슬롯 활성화
             _gameInfoUI.SetActivePlayerCount(NetworkManager.Singleton.ConnectedClientsIds.Count);
@@ -409,7 +409,7 @@ public class GameScene : MonoBehaviour
         if (_player != null)
         {
             Vector3 spawnPos = (isMultiplayer) ? _currentStage.GetSpawnPoint(_localSpawnIndex) : _playerSpawnPoint;
-            _player.Respawn(spawnPos, _cinemachineBrain);
+            RespawnPlayer(spawnPos);
         }
 
         // 스테이지 시작 소리 (싱글플레이에서만 여기서 재생, 멀티는 HandleAllClientsReady에서 재생)
@@ -626,6 +626,16 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 플레이어 리스폰 실행
+    /// 리스폰 연출 중엔 SniperModeController가 전차장 표시에 개입하지 않도록 잠금(HandleRespawnComplete에서 해제)
+    /// </summary>
+    void RespawnPlayer(Vector3 spawnPos)
+    {
+        _sniperMode.SetCommanderVisualLocked(true);
+        _player.Respawn(spawnPos, _cinemachineBrain);
+    }
+
+    /// <summary>
     /// 플레이어 리스폰
     /// </summary>
     void HandlePlayerRespawn()
@@ -644,7 +654,7 @@ public class GameScene : MonoBehaviour
             bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
             Vector3 spawnPos = (isMultiplayer) ? _currentStage.GetSpawnPoint(_localSpawnIndex) : _playerSpawnPoint;
 
-            _player.Respawn(spawnPos, _cinemachineBrain);
+            RespawnPlayer(spawnPos);
         }
         else
         {
@@ -659,6 +669,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleRespawnComplete(float duration)
     {
+        _sniperMode.SetCommanderVisualLocked(false); // 전차장 표시 제어권 반환
         if (_respawnShieldRoutine != null) StopCoroutine(_respawnShieldRoutine);
         _respawnShieldRoutine = StartCoroutine(HyperShieldRoutine(duration));
     }

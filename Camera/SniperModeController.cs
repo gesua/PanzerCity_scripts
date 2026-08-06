@@ -25,6 +25,7 @@ public class SniperModeController : MonoBehaviour
     bool _lastVisualHidden;
     bool _hasAppliedVisual;
     bool _lastPlayerDead; // 사망/부활 상태 변경 감지용
+    bool _isCommanderVisualLocked; // 리스폰 연출 중 PlayerTank가 전차장 표시를 직접 제어하는 동안 개입 방지용
 
     public bool IsSniper => _isSniper;
 
@@ -46,6 +47,21 @@ public class SniperModeController : MonoBehaviour
     private void LateUpdate()
     {
         UpdateCameraCloseState();
+    }
+
+    /// <summary>
+    /// 전차장 표시 제어 잠금/해제
+    /// 리스폰 연출(숨김 → 대기 → 표시) 중엔 PlayerTank가 전차장 표시를 직접 제어하므로, 그동안 카메라 거리 기반 자동 표시를 막기 위해 GameScene이 호출
+    /// </summary>
+    public void SetCommanderVisualLocked(bool locked)
+    {
+        _isCommanderVisualLocked = locked;
+
+        if (locked == false)
+        {
+            _hasAppliedVisual = false;
+            ApplyPlayerVisual();
+        }
     }
 
     /// <summary>
@@ -127,9 +143,10 @@ public class SniperModeController : MonoBehaviour
             renderer.enabled = !tankShouldHide;
         }
 
-        Debug.Log($"사망여부:{currentDead}, 전차장 표시여부:{!commanderShouldHide}");
-
-        // 전차장 업데이트
-        _commander.SetVisible(!commanderShouldHide);
+        // 전차장 업데이트(리스폰 연출 중엔 PlayerTank가 직접 제어하므로 건드리지 않음)
+        if (_isCommanderVisualLocked == false)
+        {
+            _commander.SetVisible(!commanderShouldHide);
+        }
     }
 }
