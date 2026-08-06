@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Localization.Settings;
 
 /// <summary>
 /// 상점 UI
@@ -43,7 +44,7 @@ public class ShopUI : MonoBehaviour
     void Start()
     {
         EquipmentManager equipmentManager = GameManager.Instance.EquipmentManager;
-        
+
         _equipmentUI.Initialize(equipmentManager, _inventoryUI.Presenter);
         _trashCanUI.Initialize(_inventoryUI.Presenter);
 
@@ -274,7 +275,7 @@ public class ShopUI : MonoBehaviour
 
         _equipmentSlot.SetInteractable(isInteractable);
         _shopOwnerUI.SetInteractable(isInteractable);
-        
+
         // 상호작용 막힐 때 툴팁도 바로 꺼줌
         if (isInteractable == false && _itemTooltipUI != null)
         {
@@ -337,6 +338,7 @@ public class ShopUI : MonoBehaviour
     /// </summary>
     void UpdateReadyCountText(int readyCount, int totalCount)
     {
-        if (_readyCountText != null) _readyCountText.text = $"{readyCount}/{totalCount}명 준비 완료";
+        object[] args = new object[] { readyCount, totalCount };
+        _readyCountText.text = LocalizationSettings.StringDatabase.GetLocalizedString("Localization", "UI_MP_READY_COUNT", arguments: args);
     }
 }

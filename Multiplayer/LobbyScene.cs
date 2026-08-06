@@ -391,8 +391,8 @@ public class LobbyScene : MonoBehaviour
             bool canJoin = (isLocked == false);
 
             // 방 이름 + 인원 + 상태 표시
-            string statusTag = (isLocked) ? " [Started]" : "";
-            string passwordTag = (lobby.HasPassword) ? " [Locked]" : "";
+            string statusTag = (isLocked) ? LocalizationSettings.StringDatabase.GetLocalizedString("Localization", "UI_MP_TAG_STARTED") : ""; // 시작됨
+            string passwordTag = (lobby.HasPassword) ? LocalizationSettings.StringDatabase.GetLocalizedString("Localization", "UI_MP_TAG_LOCKED") : ""; // 비공개
             string displayText = $"{lobby.Name} [{lobby.Players.Count}/{lobby.MaxPlayers}]{statusTag}{passwordTag}";
 
             string lobbyId = lobby.Id;
