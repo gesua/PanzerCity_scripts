@@ -178,4 +178,23 @@ public class StageScene : MonoBehaviour
         return _playerSpawnPoints[safeIndex].position;
     }
 
+    void OnDrawGizmosSelected()
+    {
+        if (_playerSpawnPoints == null) return;
+
+        Gizmos.color = Color.green;
+
+        foreach (Transform spawnPoint in _playerSpawnPoints)
+        {
+            if (spawnPoint == null) continue;
+
+            Vector3 pos = spawnPoint.position;
+
+            // 플레이어 스폰 위치 표시
+            Gizmos.DrawSphere(pos, 1f);
+
+            // 위쪽 방향 표시
+            Gizmos.DrawLine(pos, pos + spawnPoint.forward * 1.5f);
+        }
+    }
 }
