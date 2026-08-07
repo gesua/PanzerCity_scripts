@@ -1,5 +1,4 @@
 using System;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -731,7 +730,15 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         // 스폰 이펙트 재생 중(StartAI 호출 전)이면 아직 상태머신이 없어 ChangeState가 조용히 무시됨
         // → StartAI가 뒤늦게 Idle로 되살리지 않도록 플래그로 기록해둠
         if (_currentState == null) _isDeadBeforeAIStart = true;
-        else ChangeState(EnemyStateType.Dead);
+        else
+        {
+            ChangeState(EnemyStateType.Dead);
+
+            // EMP 등으로 이미 정지(_isAIActive == false)된 상태에서 죽었을 수 있음
+            // Dead는 시체 제거 타이머만 도는 상태라 AI 정지 여부와 무관하게 항상 흘러야 함
+            // (안 그러면 사망 즉시 _enemies에서 빠지므로 EMP 종료 시점의 재활성화 대상에서도 제외되어 시체가 영영 안 사라짐)
+            _isAIActive = true;
+        }
 
         // 사망 효과 재생
         _destructionEffect.Play();
@@ -800,13 +807,6 @@ public class EnemyTank : TankBase, IPoolReturnHandler
 
         // 제거 이벤트 구독 해지
         OnDead = null;
-
-        // 멀티플레이:ReturnAllPools() 등 Remove()를 거치지 않는 경로로 강제 반환될 수 있음
-        // (정상 경로는 Remove()가 이미 Despawn을 요청해서 이 시점엔 IsSpawned가 false — 중복 Despawn 방지 위해 체크)
-        if (_networkOwner != null && TryGetComponent(out NetworkObject networkObject) && networkObject.IsSpawned)
-        {
-            _networkOwner.RequestDespawn();
-        }
     }
 
     /// <summary>
