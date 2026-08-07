@@ -157,6 +157,9 @@ public class GameScene : MonoBehaviour
 
             // 멀티플레이: 모든 클라이언트 로딩 완료(게임 실제 시작 시점) 수신
             NetworkGameManager.Instance.OnAllClientsReady += HandleAllClientsReady;
+
+            // 멀티플레이: 호스트의 재도전 신호 수신(비호스트만 실제로 반응함, NetworkGameManager에서 필터링됨)
+            NetworkGameManager.Instance.OnRestartRequested += _gameOverUI.OnClickRestart;
         }
         else
         {
@@ -305,6 +308,7 @@ public class GameScene : MonoBehaviour
         {
             NetworkGameManager.Instance.OnLocalPlayerSpawned -= HandleLocalPlayerSpawned;
             NetworkGameManager.Instance.OnAllClientsReady -= HandleAllClientsReady;
+            NetworkGameManager.Instance.OnRestartRequested -= _gameOverUI.OnClickRestart;
         }
     }
 
@@ -704,6 +708,11 @@ public class GameScene : MonoBehaviour
         // 시네머신 블렌드 방식 변경(저격은 cut)
         _cinemachineBrain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.EaseInOut, 1f);
 
+        // 멀티플레이:호스트만 재도전 버튼을 누를 수 있음(비호스트는 대기)
+        bool isMultiplayer = (NetworkManager.Singleton != null) && NetworkManager.Singleton.IsListening;
+        bool canRestart = (isMultiplayer == false) || NetworkManager.Singleton.IsServer;
+        _gameOverUI.SetRestartAvailable(canRestart);
+
         StartCoroutine(GameOverRoutine());
     }
 
@@ -834,6 +843,13 @@ public class GameScene : MonoBehaviour
         }
         else
         {
+            // 멀티플레이:호스트만 전원에게 재도전 신호를 전파(비호스트는 신호를 받아 이 함수로 들어온 것이므로 재전파하면 안 됨)
+            bool isMultiplayer = (NetworkManager.Singleton != null) && NetworkManager.Singleton.IsListening;
+            if (isMultiplayer && NetworkManager.Singleton.IsServer)
+            {
+                NetworkGameManager.Instance.NotifyRestart();
+            }
+
             // 남아있는 포탄, 아이템 등을 모든 Pool로 강제 반환
             GameManager.Instance.PoolManager.ReturnAllPools();
 

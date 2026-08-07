@@ -29,6 +29,7 @@ public class NetworkGameManager : NetworkBehaviour
     public event Action<int, int> OnPlayerLifeChanged; // 목숨 UI 갱신용(playerIndex, life)
     public event Action<int, int> OnNextStageReadyCountChanged; // 상점 다음 스테이지 준비 인원 변경(readyCount, totalCount)
     public event Action OnAllReadyForNextStage; // 전원 준비 완료 — 다음 스테이지로 이동 신호
+    public event Action OnRestartRequested; // 재도전 동기화 — 호스트 재도전 신호
 
     void Awake()
     {
@@ -465,5 +466,22 @@ public class NetworkGameManager : NetworkBehaviour
     public void NotifyLocalPlayerSpawned(PlayerTank player)
     {
         OnLocalPlayerSpawned?.Invoke(player);
+    }
+
+    /// <summary>
+    /// 재도전 동기화 — 호스트가 재도전 버튼 클릭 시 호출(GameScene이 호출)
+    /// </summary>
+    public void NotifyRestart()
+    {
+        NotifyRestartClientRpc();
+    }
+
+    [ClientRpc]
+    void NotifyRestartClientRpc()
+    {
+        // 호스트 자신은 버튼 클릭 시 이미 로컬로 처리했으므로 중복 방지
+        if (IsServer) return;
+
+        OnRestartRequested?.Invoke();
     }
 }

@@ -19,6 +19,7 @@ public class GameOverUI : MonoBehaviour
     [SerializeField] Image _darkOverlay;        // 어둡게 깔거
     [SerializeField] CanvasGroup _buttonsGroup; // 그룹(글자, 버튼)
     [SerializeField] TextMeshProUGUI _descText; // 패배 내용 텍스트
+    [SerializeField] Button _restartButton;     // 재도전 버튼(멀티에서 호스트가 아니면 비활성화)
 
     [Header("----- 런타임 데이터 -----")]
     [SerializeField] float _bgFadeDuration = 2f;
@@ -48,6 +49,9 @@ public class GameOverUI : MonoBehaviour
         SetAlpha(_backgroundImage, 0f);
         SetAlpha(_darkOverlay, 0f);
         _buttonsGroup.alpha = 0f;
+
+        // 재도전 버튼 기본값은 항상 활성화로 리셋
+        _restartButton.interactable = true;
     }
 
     void OnLocaleChanged(Locale locale)
@@ -125,6 +129,14 @@ public class GameOverUI : MonoBehaviour
         Color color = graphic.color;
         color.a = alpha;
         graphic.color = color;
+    }
+
+    /// <summary>
+    /// 재도전 버튼 활성화 여부 — 멀티에서 호스트가 아니면 비활성화(GameScene이 호출)
+    /// </summary>
+    public void SetRestartAvailable(bool isAvailable)
+    {
+        _restartButton.interactable = isAvailable;
     }
 
     /// <summary>
