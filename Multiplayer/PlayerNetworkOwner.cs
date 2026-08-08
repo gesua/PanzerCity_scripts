@@ -8,6 +8,7 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerTank))]
 public class PlayerNetworkOwner : NetworkBehaviour
 {
+    [SerializeField] Camera _equipCamera; // 상점 장비칸 탱크 미리보기용 카메라
     PlayerTank _playerTank;
 
     // 목숨 UI 동기화용:Owner만 로컬에서 직접 쓸 수 있음(목숨은 서버 권위가 아니라 각자 로컬 판단 기반)
@@ -27,16 +28,11 @@ public class PlayerNetworkOwner : NetworkBehaviour
         // Lobby 씬이 언로드돼도 파괴되지 않도록 보호(각 컴퓨터에서 로컬로 각자 적용됨)
         DontDestroyOnLoad(gameObject);
 
-        //Debug.Log(
-        //$"OnNetworkSpawn | {name} | " +
-        //$"Owner:{IsOwner} | " +
-        //$"Pos:{transform.position} | " +
-        //$"Active:{gameObject.activeInHierarchy}");
-
         _playerTank.SetNetworkOwnership(IsOwner);
         _playerTank.SetNetworkOwner(this);
         _playerTank.SetTankColorByIndex((int)OwnerClientId); // 플레이어 구분 색상 적용
-        
+        _equipCamera.enabled = IsOwner; // 상점 장비칸 미리보기
+
         _playerTank.OnPlayerRespawn += HandleRemoteRespawn;
         // 목숨 UI:전원이 이 값의 변경을 받아서 NetworkGameManager로 릴레이
         _life.OnValueChanged += HandleLifeValueChanged;
