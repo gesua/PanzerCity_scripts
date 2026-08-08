@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// 상점 UI에서 플레이어 마우스 커서 위치를 네트워크로 동기화하는 브릿지
@@ -16,19 +17,15 @@ public class PlayerCursorSync : NetworkBehaviour
     public Vector2 CursorPosition => _cursorPosition.Value; // 관찰자가 조회용으로 사용
     public bool IsCursorActive => _isCursorActive.Value;    // 관찰자가 조회용으로 사용
 
-    // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-    public override void OnNetworkSpawn()
-    {
-        Debug.Log($"[PlayerCursorSync] OnNetworkSpawn | OwnerClientId:{OwnerClientId} | IsOwner:{IsOwner} | IsServer:{IsServer} | Frame:{Time.frameCount}");
-    }
-
     void Update()
     {
         if (IsOwner == false) return; // 소유자만 자기 마우스 위치를 씀
         if (_isCursorActive.Value == false) return; // 상점이 열려있을 때만 갱신
+        if (Mouse.current == null) return; // 마우스 장치가 없으면 갱신하지 않음(방어적 가드)
 
-        // 화면 비율로 정규화(좌하단 0,0 ~ 우상단 1,1)
-        _cursorPosition.Value = new Vector2(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height);
+        // 화면 비율로 정규화(좌하단 0,0 ~ 우상단 1,1) — 프로젝트가 New Input System 사용 중이라 Input.mousePosition 대신 Mouse.current 사용(좌표계는 동일)
+        Vector2 mousePosition = Mouse.current.position.ReadValue();
+        _cursorPosition.Value = new Vector2(mousePosition.x / Screen.width, mousePosition.y / Screen.height);
     }
 
     /// <summary>
@@ -39,8 +36,5 @@ public class PlayerCursorSync : NetworkBehaviour
         if (IsOwner == false) return; // 방어적 가드
 
         _isCursorActive.Value = active;
-
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[PlayerCursorSync] SetCursorActive({active}) | OwnerClientId:{OwnerClientId} | Frame:{Time.frameCount}");
     }
 }

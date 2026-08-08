@@ -33,10 +33,12 @@ public class ShopUI : MonoBehaviour
 
     bool _isMultiplayer;
     bool _isReadyForNextStage;
+    bool _isInitialized; // EnsureShopInitialized() 중복 실행 방지 가드
 
     PlayerCursorSync _localCursorSync; // 로컬 플레이어의 커서 송신용 컴포넌트
     PlayerCursorSync[] _remoteCursorSyncs; // 인덱스 = OwnerClientId, 값 = 해당 플레이어의 커서 동기화 컴포넌트(없으면 null)
     int _pendingCursorSlotCount; // 아직 참조를 못 채운 원격 슬롯 수 — 늦게 스폰 완료되는 클라이언트를 다음 프레임에 재시도로 채우기 위함
+    bool _previousCursorVisible; // 상점 진입 전 Cursor.visible 상태 저장 — 나갈 때 그대로 복원(다른 시스템이 커서를 어떻게 쓰고 있었는지 몰라도 안전하게 되돌리기 위함)
 
     const int EquipDropGroupID = 8301; // 장비 확률
     const int MaxPlayerCount = 4; // 멀티플레이 최대 인원(커서 색상 슬롯 수와 동일)
@@ -53,9 +55,6 @@ public class ShopUI : MonoBehaviour
 
     void Start()
     {
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[ShopUI] Start() 실행 | GameObject.activeInHierarchy:{gameObject.activeInHierarchy} | Frame:{Time.frameCount}");
-
         EquipmentManager equipmentManager = GameManager.Instance.EquipmentManager;
 
         _equipmentUI.Initialize(equipmentManager, _inventoryUI.Presenter);
@@ -77,6 +76,22 @@ public class ShopUI : MonoBehaviour
         _equipmentSlot.OnHoverEnter += HandleItemHoverEnter;
         _equipmentSlot.OnHoverExit += HandleItemHoverExit;
 
+        EnsureShopInitialized(); // SetShopActive()가 이미 호출했다면 가드로 스킵됨(정상 경로) — Start()가 먼저 도는 경우를 대비한 안전망
+    }
+
+    /// <summary>
+    /// 멀티플레이 판별 + 이벤트 구독 + 커서 동기화 초기 수집(최초 1회만 실행)
+    /// Unity는 GameObject가 처음 활성화된 프레임에 Start()를 그 자리에서 곧바로가 아니라
+    /// 해당 프레임의 Update 처리 직전으로 미루기 때문에(Awake/OnEnable과 달리 Start만 지연됨),
+    /// SetShopActive(true) 안에서 gameObject.SetActive(active) 직후 곧바로 _isMultiplayer/_localCursorSync를
+    /// 참조하면 Start()가 아직 실행되기 전(기본값 false/null)인 상태를 보게 됨
+    /// — 그래서 Start()에만 맡기지 않고 SetShopActive()가 최초 호출되는 시점에 직접 실행을 보장함
+    /// </summary>
+    void EnsureShopInitialized()
+    {
+        if (_isInitialized) return; // 이미 초기화됐으면 재실행 방지
+        _isInitialized = true;
+
         _isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
         if (_isMultiplayer)
         {
@@ -86,12 +101,12 @@ public class ShopUI : MonoBehaviour
             InitializeCursorSync();
         }
 
-        HideAllRemoteCursors(); // 커서 이미지는 상점이 열리기 전까지 전부 숨김(싱글이거나 인원이 안 찬 슬롯 대비)
+        HideAllCursors(); // 커서 이미지는 상점이 열리기 전까지 전부 숨김(싱글이거나 인원이 안 찬 슬롯 대비)
     }
 
     /// <summary>
     /// 멀티플레이:로컬/원격 플레이어의 커서 동기화 컴포넌트 참조 수집
-    /// 클라이언트마다 PlayerObject 스폰 완료 시점이 달라 ShopUI.Start() 시점엔 일부가 아직 null일 수 있음
+    /// 클라이언트마다 PlayerObject 스폰 완료 시점이 달라 최초 호출 시점엔 일부가 아직 null일 수 있음
     /// (목숨 UI와 달리 커서는 값 변경 이벤트로 재갱신되지 않으므로) 아직 못 채운 슬롯만 골라 채우고,
     /// 남은 슬롯이 있으면 Update()에서 매 프레임 다시 호출해 늦게 스폰되는 플레이어도 따라잡음
     /// </summary>
@@ -130,10 +145,6 @@ public class ShopUI : MonoBehaviour
             _remoteCursorSyncs[colorIndex] = cursorSync;
         }
         _pendingCursorSlotCount = pendingCount;
-
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        string slotSummary = string.Join(", ", System.Array.ConvertAll(_remoteCursorSyncs, s => (s == null) ? "null" : $"ClientId{s.OwnerClientId}"));
-        Debug.Log($"[ShopUI] InitializeCursorSync() 완료 | LocalCursorSync:{((_localCursorSync == null) ? "null" : "찾음")} | Slots:[{slotSummary}] | Pending:{pendingCount} | Frame:{Time.frameCount}");
     }
 
     void OnDestroy()
@@ -154,13 +165,12 @@ public class ShopUI : MonoBehaviour
         // 늦게 스폰 완료되는 클라이언트가 있으면 빈 슬롯만 다시 채움(다 채워지면 더 이상 호출 안 됨)
         if (_pendingCursorSlotCount > 0) InitializeCursorSync();
 
-        UpdateRemoteCursors();
+        UpdateCursors();
     }
 
     public void SetShopActive(bool active)
     {
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[ShopUI] SetShopActive({active}) 호출 | _isMultiplayer:{_isMultiplayer} | Frame:{Time.frameCount}");
+        EnsureShopInitialized(); // Start()가 아직 실행되기 전(최초 오픈 시점)이어도 커서 동기화 상태를 먼저 확정
 
         gameObject.SetActive(active);
         _clickBlocker.SetActive(false);
@@ -179,6 +189,9 @@ public class ShopUI : MonoBehaviour
             if (_isMultiplayer && _localCursorSync != null)
             {
                 _localCursorSync.SetCursorActive(true);
+
+                _previousCursorVisible = Cursor.visible; // 나갈 때 복원할 수 있도록 진입 전 상태 저장
+                Cursor.visible = false; // 커스텀 이미지 커서와 겹쳐 보이지 않도록 OS 기본 커서만 숨김 — CursorLockMode는 그대로 None 유지(잠그면 마우스 자유 이동/클릭 자체가 막혀서 상점 조작과 위치 추적이 둘 다 깨짐)
             }
         }
         else
@@ -190,15 +203,16 @@ public class ShopUI : MonoBehaviour
             if (_isMultiplayer && _localCursorSync != null)
             {
                 _localCursorSync.SetCursorActive(false);
+                Cursor.visible = _previousCursorVisible; // 진입 전 상태로 복원
             }
-            HideAllRemoteCursors();
+            HideAllCursors();
         }
     }
 
     /// <summary>
-    /// 원격 커서 이미지 전부 숨김(상점 닫힘, 씬 전환 등)
+    /// 커서 이미지 전부 숨김(상점 닫힘, 씬 전환 등)
     /// </summary>
-    void HideAllRemoteCursors()
+    void HideAllCursors()
     {
         foreach (Image cursorImage in _remoteCursorImages)
         {
@@ -207,35 +221,35 @@ public class ShopUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 멀티플레이:원격 플레이어들의 커서 위치를 로컬 화면에 반영
-    /// 화면 비율(0~1) 좌표를 커서 레이어의 로컬 픽셀 좌표로 변환해서 각 색상별 Image의 anchoredPosition에 적용
+    /// 멀티플레이:커서 위치를 로컬 화면에 반영 — 지금은 테스트 목적으로 로컬 플레이어 본인 슬롯도 함께 표시함(원래대로 자신만 숨기려면
+    /// shouldShow 조건에 "cursorSync != _localCursorSync"를 다시 추가하면 됨). 상점 진입 시 Cursor.visible을 꺼서 OS 기본 커서와는 안 겹침
+    /// RectTransformUtility.ScreenPointToWorldPointInRectangle + rectTransform.position(월드 좌표 직접 대입)으로 처리
+    /// anchoredPosition 대신 position을 쓰는 이유:커서 이미지마다 Anchor/Pivot/Scale을 자유롭게 잡아도(핫스팟 정렬 등) 항상 정확한 위치에 그려짐 —
+    /// anchoredPosition은 그 이미지의 앵커 기준점이 뭐냐에 따라 같은 값이 다른 위치로 해석돼서 이미지마다 앵커 설정을 신경 써야 하는 문제가 있었음
+    /// Screen Space - Overlay 캔버스 기준으로 카메라 인자를 null로 전달함 — Screen Space - Camera라면 해당 렌더 카메라를 넘겨야 함
     /// </summary>
-    void UpdateRemoteCursors()
+    void UpdateCursors()
     {
-        Rect layerRect = _cursorLayerRoot.rect;
-
         for (int i = 0; i < MaxPlayerCount; i++)
         {
             PlayerCursorSync cursorSync = _remoteCursorSyncs[i];
             Image cursorImage = _remoteCursorImages[i];
 
-            // 대상 플레이어가 없거나(접속 안 함) 로컬 자기 자신이거나 상점을 안 열어놨으면 숨김
-            bool shouldShow = (cursorSync != null) && (cursorSync != _localCursorSync) && cursorSync.IsCursorActive;
+            // 대상 플레이어가 없거나(접속 안 함) 상점을 안 열어놨으면 숨김
+            bool shouldShow = (cursorSync != null) && cursorSync.IsCursorActive;
             if (cursorImage.gameObject.activeSelf != shouldShow)
             {
                 cursorImage.gameObject.SetActive(shouldShow);
-
-                // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-                Debug.Log($"[ShopUI] 커서 슬롯[{i}] 활성 전환 → {shouldShow} | cursorSync:{((cursorSync == null) ? "null" : $"ClientId{cursorSync.OwnerClientId}")} | Frame:{Time.frameCount}");
             }
             if (shouldShow == false) continue;
 
             Vector2 normalizedPos = cursorSync.CursorPosition;
-            Vector2 localPos = new Vector2(
-                (normalizedPos.x - 0.5f) * layerRect.width,
-                (normalizedPos.y - 0.5f) * layerRect.height);
+            Vector2 screenPoint = new Vector2(normalizedPos.x * Screen.width, normalizedPos.y * Screen.height); // 수신자 자신의 해상도 기준으로 화면 좌표 복원
 
-            cursorImage.rectTransform.anchoredPosition = localPos;
+            if (RectTransformUtility.ScreenPointToWorldPointInRectangle(_cursorLayerRoot, screenPoint, null, out Vector3 worldPos))
+            {
+                cursorImage.rectTransform.position = worldPos;
+            }
         }
     }
 
