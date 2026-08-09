@@ -175,6 +175,12 @@ public class ShopUI : MonoBehaviour
         gameObject.SetActive(active);
         _clickBlocker.SetActive(false);
 
+        // 멀티플레이:다른 플레이어들이 로컬에서 내 탱크를 숨기고 복원할 수 있도록 상점 열림/닫힘 신호 전달
+        if (_isMultiplayer)
+        {
+            NetworkGameManager.Instance.NotifyShopActiveChanged(active);
+        }
+
         if (active)
         {
             SetInteractable(true); // 상점 열릴 때 상호작용 잠금 해제

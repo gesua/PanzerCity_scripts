@@ -38,6 +38,8 @@ public class PlayerNetworkOwner : NetworkBehaviour
         _life.OnValueChanged += HandleLifeValueChanged;
         // 무적 판정:전원(서버 포함)이 이 값의 변경을 받아서 각자 로컬 TankModel에 반영
         _isInvincible.OnValueChanged += HandleInvincibleValueChanged;
+        // 상점 열림/닫힘:로컬에서 다른 플레이어의 탱크 모델을 숨기고 복원하기 위해 구독
+        NetworkGameManager.Instance.OnShopActiveChanged += HandleShopActiveChanged;
 
         // 로컬 소유일 때만 GameScene에 스폰 완료를 알림
         if (IsOwner)
@@ -78,6 +80,16 @@ public class PlayerNetworkOwner : NetworkBehaviour
     void HandleInvincibleValueChanged(bool previousValue, bool currentValue)
     {
         _playerTank.Model.SetNoDamage(currentValue);
+    }
+
+    /// <summary>
+    /// 상점 UI 열림/닫힘 반영 — 소유자 자신은 장비칸 미리보기에 계속 보여야 하므로 제외, 원격 관찰자만 로컬에서 탱크 모델을 숨기고 복원
+    /// </summary>
+    void HandleShopActiveChanged(bool active)
+    {
+        if (IsOwner) return; // 소유자 자신은 장비칸 미리보기 대상이라 계속 보여야 함
+
+        _playerTank.SetShopVisualHidden(active);
     }
 
     /// <summary>

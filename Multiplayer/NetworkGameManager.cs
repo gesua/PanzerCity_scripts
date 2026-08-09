@@ -29,6 +29,7 @@ public class NetworkGameManager : NetworkBehaviour
     public event Action<int, int> OnPlayerLifeChanged; // 목숨 UI 갱신용(playerIndex, life)
     public event Action<int, int> OnNextStageReadyCountChanged; // 상점 다음 스테이지 준비 인원 변경(readyCount, totalCount)
     public event Action OnAllReadyForNextStage; // 전원 준비 완료 — 다음 스테이지로 이동 신호
+    public event Action<bool> OnShopActiveChanged; // 로컬 상점 UI 열림/닫힘 알림(순수 로컬 신호, 네트워크 전파 없음)
     public event Action OnRestartRequested; // 재도전 동기화 — 호스트 재도전 신호
 
     void Awake()
@@ -425,6 +426,15 @@ public class NetworkGameManager : NetworkBehaviour
     void NotifyAllReadyForNextStageClientRpc()
     {
         OnAllReadyForNextStage?.Invoke();
+    }
+
+    /// <summary>
+    /// 로컬 상점 UI 열림/닫힘 알림(ShopUI가 호출) — 다른 플레이어 탱크를 로컬 화면에서만 숨기고 복원하기 위한 순수 로컬 신호
+    /// 상점 UI는 클라이언트마다 독립적으로 열고 닫으므로 네트워크 전파가 필요 없음(NotifyLifeChanged와 동일한 패턴)
+    /// </summary>
+    public void NotifyShopActiveChanged(bool active)
+    {
+        OnShopActiveChanged?.Invoke(active);
     }
 
     /// <summary>

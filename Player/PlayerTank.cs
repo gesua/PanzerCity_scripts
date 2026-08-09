@@ -30,7 +30,7 @@ public class PlayerTank : TankBase
     [SerializeField] float _respawnPushRadius = 2f; // 밀어낼 탱크 감지 반경
     [SerializeField] float _respawnPushOffset = 0.1f; // 밀어내기 강도 배율
     [SerializeField] LayerMask _respawnPushLayer = 1 << 8 | 1 << 9; // 밀어낼 대상 레이어(플레이어 + 적)
-    
+
     // 멀티플레이 구분 색상
     Color[] _playerColors = // 1P~4P 구분 색(BaseMap), OwnerClientId를 인덱스로 사용
     {
@@ -43,6 +43,7 @@ public class PlayerTank : TankBase
     bool _isAttack; // 좌클릭 누르는 중인지
     bool _isSniperMode; // 저격 모드인지(Shift)
     bool _isDead; // 죽었는지
+    bool _isShopVisualHidden; // 멀티플레이:상점 UI에서 다른 플레이어에게 겹쳐 보이지 않도록 로컬에서만 숨김 여부(PlayerNetworkOwner가 설정)
     bool _isNetworkOwner = true; // 네트워크 소유자인지(싱글 플레이:항상 true)
     PlayerNetworkOwner _networkOwner; // 멀티플레이 여부 및 발사 요청 전달용
 
@@ -307,13 +308,26 @@ public class PlayerTank : TankBase
     /// 플레이 모델(정상 상태) 표시 여부 설정
     /// GameObject 자체를 SetActive로 끄지 않고 렌더러만 껐다 켜서, 자식 오브젝트(Turret 등)가 계속 활성 상태를 유지하게 함
     /// (NGO의 nested NetworkTransform은 최초 Spawn 시점에 활성 상태였던 자식만 등록하므로, 중간에 SetActive(false)로 꺼지면 재활성화해도 동기화가 끊김)
+    /// 멀티플레이:_isShopVisualHidden이 true인 동안은 visible 인자와 무관하게 항상 숨김 상태 유지(SetShopVisualHidden 참고)
     /// </summary>
     void SetNormalVisualVisible(bool visible)
     {
+        bool actualVisible = visible && (_isShopVisualHidden == false);
         foreach (MeshRenderer renderer in _normalVisualRenderers)
         {
-            renderer.enabled = visible;
+            renderer.enabled = actualVisible;
         }
+    }
+
+    /// <summary>
+    /// 멀티플레이:상점 UI에서 다른 플레이어에게 겹쳐 보이지 않도록 로컬에서만 시각적으로 숨김(네트워크 동기화 없이 각자 로컬 판단, PlayerNetworkOwner가 호출)
+    /// 사망/리스폰 흐름과 독립적인 레이어로 관리 — 상점이 열려있는 동안 리스폰이 완료돼도 계속 숨겨진 채 유지되고,
+    /// 상점이 닫힐 때 그 시점의 실제 생존 상태를 반영해 다시 보여줌(사망 중이면 계속 숨김)
+    /// </summary>
+    public void SetShopVisualHidden(bool hidden)
+    {
+        _isShopVisualHidden = hidden;
+        SetNormalVisualVisible(_isDead == false);
     }
 
     /// <summary>
