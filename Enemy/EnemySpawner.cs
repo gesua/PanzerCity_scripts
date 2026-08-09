@@ -489,7 +489,10 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     public void SetAllEnemiesAIActive(bool active)
     {
-        foreach (EnemyTank enemy in _enemies)
+        // 순회 중 사망 처리(HandleEnemyDead)로 _enemies가 변경될 수 있으므로 스냅샷을 떠서 순회(DestroyAllEnemies와 동일한 패턴)
+        List<EnemyTank> targets = _enemies.ToList();
+
+        foreach (EnemyTank enemy in targets)
         {
             // 끌 때(EMP 시작)만 이미 죽은 적 제외 — 켤 때(EMP 종료)는 죽은 적도 포함해야
             // EMP 도중 멈춰있던 사망 상태 타이머가 다시 흐르기 시작함(안 그러면 시체가 영영 안 사라짐)
