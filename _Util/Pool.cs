@@ -126,6 +126,18 @@ public class Pool
             handler.OnBeforeReturnToPool();
         }
 
+        // 안전망: OnBeforeReturnToPool()이 자체적으로 Despawn을 처리하지 않는 타입(EnemyTank 등)을 위한 보강
+        // 이 시점에도 여전히 네트워크에 Spawn된 상태로 남아있으면 다음 재사용 시 "already spawned" 오류가 나므로,
+        // 서버(authority)에서 destroy:false로 Despawn만 걸어 스폰 상태를 지움(GameObject는 그대로 유지되어 재사용됨)
+        // Shell처럼 OnBeforeReturnToPool()에서 이미 자체 Despawn을 마친 타입은 이 시점에 IsSpawned가 이미 false라 스킵됨
+        if (go.TryGetComponent(out NetworkObject spawnedNetworkObject) && spawnedNetworkObject.IsSpawned)
+        {
+            if (NetworkManager.Singleton.IsServer)
+            {
+                spawnedNetworkObject.Despawn(false);
+            }
+        }
+
         // NetworkObject는 Despawn 이후 다시 재부모화가 금지되므로 부모를 건드리지 않음(DontDestroyOnLoad는 CreatePoolObj에서 이미 걸려있음)
         if (go.TryGetComponent(out NetworkObject networkObject) == false)
         {
