@@ -83,6 +83,7 @@ public class EnemyNetworkOwner : NetworkBehaviour
 
         if (TryGetComponent(out NetworkObject networkObject))
         {
+            Debug.Log($"[NetTrace] DESPAWN {name} id={networkObject.NetworkObjectId} isSpawned={networkObject.IsSpawned} frame={Time.frameCount}");
             networkObject.Despawn();
         }
     }

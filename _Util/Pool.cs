@@ -134,6 +134,7 @@ public class Pool
         {
             if (NetworkManager.Singleton.IsServer)
             {
+                Debug.Log($"[NetTrace] DESPAWN(SAFETYNET) {go.name} id={spawnedNetworkObject.NetworkObjectId} frame={Time.frameCount}");
                 spawnedNetworkObject.Despawn(false);
             }
         }

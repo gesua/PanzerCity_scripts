@@ -71,6 +71,7 @@ public class DroppedItemNetworkOwner : NetworkBehaviour
 
         if (TryGetComponent(out NetworkObject networkObject))
         {
+            Debug.Log($"[NetTrace] DESPAWN {name} id={networkObject.NetworkObjectId} isSpawned={networkObject.IsSpawned} frame={Time.frameCount}");
             networkObject.Despawn(false); // Pool 재사용을 위해 false
         }
     }

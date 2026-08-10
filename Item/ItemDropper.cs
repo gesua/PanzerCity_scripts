@@ -95,7 +95,10 @@ public class ItemDropper : MonoBehaviour
             {
                 networkOwner.SetPendingItemId(itemID); // 클라이언트 아이콘 동기화용(스폰 전에 값 세팅 필요)
             }
+
             networkObject.Spawn();
+
+            Debug.Log($"[NetTrace] SPAWN {itemGo.name} id={networkObject.NetworkObjectId} frame={Time.frameCount}");
         }
 
         // 아이템 드랍 소리(일괄 처치 중엔 개별 3D 재생 대신 큐잉 -> 종료 시 한 번만 2D 재생)

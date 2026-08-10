@@ -125,6 +125,7 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         if (isMultiplayer && shellGo.TryGetComponent(out NetworkObject networkObject))
         {
             networkObject.Spawn();
+            Debug.Log($"[NetTrace] SPAWN {shellGo.name} id={networkObject.NetworkObjectId} frame={Time.frameCount}");
         }
     }
 
