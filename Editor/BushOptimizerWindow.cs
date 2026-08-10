@@ -52,7 +52,7 @@ public class BushOptimizerWindow : EditorWindow
     void OptimizeAllBushes()
     {
         // 씬에 있는 모든 BushBlock을 찾습니다.
-        BushBlock[] bushes = FindObjectsOfType<BushBlock>();
+        BushBlock[] bushes = FindObjectsByType<BushBlock>(FindObjectsSortMode.None);
         if (bushes.Length == 0)
         {
             Debug.LogWarning("씬에 BushBlock 컴포넌트를 가진 오브젝트가 없습니다.");
@@ -107,7 +107,7 @@ public class BushOptimizerWindow : EditorWindow
 
     void ResetAllBushes(BushBlock[] targetBushes = null)
     {
-        BushBlock[] bushes = targetBushes ?? FindObjectsOfType<BushBlock>();
+        BushBlock[] bushes = targetBushes ?? FindObjectsByType<BushBlock>(FindObjectsSortMode.None);
         foreach (var bush in bushes)
         {
             EnablePanel(bush, _nameUp);
