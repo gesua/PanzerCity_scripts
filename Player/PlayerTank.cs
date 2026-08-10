@@ -522,6 +522,18 @@ public class PlayerTank : TankBase
     }
 
     /// <summary>
+    /// 장비 스탯을 네트워크에 반영 — 멀티면 서버 쪽 TankModel 사본에도 적용되어야 데미지 판정(Shell)에서 실제로 걸러짐(싱글이면 아무 것도 안 함)
+    /// 호스트 자신은 로컬 TankModel이 곧 서버 TankModel이라 EquipmentManager가 이미 적용했으므로 여기서 걸러냄(중복 적용 방지)
+    /// </summary>
+    public void SyncEquipmentToServer(int itemID, bool isEquip)
+    {
+        if (_networkOwner == null) return; // 싱글플레이
+        if (_networkOwner.IsServer) return; // 호스트는 이미 로컬에서 적용됨
+
+        _networkOwner.RequestEquipServerRpc(itemID, isEquip);
+    }
+
+    /// <summary>
     /// 중력 설정
     /// </summary>
     public void SetPlayerGravity(bool enable)

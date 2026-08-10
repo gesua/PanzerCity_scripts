@@ -204,6 +204,9 @@ public class GameScene : MonoBehaviour
         _inventoryUI.Presenter.OnItemDropped += HandleItemDropped;
 
         GameManager.Instance.EquipmentManager.Initialize(_player.Model);
+        // 장비 장착/해제 시 서버 쪽 TankModel 사본에도 반영(멀티에서 비호스트 클라이언트의 장비 스탯이 데미지 판정에 실제로 적용되도록)
+        GameManager.Instance.EquipmentManager.OnEquipped += (slot, item) => _player.SyncEquipmentToServer(item.Config.Id, true);
+        GameManager.Instance.EquipmentManager.OnUnequipped += (slot, item) => _player.SyncEquipmentToServer(item.Config.Id, false);
         GameManager.Instance.OptionManager.OnMouseSensitivityChanged += _cameraTarget.SetSensitivity;
 
         // 세이브 데이터

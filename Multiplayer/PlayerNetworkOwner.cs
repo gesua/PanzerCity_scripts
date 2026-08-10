@@ -193,6 +193,20 @@ public class PlayerNetworkOwner : NetworkBehaviour
     }
 
     /// <summary>
+    /// 비호스트 클라이언트의 장비 장착/해제를 서버 쪽 TankModel 사본에 반영(소유자만 호출 가능)
+    /// </summary>
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestEquipServerRpc(int itemID, bool isEquip)
+    {
+        if (IsServer == false) return; // 방어적 가드
+
+        ItemConfig config = GameManager.Instance.DataManager.GetItemConfig(itemID);
+        if (config == null) return;
+
+        _playerTank.Model.ApplyEquipment(config, isEquip);
+    }
+
+    /// <summary>
     /// 이 플레이어에게만 골드 지급을 알림(서버 전용, EnemyTank가 처치 판정 후 호출)
     /// </summary>
     public void NotifyGoldEarned(int amount)
