@@ -465,7 +465,7 @@ public class ShopUI : MonoBehaviour
     IEnumerator ExitRoutine()
     {
         yield return new WaitForSeconds(3f);
-        gameObject.SetActive(false);
+        SetShopActive(false); // 상점 정리 로직(커서 송신 중단/Cursor.visible 복원/원격 탱크 렌더러 복원 신호)이 전부 여기를 거쳐야 하므로 gameObject.SetActive 직접 호출 대신 이 메서드를 통해 닫음
         OnExitClicked?.Invoke();
     }
 

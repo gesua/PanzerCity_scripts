@@ -6,7 +6,7 @@ using UnityEngine;
 /// 픽업은 클라이언트가 요청하고 서버가 승인하는 구조(동시 픽업 경합 방지)
 /// </summary>
 [RequireComponent(typeof(DroppedItem))]
-public class DroppedItemNetworkOwner : NetworkBehaviour
+public class DroppedItemNetworkOwner : NetworkBehaviour, IPoolReturnHandler
 {
     [SerializeField] DroppedItem _droppedItem;
 
@@ -69,10 +69,12 @@ public class DroppedItemNetworkOwner : NetworkBehaviour
         };
         NotifyPickupApprovedClientRpc(targetParams);
 
-        if (TryGetComponent(out NetworkObject networkObject))
+        // Shell과 동일한 패턴:직접 Despawn하지 않고 Poolable.ReturnToPool()로 Pool.Push()를 먼저 태움
+        // Despawn은 OnBeforeReturnToPool()에서 부수효과로 처리 — Despawn을 여기서 직접 부르면
+        // 그 처리 도중 OnNetworkDespawn()이 재진입으로 한 번 더 Push를 태우면서 Despawn이 중첩 호출됨
+        if (TryGetComponent(out Poolable poolable))
         {
-            Debug.Log($"[NetTrace] DESPAWN {name} id={networkObject.NetworkObjectId} isSpawned={networkObject.IsSpawned} frame={Time.frameCount}");
-            networkObject.Despawn(false); // Pool 재사용을 위해 false
+            poolable.ReturnToPool();
         }
     }
 
@@ -90,14 +92,42 @@ public class DroppedItemNetworkOwner : NetworkBehaviour
     }
 
     /// <summary>
+    /// 풀에 반환되기 직전 정리 — 서버만 네트워크 디스폰(destroy: false → GameObject는 유지해서 Pool 재사용)
+    /// Shell.OnBeforeReturnToPool()과 동일한 패턴:Push()가 먼저 불리고, 그 안에서 이 콜백이 실제 Despawn을 처리함
+    /// </summary>
+    public void OnBeforeReturnToPool()
+    {
+        if (IsServer == false) return;
+
+        if (TryGetComponent(out NetworkObject networkObject) == false) return;
+
+        // 이미 despawn 처리 중(또는 완료)인 상태면 재시도하지 않음
+        // StageScene.CleanupRoutine() 등 다른 경로에서 이미 Despawn(true)를 직접 호출해
+        // NetworkPoolPrefabHandler.Destroy() → Push()로 들어온 경우, 여기서 또 Despawn을 걸면
+        // 처리 중인 despawn에 재진입하는 꼴이 되어 에러가 남
+        if (networkObject.IsSpawned == false)
+        {
+            Debug.Log($"[NetTrace] DESPAWN-SKIP(이미 처리됨) {name} id={networkObject.NetworkObjectId} frame={Time.frameCount}");
+            return;
+        }
+
+        Debug.Log($"[NetTrace] DESPAWN {name} id={networkObject.NetworkObjectId} isSpawned={networkObject.IsSpawned} frame={Time.frameCount}");
+        networkObject.Despawn(false);
+    }
+
+    /// <summary>
     /// 전원(호스트 포함) 공통 정리 — despawn 시점에 자동 호출됨
     /// 픽업 UI 등이 실수로 자식으로 붙어있는 경우 함께 파괴되지 않도록 먼저 분리
+    /// Pool 반환 자체는 클라이언트 전용 — 서버는 OnBeforeReturnToPool()에서 Push()가 먼저 불리며 이미 처리됨
+    /// (여기서 서버까지 또 반환을 시도하면 Despawn 처리 도중 재진입으로 이어져 Despawn이 중첩 호출됨)
     /// </summary>
     public override void OnNetworkDespawn()
     {
-        _itemId.OnValueChanged -= HandleItemIdChanged; // 풀 재사용 시 중복 구독 방지
+        _itemId.OnValueChanged -= HandleItemIdChanged; // 풀 재사용 시 중복 구독 방지(서버/클라 공통으로 항상 필요)
 
-        _droppedItem.DetachForeignChildren(); // 픽업 UI 등 외부에서 붙은 자식만 분리(아이콘 등 원본 자식은 보존)
+        _droppedItem.DetachForeignChildren(); // 픽업 UI 등 외부에서 붙은 자식만 분리(서버/클라 공통)
+
+        if (IsServer) return;
 
         if (TryGetComponent(out Poolable poolable))
         {
