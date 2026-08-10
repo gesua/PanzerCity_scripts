@@ -60,6 +60,7 @@ public class BushOptimizerWindow : EditorWindow
         }
 
         int disabledCount = 0;
+        int detectedNeighborCount = 0;
 
         // 실행 전 모든 판넬을 켜서 꼬임을 방지합니다.
         ResetAllBushes(bushes);
@@ -75,34 +76,72 @@ public class BushOptimizerWindow : EditorWindow
 
                 BushBlock other = bushes[j];
                 Vector3 otherPos = other.transform.position;
+                Vector3 diff = otherPos - pos;
 
-                // X 좌표가 같고 (같은 세로줄), Z 좌표가 gridSize만큼 위에 있을 때 -> 상(Up) 판넬 끄기
-                if (Mathf.Abs(otherPos.x - pos.x) < _tolerance && Mathf.Abs(otherPos.z - (pos.z + _gridSize)) < _tolerance)
+                Debug.Log($"{current.name}과 {other.name} 비교");
+                Debug.Log($"{pos}, {otherPos}, {otherPos - pos}");
+
+                // Y축은 무시하고 X/Z 좌표만 사용하여 그리드 인접 여부를 확인합니다.
+                // 풀숲의 높이가 조금 달라도 같은 그리드 위치로 판단할 수 있습니다.
+                float deltaX = Mathf.Abs(diff.x);
+                float deltaZ = Mathf.Abs(diff.z);
+
+                bool isHorizontalNeighbor =
+                    Mathf.Abs(deltaX - _gridSize) <= _tolerance &&
+                    deltaZ <= _tolerance;
+
+                Debug.Log($"isHorizontalNeighbor = {isHorizontalNeighbor}," +
+                    $"{deltaX} - {_gridSize} <= {_tolerance}," +
+                    $"{deltaZ} <= {_tolerance}");
+
+                bool isVerticalNeighbor =
+                    Mathf.Abs(deltaZ - _gridSize) <= _tolerance &&
+                    deltaX <= _tolerance;
+
+                Debug.Log($"isVerticalNeighbor = {isVerticalNeighbor}," +
+                    $"{deltaZ} - {_gridSize} <= {_tolerance}," +
+                    $"{deltaX} <= {_tolerance}");
+
+                if (isHorizontalNeighbor == false && isVerticalNeighbor == false)
+                    continue; // 그리드 간격이 아니면 패스
+
+                detectedNeighborCount++;
+
+
+                Debug.Log($"{current.name}과 {other.name} 방향 비교");
+
+                // 방향 판별 (Y축 차이는 무시하고 X, Z축 중심)
+                if (Mathf.Abs(diff.x) <= _tolerance && diff.z > (_gridSize - _tolerance))
                 {
+                    // 다른 블록이 위(Z+)에 있음 -> 나의 상(Up) 판넬 끄기
                     if (DisablePanel(current, _nameUp)) disabledCount++;
                 }
-
-                // X 좌표가 같고, Z 좌표가 gridSize만큼 아래에 있을 때 -> 하(Down) 판넬 끄기
-                if (Mathf.Abs(otherPos.x - pos.x) < _tolerance && Mathf.Abs(otherPos.z - (pos.z - _gridSize)) < _tolerance)
+                else if (Mathf.Abs(diff.x) <= _tolerance && diff.z < -(_gridSize - _tolerance))
                 {
+                    // 다른 블록이 아래(Z-)에 있음 -> 나의 하(Down) 판넬 끄기
                     if (DisablePanel(current, _nameDown)) disabledCount++;
                 }
-
-                // Z 좌표가 같고 (같은 가로줄), X 좌표가 gridSize만큼 우측에 있을 때 -> 우(Right) 판넬 끄기
-                if (Mathf.Abs(otherPos.z - pos.z) < _tolerance && Mathf.Abs(otherPos.x - (pos.x + _gridSize)) < _tolerance)
+                else if (Mathf.Abs(diff.z) <= _tolerance && diff.x > (_gridSize - _tolerance))
                 {
+                    // 다른 블록이 우(X+)에 있음 -> 나의 우(Right) 판넬 끄기
                     if (DisablePanel(current, _nameRight)) disabledCount++;
                 }
-
-                // Z 좌표가 같고, X 좌표가 gridSize만큼 좌측에 있을 때 -> 좌(Left) 판넬 끄기
-                if (Mathf.Abs(otherPos.z - pos.z) < _tolerance && Mathf.Abs(otherPos.x - (pos.x - _gridSize)) < _tolerance)
+                else if (Mathf.Abs(diff.z) <= _tolerance && diff.x < -(_gridSize - _tolerance))
                 {
+                    // 다른 블록이 좌(X-)에 있음 -> 나의 좌(Left) 판넬 끄기
                     if (DisablePanel(current, _nameLeft)) disabledCount++;
                 }
             }
         }
 
-        Debug.Log($"[풀숲 최적화 완료] 인접한 블록을 감지하여 총 {disabledCount}개의 판넬을 비활성화했습니다.");
+        if (detectedNeighborCount > 0 && disabledCount == 0)
+        {
+            Debug.LogWarning($"[풀숲 최적화 실패] 이웃한 블록을 {detectedNeighborCount}번 감지했지만 판넬을 하나도 끄지 못했습니다! 설정창의 '판넬 이름'이 실제 게임오브젝트 이름과 일치하는지 확인해 주세요.");
+        }
+        else
+        {
+            Debug.Log($"[풀숲 최적화 완료] 이웃 감지 {detectedNeighborCount}회 / 총 {disabledCount}개의 판넬을 비활성화했습니다.");
+        }
     }
 
     void ResetAllBushes(BushBlock[] targetBushes = null)
@@ -143,10 +182,16 @@ public class BushOptimizerWindow : EditorWindow
 
     Transform FindChildByKeyword(Transform parent, string keyword)
     {
+        if (string.IsNullOrEmpty(keyword)) return null;
+
         string lowerKeyword = keyword.ToLower();
-        foreach (Transform child in parent)
+
+        // GetComponentsInChildren을 사용하면 자식의 자식(하위 전체)까지 모두 찾습니다. (true: 비활성화된 오브젝트 포함)
+        Transform[] allChildren = parent.GetComponentsInChildren<Transform>(true);
+        foreach (Transform child in allChildren)
         {
-            // 자식 오브젝트의 이름에 키워드가 포함되어 있으면 해당 판넬로 간주 (대소문자 무시)
+            if (child == parent) continue; // 자기 자신은 제외
+
             if (child.name.ToLower().Contains(lowerKeyword))
             {
                 return child;
