@@ -22,6 +22,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] InputSystemHandler _inputSystemHandler;
     [SerializeField] PlayerTank _player;
     [SerializeField] CameraTarget _cameraTarget;
+    [SerializeField] SpectatorController _spectatorController; // 멀티플레이:관전 모드 카메라 전환
     [SerializeField] SniperModeController _sniperMode;
     [SerializeField] CinemachineBrain _cinemachineBrain; // 블렌드 방식 변경용
     [SerializeField] SceneEffect _sceneEffect;
@@ -58,6 +59,7 @@ public class GameScene : MonoBehaviour
     StageScene _currentStage; // 현재 스테이지
 
     bool _isGameOver;
+    bool _isSpectating; // 멀티플레이:본인은 목숨이 다 떨어졌지만 다른 아군이 살아있어 관전 중인 상태
     bool _isPaused;
     bool _isShopOpen;
     bool _isRestarting;
@@ -160,6 +162,13 @@ public class GameScene : MonoBehaviour
 
             // 멀티플레이: 호스트의 재도전 신호 수신(비호스트만 실제로 반응함, NetworkGameManager에서 필터링됨)
             NetworkGameManager.Instance.OnRestartRequested += _gameOverUI.OnClickRestart;
+
+            // 멀티플레이: 전원 사망 신호 수신(관전 중이던 클라이언트도 여기서 게임오버로 전환됨)
+            NetworkGameManager.Instance.OnAllPlayersDead += HandleAllPlayersDead;
+
+            // 관전 모드:카메라 대상 순환 전환(Q/E)
+            _inputSystemHandler.OnSpectatePrevInput += HandleSpectatePrevInput;
+            _inputSystemHandler.OnSpectateNextInput += HandleSpectateNextInput;
         }
         else
         {
@@ -312,7 +321,11 @@ public class GameScene : MonoBehaviour
             NetworkGameManager.Instance.OnLocalPlayerSpawned -= HandleLocalPlayerSpawned;
             NetworkGameManager.Instance.OnAllClientsReady -= HandleAllClientsReady;
             NetworkGameManager.Instance.OnRestartRequested -= _gameOverUI.OnClickRestart;
+            NetworkGameManager.Instance.OnAllPlayersDead -= HandleAllPlayersDead;
         }
+
+        _inputSystemHandler.OnSpectatePrevInput -= HandleSpectatePrevInput;
+        _inputSystemHandler.OnSpectateNextInput -= HandleSpectateNextInput;
     }
 
     void OnStageLoaded(Scene scene, LoadSceneMode mode)
@@ -413,8 +426,16 @@ public class GameScene : MonoBehaviour
         // pos는 항상 1P 스폰 지점(인덱스 0)이라 멀티에 그대로 쓰면 안 됨
         // 최초 스폰 배치는 Initialize(PlayerTank)가 처리하지만 그건 최초 1회뿐이라, 전환 시엔 여기서 다시 해줘야 함
         bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+
         if (_player != null)
         {
+            // 멀티플레이:재도전으로 스테이지가 다시 시작되는 경우, 관전 모드였다면 해제하고 카메라를 본인 탱크로 복구
+            if (isMultiplayer)
+            {
+                ExitSpectateMode();
+                _cameraTarget.SetTarget(_player.transform);
+            }
+
             Vector3 spawnPos = (isMultiplayer) ? _currentStage.GetSpawnPoint(_localSpawnIndex) : _playerSpawnPoint;
             RespawnPlayer(spawnPos);
         }
@@ -441,6 +462,7 @@ public class GameScene : MonoBehaviour
     void HandleMoveInput(Vector2 inputVector)
     {
         if (_isShopOpen || _isPaused) return; // 상점이나 ESC메뉴 중엔 무시
+        if (_isSpectating) return; // 관전 중엔 본인 탱크가 화면 밖에서 움직이면 안 됨
 
         // x,y 축을 x,z축으로 변경
         Vector3 moveVector = Vector3.forward * inputVector.y + Vector3.right * inputVector.x;
@@ -581,6 +603,8 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleInteractInput()
     {
+        if (_isSpectating) return; // 관전 중엔 본인 탱크가 화면 밖에서 아이템을 주우면 안 됨
+
         _player.ItemPickup.TryPickup();
     }
 
@@ -648,6 +672,7 @@ public class GameScene : MonoBehaviour
     void HandlePlayerRespawn()
     {
         if (_isGameOver) return; // HQ 파괴되면 리스폰 막기
+        if (_isSpectating) return; // 관전 중엔 이미 처리된 사망이므로 재진입 방지
 
         if (GameManager.Instance.PlayerData.Life > 0)
         {
@@ -665,10 +690,103 @@ public class GameScene : MonoBehaviour
         }
         else
         {
-            // 게임오버
-            _gameOverUI.Show(false);
-            _isGameOver = true;
+            // 멀티플레이:본인 목숨은 다 떨어졌지만 다른 아군이 살아있으면 게임오버 대신 관전 모드로 전환
+            bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+            bool hasAliveTeammate = isMultiplayer && HasAliveTeammate();
+
+            if (hasAliveTeammate)
+            {
+                EnterSpectateMode();
+            }
+            else
+            {
+                // 게임오버
+                _gameOverUI.Show(false);
+                _isGameOver = true;
+            }
         }
+    }
+
+    /// <summary>
+    /// 멀티플레이:본인을 제외한 접속 클라이언트 중 목숨이 남은 아군이 있는지 확인
+    /// </summary>
+    bool HasAliveTeammate()
+    {
+        foreach (NetworkClient client in NetworkManager.Singleton.ConnectedClientsList)
+        {
+            if (client.PlayerObject == null) continue;
+            if (client.PlayerObject.TryGetComponent(out PlayerNetworkOwner networkOwner) == false) continue;
+            if (networkOwner.IsOwner) continue; // 본인 제외
+
+            if (networkOwner.CurrentLife > 0) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 관전 모드 진입 — 조작을 막고 탱크 잔해를 숨긴 뒤 카메라를 아군에게 넘김
+    /// </summary>
+    void EnterSpectateMode()
+    {
+        _isSpectating = true;
+
+        _player.SetSpectatingVisualHidden(true);
+        _spectatorController.EnterSpectate(_cameraTarget);
+    }
+
+    /// <summary>
+    /// 관전 모드 해제 — 재도전 등으로 스테이지가 다시 시작될 때 호출
+    /// </summary>
+    void ExitSpectateMode()
+    {
+        if (_isSpectating == false) return;
+
+        _isSpectating = false;
+
+        _player.SetSpectatingVisualHidden(false);
+        _spectatorController.ExitSpectate();
+    }
+
+    /// <summary>
+    /// 관전 대상 전환(이전, Q키)
+    /// </summary>
+    void HandleSpectatePrevInput()
+    {
+        if (_isSpectating == false) return;
+        if (_isPaused) return;
+
+        _spectatorController.SpectatePrev();
+    }
+
+    /// <summary>
+    /// 관전 대상 전환(다음, E키)
+    /// </summary>
+    void HandleSpectateNextInput()
+    {
+        if (_isSpectating == false) return;
+        if (_isPaused) return;
+
+        _spectatorController.SpectateNext();
+    }
+
+    /// <summary>
+    /// 멀티플레이:전원 사망 — 관전 중이던 클라이언트도 여기서 게임오버로 전환됨
+    /// HQ 파괴 케이스와 동일하게 호스트만 재도전 가능
+    /// </summary>
+    void HandleAllPlayersDead()
+    {
+        if (_isGameOver) return; // 이미 게임오버 된 상태에선 또 게임오버 안 됨
+
+        _isGameOver = true;
+
+        ExitSpectateMode(); // 관전 중이었다면 해제(잔해 다시 보이기 등은 재도전 시 리스폰으로 자연히 복구됨)
+
+        // 멀티플레이:호스트만 재도전 버튼을 누를 수 있음(비호스트는 대기)
+        bool canRestart = NetworkManager.Singleton.IsServer;
+        _gameOverUI.SetRestartAvailable(canRestart);
+
+        _gameOverUI.Show(false);
     }
 
     /// <summary>

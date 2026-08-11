@@ -20,6 +20,8 @@ public class InputSystemHandler : MonoBehaviour
     public event Action OnInteractInput;
     public event Action<bool> OnCursorInput;
     public event Action<int> OnQuickSlotInput; // 퀵슬롯 (0~3)
+    public event Action OnSpectatePrevInput; // 관전 대상 전환(이전, Q키)
+    public event Action OnSpectateNextInput; // 관전 대상 전환(다음, E키)
 
     bool _onAttack; // 좌클릭 상태 토글
     bool _isInputDisabled;    // 키입력 막음
@@ -179,5 +181,17 @@ public class InputSystemHandler : MonoBehaviour
     {
         if (_isInputDisabled) return;
         if (context.performed) OnQuickSlotInput?.Invoke(3);
+    }
+
+    // Q키(관전 대상 전환 — 이전)
+    public void HandleSpectatePrevInput(InputAction.CallbackContext context)
+    {
+        if (context.performed) OnSpectatePrevInput?.Invoke();
+    }
+
+    // E키(관전 대상 전환 — 다음)
+    public void HandleSpectateNextInput(InputAction.CallbackContext context)
+    {
+        if (context.performed) OnSpectateNextInput?.Invoke();
     }
 }

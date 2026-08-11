@@ -344,6 +344,15 @@ public class PlayerTank : TankBase
     }
 
     /// <summary>
+    /// 멀티플레이:관전 모드 진입 시 본인 탱크 잔해(파괴된 모델)를 숨김(GameScene이 호출)
+    /// 정상 모델은 이미 HandleDead에서 꺼져있는 상태라 별도 처리 불필요, 잔해만 대상으로 함
+    /// </summary>
+    public void SetSpectatingVisualHidden(bool hidden)
+    {
+        _destroyedVisual.SetActive(hidden == false);
+    }
+
+    /// <summary>
     /// 사망 처리
     /// </summary>
     void HandleDead(HitData hitData)

@@ -18,6 +18,7 @@ public class NetworkGameManager : NetworkBehaviour
 
     HashSet<ulong> _readyForNextStageClientIds = new(); // 상점에서 다음 스테이지 준비 완료한 클라이언트 목록
     HashSet<ulong> _stageLoadedClientIds = new(); // 스테이지 전환 시 씬 로드 완료 보고한 클라이언트 목록
+    Dictionary<ulong, int> _playerLives = new(); // 전원 사망 판정용:각 클라이언트의 최신 목숨 캐시(호스트만 판정에 사용, NotifyLifeChanged가 호출될 때마다 갱신)
 
     StageScene _stageScene;
 
@@ -31,6 +32,7 @@ public class NetworkGameManager : NetworkBehaviour
     public event Action OnAllReadyForNextStage; // 전원 준비 완료 — 다음 스테이지로 이동 신호
     public event Action<bool> OnShopActiveChanged; // 로컬 상점 UI 열림/닫힘 알림(순수 로컬 신호, 네트워크 전파 없음)
     public event Action OnRestartRequested; // 재도전 동기화 — 호스트 재도전 신호
+    public event Action OnAllPlayersDead; // 전원 사망 동기화 — 접속한 모든 클라이언트의 목숨이 0이 됨(비호스트만 실제로 반응함, 호스트는 판정 시점에 이미 로컬 처리)
 
     void Awake()
     {
@@ -277,6 +279,47 @@ public class NetworkGameManager : NetworkBehaviour
     public void NotifyLifeChanged(int playerIndex, int life)
     {
         OnPlayerLifeChanged?.Invoke(playerIndex, life);
+
+        // 전원 사망 판정:NetworkVariable 읽기 권한이 Everyone이라 호스트 로컬에도 전원의 값 변경이 모두 들어옴
+        // 호스트만 판정해서 신호를 전파(각자 판정하면 도착 순서에 따라 클라이언트마다 판정 시점이 어긋날 수 있음)
+        if (IsServer == false) return;
+
+        _playerLives[(ulong)playerIndex] = life;
+        CheckAllPlayersDead();
+    }
+
+    /// <summary>
+    /// 전원 사망 판정(호스트 전용) — 접속한 모든 클라이언트의 목숨이 0이면 신호 전파
+    /// </summary>
+    void CheckAllPlayersDead()
+    {
+        foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+            // 아직 캐시에 없는(값을 한 번도 안 보낸) 클라이언트는 생존으로 간주해 판정 보류
+            if (_playerLives.TryGetValue(clientId, out int life) == false) return;
+            if (life > 0) return;
+        }
+
+        NotifyAllPlayersDead();
+    }
+
+    /// <summary>
+    /// 전원 사망 동기화 — 호스트 자신은 판정 즉시 로컬 처리, 비호스트에는 신호 전파
+    /// </summary>
+    void NotifyAllPlayersDead()
+    {
+        OnAllPlayersDead?.Invoke(); // 호스트 자신의 로컬 처리
+
+        NotifyAllPlayersDeadClientRpc();
+    }
+
+    [ClientRpc]
+    void NotifyAllPlayersDeadClientRpc()
+    {
+        // 호스트 자신은 판정 시점에 이미 로컬로 처리했으므로 중복 방지
+        if (IsServer) return;
+
+        OnAllPlayersDead?.Invoke();
     }
 
     /// <summary>
@@ -483,6 +526,8 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     public void NotifyRestart()
     {
+        _playerLives.Clear(); // 전원 사망 판정 캐시 초기화(재도전으로 목숨이 복구되므로 이전 스테이지의 0 값이 남아있으면 안 됨)
+
         NotifyRestartClientRpc();
     }
 
