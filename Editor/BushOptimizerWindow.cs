@@ -68,18 +68,15 @@ public class BushOptimizerWindow : EditorWindow
         for (int i = 0; i < bushes.Length; i++)
         {
             BushBlock current = bushes[i];
-            Vector3 pos = current.transform.position;
+            Vector3 pos = current.transform.localPosition;
 
             for (int j = 0; j < bushes.Length; j++)
             {
                 if (i == j) continue; // 자기 자신은 건너뜀
 
                 BushBlock other = bushes[j];
-                Vector3 otherPos = other.transform.position;
+                Vector3 otherPos = other.transform.localPosition;
                 Vector3 diff = otherPos - pos;
-
-                Debug.Log($"{current.name}과 {other.name} 비교");
-                Debug.Log($"{pos}, {otherPos}, {otherPos - pos}");
 
                 // Y축은 무시하고 X/Z 좌표만 사용하여 그리드 인접 여부를 확인합니다.
                 // 풀숲의 높이가 조금 달라도 같은 그리드 위치로 판단할 수 있습니다.
@@ -90,25 +87,14 @@ public class BushOptimizerWindow : EditorWindow
                     Mathf.Abs(deltaX - _gridSize) <= _tolerance &&
                     deltaZ <= _tolerance;
 
-                Debug.Log($"isHorizontalNeighbor = {isHorizontalNeighbor}," +
-                    $"{deltaX} - {_gridSize} <= {_tolerance}," +
-                    $"{deltaZ} <= {_tolerance}");
-
                 bool isVerticalNeighbor =
                     Mathf.Abs(deltaZ - _gridSize) <= _tolerance &&
                     deltaX <= _tolerance;
-
-                Debug.Log($"isVerticalNeighbor = {isVerticalNeighbor}," +
-                    $"{deltaZ} - {_gridSize} <= {_tolerance}," +
-                    $"{deltaX} <= {_tolerance}");
 
                 if (isHorizontalNeighbor == false && isVerticalNeighbor == false)
                     continue; // 그리드 간격이 아니면 패스
 
                 detectedNeighborCount++;
-
-
-                Debug.Log($"{current.name}과 {other.name} 방향 비교");
 
                 // 방향 판별 (Y축 차이는 무시하고 X, Z축 중심)
                 if (Mathf.Abs(diff.x) <= _tolerance && diff.z > (_gridSize - _tolerance))
