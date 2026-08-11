@@ -63,9 +63,6 @@ public class PlayerTank : TankBase
     public CommanderController Commander => _commander;
     public PlayerNetworkOwner NetworkOwner => _networkOwner;
 
-    // TEMP-LOG:원인 조사용, 확인 끝나면 제거 — 로그마다 어느 인스턴스(로컬 소유/원격 프록시, ClientId)인지 구분하기 위한 식별자
-    string DebugId => (_networkOwner == null) ? "Single" : $"ClientId{_networkOwner.OwnerClientId}-{((_networkOwner.IsOwner) ? "Owner" : "Proxy")}";
-
     public event Action<int> OnDamaged;   // 대미지 받음<현재 HP>
     public event Action<HitData> OnHit;   // 피격
     public event Action OnPlayerRespawn;  // 리스폰
@@ -320,13 +317,20 @@ public class PlayerTank : TankBase
     {
         bool actualVisible = visible && (_isShopVisualHidden == false);
 
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[PlayerTank] SetNormalVisualVisible(visible:{visible}) | {DebugId} | _isShopVisualHidden:{_isShopVisualHidden} | actualVisible:{actualVisible} | Frame:{Time.frameCount}");
-
         foreach (MeshRenderer renderer in _normalVisualRenderers)
         {
             renderer.enabled = actualVisible;
         }
+    }
+
+    /// <summary>
+    /// 멀티플레이:원격 관찰자(프록시) 전용 — GameScene의 최초 스폰 흐름(Initialize/RespawnPlayer)은 로컬 플레이어에게만 적용되어
+    /// Awake()/Initialize()가 설정한 _isDead=true가 실제 사망 없이는 리스폰 전까지 영원히 안 풀림(프록시는 RespawnRoutine을 아예 안 탐)
+    /// 실제로는 정상 생존 중이므로 연출 없이 내부 상태만 바로잡음(PlayerNetworkOwner가 스폰 시 호출)
+    /// </summary>
+    public void InitializeAliveState()
+    {
+        _isDead = false;
     }
 
     /// <summary>
@@ -336,9 +340,6 @@ public class PlayerTank : TankBase
     /// </summary>
     public void SetShopVisualHidden(bool hidden)
     {
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[PlayerTank] SetShopVisualHidden({hidden}) | {DebugId} | _isDead:{_isDead} | Frame:{Time.frameCount}");
-
         _isShopVisualHidden = hidden;
         SetNormalVisualVisible(_isDead == false);
     }
@@ -369,9 +370,6 @@ public class PlayerTank : TankBase
     /// </summary>
     void HandleDead(HitData hitData)
     {
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[PlayerTank] HandleDead 호출 | {DebugId} | Frame:{Time.frameCount}");
-
         _isDead = true; // 죽었음
 
         // 사망 횟수 기록
@@ -416,9 +414,6 @@ public class PlayerTank : TankBase
     {
         yield return new WaitForSeconds(_deadDuration);
 
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[PlayerTank] DeadRoutine 완료 → OnPlayerRespawn 발동 | {DebugId} | Frame:{Time.frameCount}");
-
         OnPlayerRespawn?.Invoke();
     }
 
@@ -427,17 +422,11 @@ public class PlayerTank : TankBase
     /// </summary>
     public void Respawn(Vector3 spawnPos, CinemachineBrain brain)
     {
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[PlayerTank] Respawn() 호출됨 | {DebugId} | spawnPos:{spawnPos} | Frame:{Time.frameCount}");
-
         StartCoroutine(RespawnRoutine(spawnPos, brain));
     }
 
     IEnumerator RespawnRoutine(Vector3 spawnPos, CinemachineBrain brain)
     {
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[PlayerTank] RespawnRoutine 시작 | {DebugId} | Frame:{Time.frameCount}");
-
         // 전차장 초기화
         _commander.CommanderRoot.SetParent(TurretTr);
         _commander.transform.localRotation = Quaternion.identity;
@@ -471,9 +460,6 @@ public class PlayerTank : TankBase
         _miniMapTankIcon.Show(); // 미니맵 아이콘 보이기
         _model.Initialize(); // HP 초기화
         OnRespawnComplete?.Invoke(_respawnShieldDuration); // 리스폰 무적 시작
-
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[PlayerTank] RespawnRoutine 완료 | {DebugId} | _isShopVisualHidden:{_isShopVisualHidden} | Frame:{Time.frameCount}");
     }
 
     /// <summary>

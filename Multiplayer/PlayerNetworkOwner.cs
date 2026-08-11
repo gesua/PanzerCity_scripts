@@ -41,6 +41,13 @@ public class PlayerNetworkOwner : NetworkBehaviour
         // 상점 열림/닫힘:로컬에서 다른 플레이어의 탱크 모델을 숨기고 복원하기 위해 구독
         NetworkGameManager.Instance.OnShopActiveChanged += HandleShopActiveChanged;
 
+        // 프록시(원격 관찰자) 인스턴스는 GameScene의 최초 스폰 흐름을 안 타므로, Awake()/Initialize()가 설정한 _isDead=true가
+        // 실제 사망 없이는 리스폰 전까지 영원히 안 풀림 — 실제로는 생존 중이므로 여기서 바로잡음(PlayerTank.InitializeAliveState 참고)
+        if (IsOwner == false)
+        {
+            _playerTank.InitializeAliveState();
+        }
+
         // 로컬 소유일 때만 GameScene에 스폰 완료를 알림
         if (IsOwner)
         {
@@ -87,9 +94,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
     /// </summary>
     void HandleShopActiveChanged(bool active)
     {
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[PlayerNetworkOwner] HandleShopActiveChanged({active}) | OwnerClientId:{OwnerClientId} | IsOwner:{IsOwner} | Frame:{Time.frameCount}");
-
         if (IsOwner) return; // 소유자 자신은 장비칸 미리보기 대상이라 계속 보여야 함
 
         _playerTank.SetShopVisualHidden(active);
@@ -102,9 +106,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
     /// </summary>
     void HandleRemoteRespawn()
     {
-        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
-        Debug.Log($"[PlayerNetworkOwner] HandleRemoteRespawn 호출 | OwnerClientId:{OwnerClientId} | IsOwner:{IsOwner} | Frame:{Time.frameCount}");
-
         if (IsOwner) return; // 소유자 자신은 GameScene이 이미 처리
 
         StageScene stageScene = NetworkGameManager.Instance.StageScene;
