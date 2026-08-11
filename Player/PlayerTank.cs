@@ -182,11 +182,14 @@ public class PlayerTank : TankBase
     public void SetTankColorByIndex(int colorIndex)
     {
         if (colorIndex < 0 || colorIndex >= _playerColors.Length) return;
+        if (colorIndex == 0) return; // 1P는 기본색
 
         Color color = _playerColors[colorIndex];
 
         foreach (MeshRenderer renderer in _normalVisualRenderers)
         {
+            if (renderer.name.Contains("Track")) continue; // 궤도 색은 유지
+
             renderer.material.SetColor(_baseColorID, color);
         }
 
