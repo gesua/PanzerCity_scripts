@@ -125,6 +125,10 @@ public class ShopUI : MonoBehaviour
             NetworkManager.Singleton.LocalClient.PlayerObject.TryGetComponent(out PlayerCursorSync localCursorSync))
         {
             _localCursorSync = localCursorSync;
+
+            // 내 커서를 가장 위로 보이게 배치
+            ulong localClientId = NetworkManager.Singleton.LocalClientId;
+            _remoteCursorImages[localClientId].transform.SetAsLastSibling();
         }
 
         // 원격 플레이어(커서 수신 대상) — OwnerClientId를 그대로 색상 인덱스로 사용(PlayerNetworkOwner.SetTankColorByIndex와 동일한 관례)
