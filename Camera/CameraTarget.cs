@@ -145,6 +145,18 @@ public class CameraTarget : MonoBehaviour
     }
 
     /// <summary>
+    /// 관전 모드 전용 각도로 카메라 리셋(SpectatorController가 호출)
+    /// 대상 전환 시 이전 시점(자유시점 회전값)이 그대로 남아있으면 어지러우므로 고정된 부감 각도로 초기화
+    /// 거리(zoom)는 건드리지 않고 기존 값 그대로 유지
+    /// </summary>
+    public void ResetToSpectateAngle()
+    {
+        _pitch = Mathf.Clamp(45f, _minPitch, _maxPitch);
+        _yaw = 0f;
+        transform.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+    }
+
+    /// <summary>
     /// 덤핑 값 없애서 즉시 이동
     /// </summary>
     public void DisableDamping()

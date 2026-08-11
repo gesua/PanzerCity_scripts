@@ -343,13 +343,25 @@ public class PlayerTank : TankBase
         SetNormalVisualVisible(_isDead == false);
     }
 
+    // 관전 모드 격리 위치:콜라이더(HitZone)가 렌더러 토글만으로는 꺼지지 않아 적 공격이 계속 명중하는 문제를 막기 위해 완전히 먼 곳으로 이동시킴
+    static readonly Vector3 _spectateIsolatedPos = new Vector3(0f, -1000f, -1000f);
+
     /// <summary>
-    /// 멀티플레이:관전 모드 진입 시 본인 탱크 잔해(파괴된 모델)를 숨김(GameScene이 호출)
-    /// 정상 모델은 이미 HandleDead에서 꺼져있는 상태라 별도 처리 불필요, 잔해만 대상으로 함
+    /// 멀티플레이:관전 모드 진입 시 본인 탱크를 완전히 숨김(GameScene이 호출)
+    /// 정상 모델은 렌더러만 꺼진 상태라 콜라이더(HitZone)는 계속 활성 상태로 남아있어, 위치까지 격리해야 적 공격을 안 받음
+    /// 전차장(_commander)은 HandleDead에서 사망 연출(SetDead)만 될 뿐 숨겨지진 않으므로 별도로 SetVisible(false) 필요
+    /// hidden=false(해제)는 처리하지 않음 — 관전 해제는 항상 재도전 직후 리스폰으로 바로 이어지고, RespawnRoutine이 이 모든 상태(위치/포탑/모델/전차장/미니맵)를 다시 정확히 세팅하므로 여기서 복구하면 오히려 중복
     /// </summary>
     public void SetSpectatingVisualHidden(bool hidden)
     {
-        _destroyedVisual.SetActive(hidden == false);
+        if (hidden == false) return;
+
+        _mover.Teleport(_spectateIsolatedPos, transform.rotation);
+        _turret.ResetRotation();
+        SetNormalVisualVisible(false);
+        _commander.SetVisible(false);
+        _destroyedVisual.SetActive(false);
+        _miniMapTankIcon.Hide();
     }
 
     /// <summary>

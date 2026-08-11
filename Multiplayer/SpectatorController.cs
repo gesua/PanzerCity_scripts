@@ -25,7 +25,7 @@ public class SpectatorController : MonoBehaviour
         RefreshAliveTargets();
 
         _currentIndex = 0;
-        ApplyCurrentTarget();
+        ApplyCurrentTarget(true);
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public class SpectatorController : MonoBehaviour
         if (_aliveTargets.Count == 0) return;
 
         _currentIndex = (_currentIndex - 1 + _aliveTargets.Count) % _aliveTargets.Count;
-        ApplyCurrentTarget();
+        ApplyCurrentTarget(true);
     }
 
     /// <summary>
@@ -62,12 +62,13 @@ public class SpectatorController : MonoBehaviour
         if (_aliveTargets.Count == 0) return;
 
         _currentIndex = (_currentIndex + 1) % _aliveTargets.Count;
-        ApplyCurrentTarget();
+        ApplyCurrentTarget(true);
     }
 
     /// <summary>
     /// 목숨 변경 수신 — 관전 중인 대상이 죽으면 목록을 갱신하고 다음 생존자로 자동 스킵
     /// 갱신 후에도 지금 보고 있던 대상이 살아있다면 그 대상을 계속 보여줌(인덱스가 아닌 대상 기준으로 위치를 다시 찾음)
+    /// 각도 리셋은 실제로 대상이 바뀐 경우(보던 대상이 죽어서 자동 전환된 경우)에만 적용 — 그 외엔 자유시점 유지
     /// </summary>
     void HandlePlayerLifeChanged(int playerIndex, int life)
     {
@@ -80,9 +81,11 @@ public class SpectatorController : MonoBehaviour
         if (_aliveTargets.Count == 0) return; // 전원 사망 케이스는 GameOverUI 쪽에서 별도 처리됨
 
         int foundIndex = (currentTarget != null) ? _aliveTargets.IndexOf(currentTarget) : -1;
+        bool targetChanged = (foundIndex < 0); // 보던 대상을 목록에서 못 찾았으면(사망) 전환된 것
+
         _currentIndex = (foundIndex >= 0) ? foundIndex : 0; // 보던 대상이 사라졌으면(사망) 목록의 첫 생존자로
 
-        ApplyCurrentTarget();
+        ApplyCurrentTarget(targetChanged);
     }
 
     /// <summary>
@@ -107,11 +110,17 @@ public class SpectatorController : MonoBehaviour
     /// <summary>
     /// 현재 인덱스의 대상으로 카메라 전환
     /// </summary>
-    void ApplyCurrentTarget()
+    /// <param name="resetAngle">true면 관전 전용 고정 각도로 리셋(대상이 실제로 바뀔 때만 true로 호출해야 함)</param>
+    void ApplyCurrentTarget(bool resetAngle)
     {
         if (_aliveTargets.Count == 0) return;
         if (_aliveTargets[_currentIndex].TryGetComponent(out PlayerTank playerTank) == false) return;
 
         _cameraTarget.SetTarget(playerTank.transform);
+
+        if (resetAngle)
+        {
+            _cameraTarget.ResetToSpectateAngle();
+        }
     }
 }
