@@ -249,7 +249,6 @@ public class EnemySpawner : MonoBehaviour
             if (enemyGo.TryGetComponent(out NetworkObject networkObject))
             {
                 networkObject.Spawn();
-                Debug.Log($"[NetTrace] SPAWN {enemyGo.name} id={networkObject.NetworkObjectId} frame={Time.frameCount}");
             }
         }
         else

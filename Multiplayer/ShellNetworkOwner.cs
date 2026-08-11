@@ -64,11 +64,9 @@ public class ShellNetworkOwner : NetworkBehaviour
         // 이미 despawn 처리 중(또는 완료)인 상태면 재시도하지 않음(DroppedItem과 동일한 이유의 방어)
         if (networkObject.IsSpawned == false)
         {
-            Debug.Log($"[NetTrace] DESPAWN-SKIP(이미 처리됨) {name} id={networkObject.NetworkObjectId} frame={Time.frameCount}");
             return;
         }
 
-        Debug.Log($"[NetTrace] DESPAWN {name} id={networkObject.NetworkObjectId} isSpawned={networkObject.IsSpawned} frame={Time.frameCount}");
         networkObject.Despawn(false);
     }
 

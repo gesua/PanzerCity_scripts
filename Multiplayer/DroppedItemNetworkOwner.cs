@@ -107,11 +107,9 @@ public class DroppedItemNetworkOwner : NetworkBehaviour, IPoolReturnHandler
         // 처리 중인 despawn에 재진입하는 꼴이 되어 에러가 남
         if (networkObject.IsSpawned == false)
         {
-            Debug.Log($"[NetTrace] DESPAWN-SKIP(이미 처리됨) {name} id={networkObject.NetworkObjectId} frame={Time.frameCount}");
             return;
         }
 
-        Debug.Log($"[NetTrace] DESPAWN {name} id={networkObject.NetworkObjectId} isSpawned={networkObject.IsSpawned} frame={Time.frameCount}");
         networkObject.Despawn(false);
     }
 

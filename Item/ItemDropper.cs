@@ -97,8 +97,6 @@ public class ItemDropper : MonoBehaviour
             }
 
             networkObject.Spawn();
-
-            Debug.Log($"[NetTrace] SPAWN {itemGo.name} id={networkObject.NetworkObjectId} frame={Time.frameCount}");
         }
 
         // 아이템 드랍 소리(일괄 처치 중엔 개별 3D 재생 대신 큐잉 -> 종료 시 한 번만 2D 재생)
