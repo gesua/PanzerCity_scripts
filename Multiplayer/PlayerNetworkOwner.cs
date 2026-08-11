@@ -102,6 +102,9 @@ public class PlayerNetworkOwner : NetworkBehaviour
     /// </summary>
     void HandleRemoteRespawn()
     {
+        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
+        Debug.Log($"[PlayerNetworkOwner] HandleRemoteRespawn 호출 | OwnerClientId:{OwnerClientId} | IsOwner:{IsOwner} | Frame:{Time.frameCount}");
+
         if (IsOwner) return; // 소유자 자신은 GameScene이 이미 처리
 
         StageScene stageScene = NetworkGameManager.Instance.StageScene;
