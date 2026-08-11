@@ -313,6 +313,10 @@ public class PlayerTank : TankBase
     void SetNormalVisualVisible(bool visible)
     {
         bool actualVisible = visible && (_isShopVisualHidden == false);
+
+        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
+        Debug.Log($"[PlayerTank] SetNormalVisualVisible(visible:{visible}) | name:{name} | _isShopVisualHidden:{_isShopVisualHidden} | actualVisible:{actualVisible} | Frame:{Time.frameCount}");
+
         foreach (MeshRenderer renderer in _normalVisualRenderers)
         {
             renderer.enabled = actualVisible;
@@ -326,6 +330,9 @@ public class PlayerTank : TankBase
     /// </summary>
     public void SetShopVisualHidden(bool hidden)
     {
+        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
+        Debug.Log($"[PlayerTank] SetShopVisualHidden({hidden}) | name:{name} | _isDead:{_isDead} | Frame:{Time.frameCount}");
+
         _isShopVisualHidden = hidden;
         SetNormalVisualVisible(_isDead == false);
     }

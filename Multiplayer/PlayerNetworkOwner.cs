@@ -87,6 +87,9 @@ public class PlayerNetworkOwner : NetworkBehaviour
     /// </summary>
     void HandleShopActiveChanged(bool active)
     {
+        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
+        Debug.Log($"[PlayerNetworkOwner] HandleShopActiveChanged({active}) | OwnerClientId:{OwnerClientId} | IsOwner:{IsOwner} | Frame:{Time.frameCount}");
+
         if (IsOwner) return; // 소유자 자신은 장비칸 미리보기 대상이라 계속 보여야 함
 
         _playerTank.SetShopVisualHidden(active);

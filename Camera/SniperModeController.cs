@@ -34,6 +34,9 @@ public class SniperModeController : MonoBehaviour
     /// </summary>
     public void SetPlayerVisualReferences(PlayerTank player)
     {
+        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
+        Debug.Log($"[SniperModeController] SetPlayerVisualReferences | player:{player.name} | Frame:{Time.frameCount}");
+
         _player = player;
         _tankRenderers = player.NormalVisualRenderers;
         _commander = player.Commander;
@@ -137,6 +140,9 @@ public class SniperModeController : MonoBehaviour
 
         _hasAppliedVisual = true;
         _lastVisualHidden = tankShouldHide;
+
+        // TEMP-LOG:원인 조사용, 확인 끝나면 제거
+        Debug.Log($"[SniperModeController] ApplyPlayerVisual 적용 | target:{((_player == null) ? "null" : _player.name)} | tankShouldHide:{tankShouldHide} | _isSniper:{_isSniper} | _isCameraTooClose:{_isCameraTooClose} | currentDead:{currentDead} | Frame:{Time.frameCount}");
 
         foreach (Renderer renderer in _tankRenderers)
         {
