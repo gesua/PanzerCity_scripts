@@ -38,6 +38,8 @@ public class InputSystemHandler : MonoBehaviour
 
     public void HandleMoveInput(InputAction.CallbackContext context)
     {
+        if (_isInputDisabled) return;
+
         _moveInput = context.ReadValue<Vector2>();
     }
 
@@ -131,6 +133,7 @@ public class InputSystemHandler : MonoBehaviour
         // 키 입력 초기화
         if (_isInputDisabled)
         {
+            _moveInput = Vector2.zero; // 이동
             _cameraRotInput = Vector2.zero; // 카메라
             OnAttackInput?.Invoke(false); // 공격 상태
         }
