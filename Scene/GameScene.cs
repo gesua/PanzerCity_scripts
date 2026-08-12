@@ -107,7 +107,8 @@ public class GameScene : MonoBehaviour
     {
         if (playerIndex == _localSpawnIndex) return;
 
-        _gameInfoUI.UpdateLife(playerIndex, life);
+        int displayLife = Mathf.Max(life, 0); // 완전 패배(EliminatedLife=-1)는 UI에 음수로 노출되면 안 되니 0으로 표시
+        _gameInfoUI.UpdateLife(playerIndex, displayLife);
     }
 
     /// <summary>
@@ -690,8 +691,16 @@ public class GameScene : MonoBehaviour
         }
         else
         {
-            // 멀티플레이:본인 목숨은 다 떨어졌지만 다른 아군이 살아있으면 게임오버 대신 관전 모드로 전환
             bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+
+            // 멀티플레이:이 else 분기에 들어왔다는 것 자체가 "목숨 0 상태에서 한 번 더 사망"했다는 뜻 — 완전 패배를 네트워크에 별도로 표시
+            // (목숨 0 자체는 "마지막 목숨으로 생존 중"이라 다른 클라이언트/호스트가 이 상태와 구분해야 함)
+            if (isMultiplayer)
+            {
+                _player.NetworkOwner.MarkEliminated();
+            }
+
+            // 멀티플레이:본인은 완전히 패배했지만 다른 아군이 아직 있으면 게임오버 대신 관전 모드로 전환
             bool hasAliveTeammate = isMultiplayer && HasAliveTeammate();
 
             if (hasAliveTeammate)
@@ -708,7 +717,7 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
-    /// 멀티플레이:본인을 제외한 접속 클라이언트 중 목숨이 남은 아군이 있는지 확인
+    /// 멀티플레이:본인을 제외한 접속 클라이언트 중 완전히 패배하지 않은(목숨 0으로 생존 중 포함) 아군이 있는지 확인
     /// </summary>
     bool HasAliveTeammate()
     {
@@ -718,7 +727,7 @@ public class GameScene : MonoBehaviour
             if (client.PlayerObject.TryGetComponent(out PlayerNetworkOwner networkOwner) == false) continue;
             if (networkOwner.IsOwner) continue; // 본인 제외
 
-            if (networkOwner.CurrentLife > 0) return true;
+            if (networkOwner.CurrentLife != PlayerNetworkOwner.EliminatedLife) return true;
         }
 
         return false;
@@ -776,6 +785,7 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleAllPlayersDead()
     {
+        Debug.Log("HandleAllPlayersDead" + _isGameOver);
         if (_isGameOver) return; // 이미 게임오버 된 상태에선 또 게임오버 안 됨
 
         _isGameOver = true;
@@ -784,6 +794,7 @@ public class GameScene : MonoBehaviour
 
         // 멀티플레이:호스트만 재도전 버튼을 누를 수 있음(비호스트는 대기)
         bool canRestart = NetworkManager.Singleton.IsServer;
+        Debug.Log("재도전 막기" + canRestart);
         _gameOverUI.SetRestartAvailable(canRestart);
 
         _gameOverUI.Show(false);

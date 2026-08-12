@@ -19,6 +19,7 @@ public class SpectatorController : MonoBehaviour
     public void EnterSpectate(CameraTarget cameraTarget)
     {
         _cameraTarget = cameraTarget;
+        _cameraTarget.SetSpectateFollowMode(true); // 원격 대상 추적이라 NetworkTransform 보간 흔들림을 부드럽게 걸러냄
 
         NetworkGameManager.Instance.OnPlayerLifeChanged += HandlePlayerLifeChanged;
 
@@ -37,6 +38,11 @@ public class SpectatorController : MonoBehaviour
         if (NetworkGameManager.Instance != null)
         {
             NetworkGameManager.Instance.OnPlayerLifeChanged -= HandlePlayerLifeChanged;
+        }
+
+        if (_cameraTarget != null)
+        {
+            _cameraTarget.SetSpectateFollowMode(false); // 로컬 플레이어 복귀 후엔 지연 없는 즉시 추적으로 되돌림
         }
 
         _cameraTarget = null;
@@ -101,7 +107,7 @@ public class SpectatorController : MonoBehaviour
 
             if (client.PlayerObject.TryGetComponent(out PlayerNetworkOwner networkOwner) == false) continue;
             if (networkOwner.IsOwner) continue; // 로컬 플레이어(관전 주체 본인) 제외
-            if (networkOwner.CurrentLife <= 0) continue; // 목숨이 없으면 관전 대상 아님
+            if (networkOwner.CurrentLife == PlayerNetworkOwner.EliminatedLife) continue; // 완전히 패배한 아군은 관전 대상 아님(0은 "마지막 목숨으로 생존 중"이라 대상에 포함)
 
             _aliveTargets.Add(networkOwner);
         }

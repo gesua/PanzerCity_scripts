@@ -289,7 +289,8 @@ public class NetworkGameManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// 전원 사망 판정(호스트 전용) — 접속한 모든 클라이언트의 목숨이 0이면 신호 전파
+    /// 전원 사망 판정(호스트 전용) — 접속한 모든 클라이언트가 완전히 패배(EliminatedLife)했으면 신호 전파
+    /// 목숨 0은 "마지막 목숨으로 아직 생존 중"인 상태라 여기 해당 안 됨 — 그 상태에서 한 번 더 죽어야 EliminatedLife로 내려감(PlayerNetworkOwner.MarkEliminated)
     /// </summary>
     void CheckAllPlayersDead()
     {
@@ -297,7 +298,7 @@ public class NetworkGameManager : NetworkBehaviour
         {
             // 아직 캐시에 없는(값을 한 번도 안 보낸) 클라이언트는 생존으로 간주해 판정 보류
             if (_playerLives.TryGetValue(clientId, out int life) == false) return;
-            if (life > 0) return;
+            if (life != PlayerNetworkOwner.EliminatedLife) return;
         }
 
         NotifyAllPlayersDead();

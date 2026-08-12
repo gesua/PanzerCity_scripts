@@ -22,6 +22,7 @@ public class CameraTarget : MonoBehaviour
     [SerializeField] float _minZoom = 2f;
     [SerializeField] float _maxZoom = 30f;
     [SerializeField] float _zoomSmooth = 10f;
+    [SerializeField] float _spectateFollowSmooth = 10f; // 관전 모드에서 원격 대상을 부드럽게 추적할 속도(NetworkTransform 보간으로 인한 미세한 위치 흔들림 완화용)
     [Header("----- 저격 카메라 관련 -----")]
     [SerializeField] float _sniperMinFov = 10f;
     [SerializeField] float _sniperMaxFov = 60f;
@@ -35,6 +36,7 @@ public class CameraTarget : MonoBehaviour
     Vector3 _orgDamping; // 원래 덤핑값
 
     bool _isSniperMode;
+    bool _isSpectateFollow; // 관전 모드 중엔 true — 원격 오브젝트의 NetworkTransform 보간과 겹쳐 매 프레임 위치를 그대로 복사하면 흔들리므로 부드럽게 추적
 
     private void Awake()
     {
@@ -48,7 +50,9 @@ public class CameraTarget : MonoBehaviour
     {
         if (_target == null) return;
 
-        transform.position = _target.position;
+        // 관전 모드:원격 플레이어는 NetworkTransform 보간으로 위치가 갱신되는데 이를 매 프레임 그대로 복사하면 흔들림이 생겨서 부드럽게 따라가도록 함
+        // 로컬 플레이어(비관전)는 지연 없이 즉시 따라가야 하므로 기존처럼 그대로 복사
+        transform.position = (_isSpectateFollow) ? Vector3.Lerp(transform.position, _target.position, _spectateFollowSmooth * Time.deltaTime) : _target.position;
 
         if (_isSniperMode) // 저격모드
         {
@@ -183,9 +187,25 @@ public class CameraTarget : MonoBehaviour
 
     /// <summary>
     /// 따라갈 대상 설정(멀티플레이 전용)
+    /// 대상이 실제로 바뀌는 순간엔 위치를 즉시 스냅 — 부드러운 추적(관전 모드)이 켜져있을 때 이전 대상 위치에서부터 서서히 날아오는 것을 방지
     /// </summary>
     public void SetTarget(Transform target)
     {
+        bool isTargetChanged = (target != _target);
+
         _target = target;
+
+        if (isTargetChanged && _target != null)
+        {
+            transform.position = _target.position;
+        }
+    }
+
+    /// <summary>
+    /// 관전 모드 추적 방식 설정(SpectatorController가 호출) — true면 부드럽게 추적, false면 기존처럼 즉시 추적
+    /// </summary>
+    public void SetSpectateFollowMode(bool enabled)
+    {
+        _isSpectateFollow = enabled;
     }
 }
