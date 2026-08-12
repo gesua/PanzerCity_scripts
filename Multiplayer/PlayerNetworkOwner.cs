@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -15,8 +16,11 @@ public class PlayerNetworkOwner : NetworkBehaviour
     NetworkVariable<int> _life = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     // 무적 판정 동기화용:서버가 자기 쪽 TankModel 사본에도 반영해야 데미지 판정에서 실제로 걸러짐(연출과 별개)
     NetworkVariable<bool> _isInvincible = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    // 채팅 발신자 닉네임 표시용:Owner만 로컬에서 직접 쓸 수 있음, 스폰 시 1회 세팅 후 값이 바뀌지 않음
+    NetworkVariable<FixedString64Bytes> _nickname = new NetworkVariable<FixedString64Bytes>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     public int CurrentLife => _life.Value; // 다른 클라이언트가 초기 UI 세팅 시 조회용
+    public string Nickname => _nickname.Value.ToString(); // 채팅 UI가 발신자 닉네임 조회 시 사용
 
     // 완전히 패배(목숨 0 상태에서 한 번 더 사망)했음을 나타내는 네트워크 동기화 전용 값
     // PlayerData.Life는 UI 등 다른 소비자가 있어 0 밑으로 못 내려가므로, 네트워크 동기화 값(_life)에만 별도로 표시
@@ -45,6 +49,13 @@ public class PlayerNetworkOwner : NetworkBehaviour
         // 상점 열림/닫힘:로컬에서 다른 플레이어의 탱크 모델을 숨기고 복원하기 위해 구독
         NetworkGameManager.Instance.OnShopActiveChanged += HandleShopActiveChanged;
 
+        // 프록시(원격 관찰자) 인스턴스는 GameScene의 최초 스폰 흐름을 안 타므로, Awake()/Initialize()가 설정한 _isDead=true가
+        // 실제 사망 없이는 리스폰 전까지 영원히 안 풀림 — 실제로는 생존 중이므로 여기서 바로잡음(PlayerTank.InitializeAliveState 참고)
+        if (IsOwner == false)
+        {
+            _playerTank.InitializeAliveState();
+        }
+
         // 로컬 소유일 때만 GameScene에 스폰 완료를 알림
         if (IsOwner)
         {
@@ -53,6 +64,10 @@ public class PlayerNetworkOwner : NetworkBehaviour
             // 목숨이 바뀔 때마다 서버에 보고
             GameManager.Instance.PlayerData.OnLifeChanged += SetLifeValue;
             SetLifeValue(GameManager.Instance.PlayerData.Life); // 스폰 시점의 현재 값도 즉시 반영
+
+            // 닉네임 동기화:로비에서 설정한 닉네임을 네트워크로 전파(FixedString64Bytes 용량 초과 방지를 위해 안전 길이로 절단)
+            string nickname = LobbyManager.Instance.Nickname;
+            _nickname.Value = (nickname.Length > 20) ? nickname.Substring(0, 20) : nickname;
         }
     }
 

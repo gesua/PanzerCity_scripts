@@ -33,6 +33,7 @@ public class NetworkGameManager : NetworkBehaviour
     public event Action<bool> OnShopActiveChanged; // 로컬 상점 UI 열림/닫힘 알림(순수 로컬 신호, 네트워크 전파 없음)
     public event Action OnRestartRequested; // 재도전 동기화 — 호스트 재도전 신호
     public event Action OnAllPlayersDead; // 전원 사망 동기화 — 접속한 모든 클라이언트의 목숨이 0이 됨(비호스트만 실제로 반응함, 호스트는 판정 시점에 이미 로컬 처리)
+    public event Action<ulong, string> OnChatMessageReceived; // 채팅 메시지 수신(senderClientId, message) — 전원(호스트 포함) 동일하게 수신
 
     void Awake()
     {
@@ -539,5 +540,24 @@ public class NetworkGameManager : NetworkBehaviour
         if (IsServer) return;
 
         OnRestartRequested?.Invoke();
+    }
+
+    /// <summary>
+    /// 채팅 메시지 전송 요청 — 클라이언트가 채팅을 입력했을 때 호출(ChatUI가 호출)
+    /// </summary>
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestChatMessageServerRpc(string message, RpcParams rpcParams = default)
+    {
+        ulong senderId = rpcParams.Receive.SenderClientId;
+        NotifyChatMessageClientRpc(senderId, message);
+    }
+
+    /// <summary>
+    /// 채팅 메시지 수신 동기화 — 전원(호스트 포함)에게 발신자 clientId와 메시지 전달
+    /// </summary>
+    [ClientRpc]
+    void NotifyChatMessageClientRpc(ulong senderClientId, string message)
+    {
+        OnChatMessageReceived?.Invoke(senderClientId, message);
     }
 }
