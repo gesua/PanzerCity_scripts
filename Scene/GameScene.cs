@@ -785,7 +785,6 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleAllPlayersDead()
     {
-        Debug.Log("HandleAllPlayersDead" + _isGameOver);
         if (_isGameOver) return; // 이미 게임오버 된 상태에선 또 게임오버 안 됨
 
         _isGameOver = true;
@@ -794,7 +793,6 @@ public class GameScene : MonoBehaviour
 
         // 멀티플레이:호스트만 재도전 버튼을 누를 수 있음(비호스트는 대기)
         bool canRestart = NetworkManager.Singleton.IsServer;
-        Debug.Log("재도전 막기" + canRestart);
         _gameOverUI.SetRestartAvailable(canRestart);
 
         _gameOverUI.Show(false);

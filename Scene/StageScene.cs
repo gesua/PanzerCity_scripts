@@ -182,7 +182,7 @@ public class StageScene : MonoBehaviour
     {
         if (_playerSpawnPoints == null) return;
 
-        Gizmos.color = Color.green;
+        Gizmos.color = Color.red;
 
         foreach (Transform spawnPoint in _playerSpawnPoints)
         {

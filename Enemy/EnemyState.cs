@@ -61,6 +61,9 @@ public class IdleState : EnemyState
 
     public override void Enter()
     {
+        _attackTimer = 0;
+        _playerDetectTimer = 0;
+
         _roamTimer = Random.Range(0, _roamSpan); // 배회 간격 랜덤
         _enemy.RandomDir();
 
@@ -69,6 +72,8 @@ public class IdleState : EnemyState
 
     public override void Exit()
     {
+        _attackTimer = 0;
+        _playerDetectTimer = 0;
     }
 
     public override void Update()
@@ -136,6 +141,8 @@ public class CombatState : EnemyState
 
     public override void Enter()
     {
+        _attackTimer = 0;
+        _pathUpdateTimer = 0;
         _attackInterval = Random.Range(_minAttackTime, _maxAttackTime);
 
         // 네브메시 쓰는 성격은 켜기
@@ -154,6 +161,8 @@ public class CombatState : EnemyState
 
     public override void Exit()
     {
+        _attackTimer = 0;
+        _pathUpdateTimer = 0;
         _enemy.ClearTarget();
         _enemy.EnableAgent(false);
     }
@@ -293,10 +302,12 @@ public class DeadState : EnemyState
 
     public override void Enter()
     {
+        _timer = 0;
     }
 
     public override void Exit()
     {
+        _timer = 0;
     }
 
     public override void Update()
