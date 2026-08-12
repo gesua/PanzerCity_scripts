@@ -15,6 +15,7 @@ public class ChatUI : MonoBehaviour
     [SerializeField] TMP_InputField _inputField;
     [SerializeField] TMP_Text _logText; // 대화 이력이 계속 쌓이는 텍스트
     [SerializeField] ScrollRect _scrollRect; // 선택:할당돼 있으면 새 줄마다 맨 아래로 자동 스크롤
+    [SerializeField] InputSystemHandler _inputSystemHandler; // 채팅 입력 중 탱크 조작 차단용
 
     const int MaxMessageLength = 100;
     const float FadeOutDelay = 5f; // 마지막 활동 후 페이드가 시작되기까지 대기 시간
@@ -22,10 +23,6 @@ public class ChatUI : MonoBehaviour
 
     Coroutine _fadeRoutine;
     int _lastCloseFrame = -1; // 입력창을 닫은 바로 그 프레임에 Enter가 재감지되어 다시 열리는 것 방지
-
-    // 채팅 입력 중엔 탱크 조작을 막고 싶은 스크립트가 참조할 수 있는 전역 상태
-    // (탱크 이동/발사 입력을 읽는 쪽에서 이 값을 체크하도록 별도 연결이 필요함 — PlayerTank 입력 코드 확인 필요)
-    public static bool IsInputActive { get; private set; }
 
     void Start()
     {
@@ -55,9 +52,7 @@ public class ChatUI : MonoBehaviour
 
     void Update()
     {
-        IsInputActive = _inputField.isFocused;
-
-        if (_inputField.isFocused) return; // 입력 중엔 onEndEdit 쪽에서 Enter 여부를 판단해 처리함
+        if (_inputField.isFocused) return; // 입력 중엔 onEndEdit 쪽에서 텍스트 유무만으로 전송 여부를 판단함
         if (Time.frameCount == _lastCloseFrame) return; // 방금 닫힌 바로 그 프레임엔 재오픈 방지
         if (IsEnterPressed() == false) return;
 
@@ -80,19 +75,20 @@ public class ChatUI : MonoBehaviour
         _panelGroup.interactable = true;
         _panelGroup.blocksRaycasts = true;
         _inputField.ActivateInputField();
+        _inputSystemHandler.SetInputDisabled(true); // 채팅 입력 중 탱크 조작 차단
     }
 
     /// <summary>
-    /// 입력창 편집 종료 처리 — Enter로 종료된 경우에만 전송, 그 외(클릭으로 이탈 등)는 그냥 닫기만 함
-    /// 빈 문자열로 Enter를 쳐도 전송하지 않고 창만 닫음
+    /// 입력창 편집 종료 처리 — 내용이 있으면 전송, 빈 문자열이면 창만 닫음
+    /// Enter 여부는 별도로 판별하지 않음:한글 조합 중 Enter나 키패드 Enter는 TMP_InputField 내부 처리 시점과
+    /// New Input System의 wasPressedThisFrame 프레임이 어긋나 감지가 누락될 수 있어, 텍스트 유무만으로 판단함
+    /// (클릭 등으로 창을 벗어나 편집이 끝난 경우에도 남아있던 내용은 그대로 전송됨)
     /// </summary>
     void HandleEndEdit(string text)
     {
-        bool shouldSend = IsEnterPressed() && (string.IsNullOrWhiteSpace(text) == false);
+        bool shouldSend = string.IsNullOrWhiteSpace(text) == false;
 
         _inputField.text = string.Empty;
-
-        Debug.Log($"빈거 취급? {shouldSend}, {IsEnterPressed()}, {string.IsNullOrWhiteSpace(text)}");
 
         if (shouldSend)
         {
@@ -102,6 +98,7 @@ public class ChatUI : MonoBehaviour
         _inputField.DeactivateInputField();
         _panelGroup.interactable = false;
         _panelGroup.blocksRaycasts = false;
+        _inputSystemHandler.SetInputDisabled(false); // 채팅 종료 — 탱크 조작 차단 해제
         _lastCloseFrame = Time.frameCount;
 
         RefreshActivity(); // 전송/닫기 자체도 활동으로 간주해 페이드 타이머 리셋
