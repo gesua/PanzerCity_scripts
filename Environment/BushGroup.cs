@@ -11,6 +11,14 @@ public class BushGroup : MonoBehaviour
     Material[] _originalMats;
     int _plyaerEnterCount = 0;
 
+    /// <summary>
+    /// 최적화된 풀숲 판넬의 Renderer 목록을 설정
+    /// </summary>
+    public void SetRenderers(Renderer[] renderers)
+    {
+        _renderers = renderers;
+    }
+
     void Awake()
     {
         _originalMats = new Material[_renderers.Length];

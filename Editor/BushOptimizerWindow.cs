@@ -1,5 +1,6 @@
-using UnityEngine;
+using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine;
 
 /// <summary>
 /// 에디터 상단 메뉴에 도구를 추가하여 풀숲의 겹치는 판넬을 자동으로 꺼주는 윈도우
@@ -51,7 +52,7 @@ public class BushOptimizerWindow : EditorWindow
 
     void OptimizeAllBushes()
     {
-        // 씬에 있는 모든 BushBlock을 찾습니다.
+        // 씬에 있는 모든 BushBlock을 찾음
         BushBlock[] bushes = FindObjectsByType<BushBlock>(FindObjectsSortMode.None);
         if (bushes.Length == 0)
         {
@@ -62,7 +63,7 @@ public class BushOptimizerWindow : EditorWindow
         int disabledCount = 0;
         int detectedNeighborCount = 0;
 
-        // 실행 전 모든 판넬을 켜서 꼬임을 방지합니다.
+        // 실행 전 모든 판넬을 켜서 꼬임을 방지
         ResetAllBushes(bushes);
 
         for (int i = 0; i < bushes.Length; i++)
@@ -78,8 +79,8 @@ public class BushOptimizerWindow : EditorWindow
                 Vector3 otherPos = other.transform.localPosition;
                 Vector3 diff = otherPos - pos;
 
-                // Y축은 무시하고 X/Z 좌표만 사용하여 그리드 인접 여부를 확인합니다.
-                // 풀숲의 높이가 조금 달라도 같은 그리드 위치로 판단할 수 있습니다.
+                // Y축은 무시하고 X/Z 좌표만 사용하여 그리드 인접 여부를 확인
+                // 풀숲의 높이가 조금 달라도 같은 그리드 위치로 판단
                 float deltaX = Mathf.Abs(diff.x);
                 float deltaZ = Mathf.Abs(diff.z);
 
@@ -118,6 +119,8 @@ public class BushOptimizerWindow : EditorWindow
                     if (DisablePanel(current, _nameLeft)) disabledCount++;
                 }
             }
+
+            UpdateBushGroupRenderers();
         }
 
         if (detectedNeighborCount > 0 && disabledCount == 0)
@@ -172,7 +175,7 @@ public class BushOptimizerWindow : EditorWindow
 
         string lowerKeyword = keyword.ToLower();
 
-        // GetComponentsInChildren을 사용하면 자식의 자식(하위 전체)까지 모두 찾습니다. (true: 비활성화된 오브젝트 포함)
+        // GetComponentsInChildren을 사용하면 자식의 자식(하위 전체)까지 모두 찾음 (true: 비활성화된 오브젝트 포함)
         Transform[] allChildren = parent.GetComponentsInChildren<Transform>(true);
         foreach (Transform child in allChildren)
         {
@@ -184,5 +187,50 @@ public class BushOptimizerWindow : EditorWindow
             }
         }
         return null;
+    }
+
+    /// <summary>
+    /// 각 BushGroup의 Renderers 배열을 현재 활성화된 판넬 Renderer로 갱신
+    /// </summary>
+    void UpdateBushGroupRenderers()
+    {
+        BushGroup[] groups = FindObjectsByType<BushGroup>(FindObjectsSortMode.None);
+
+        foreach (BushGroup group in groups)
+        {
+            List<Renderer> renderers = new List<Renderer>();
+
+            // BushGroup 아래의 모든 Renderer를 찾음
+            Renderer[] childRenderers = group.GetComponentsInChildren<Renderer>(true);
+
+            foreach (Renderer renderer in childRenderers)
+            {
+                string objectName = renderer.gameObject.name.ToLower();
+
+                // Ceiling은 항상 Renderer 목록에 포함
+                if (objectName.Contains("ceiling"))
+                {
+                    renderers.Add(renderer);
+                    continue;
+                }
+
+                // 방향 판넬은 현재 활성화된 경우에만 Renderer 목록에 포함
+                if (renderer.gameObject.activeSelf == false)
+                    continue;
+
+                if (objectName.Contains(_nameUp.ToLower()) ||
+                    objectName.Contains(_nameDown.ToLower()) ||
+                    objectName.Contains(_nameLeft.ToLower()) ||
+                    objectName.Contains(_nameRight.ToLower()))
+                {
+                    renderers.Add(renderer);
+                }
+            }
+
+            group.SetRenderers(renderers.ToArray());
+
+            // Inspector에 변경된 배열을 저장하도록 Dirty 처리
+            EditorUtility.SetDirty(group);
+        }
     }
 }
