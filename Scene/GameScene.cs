@@ -693,23 +693,23 @@ public class GameScene : MonoBehaviour
         {
             bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
 
-            // 멀티플레이:이 else 분기에 들어왔다는 것 자체가 "목숨 0 상태에서 한 번 더 사망"했다는 뜻 — 완전 패배를 네트워크에 별도로 표시
-            // (목숨 0 자체는 "마지막 목숨으로 생존 중"이라 다른 클라이언트/호스트가 이 상태와 구분해야 함)
             if (isMultiplayer)
             {
+                // 이 else 분기에 들어왔다는 것 자체가 "목숨 0 상태에서 한 번 더 사망"했다는 뜻 — 완전 패배를 네트워크에 별도로 표시
+                // (목숨 0 자체는 "마지막 목숨으로 생존 중"이라 다른 클라이언트/호스트가 이 상태와 구분해야 함)
                 _player.NetworkOwner.MarkEliminated();
-            }
 
-            // 멀티플레이:본인은 완전히 패배했지만 다른 아군이 아직 있으면 게임오버 대신 관전 모드로 전환
-            bool hasAliveTeammate = isMultiplayer && HasAliveTeammate();
-
-            if (hasAliveTeammate)
-            {
-                EnterSpectateMode();
+                // 전원 사망 판정과 GameOverUI 표시는 HandleAllPlayersDead가 전담(SetRestartAvailable 포함) — 여기서 직접 띄우지 않음
+                // 호스트는 MarkEliminated 호출 시점에 동기적으로 HandleAllPlayersDead가 이미 실행되지만, 클라이언트는 네트워크 왕복 후 도착하므로
+                // 여기서 직접 게임오버를 띄우면 그 신호보다 먼저 _isGameOver가 true가 되어 재도전 제한(SetRestartAvailable)이 씹히는 문제가 있었음
+                if (HasAliveTeammate())
+                {
+                    EnterSpectateMode();
+                }
             }
             else
             {
-                // 게임오버
+                // 싱글플레이:게임오버
                 _gameOverUI.Show(false);
                 _isGameOver = true;
             }

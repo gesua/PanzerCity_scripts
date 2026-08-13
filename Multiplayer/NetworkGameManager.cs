@@ -19,6 +19,7 @@ public class NetworkGameManager : NetworkBehaviour
     HashSet<ulong> _readyForNextStageClientIds = new(); // 상점에서 다음 스테이지 준비 완료한 클라이언트 목록
     HashSet<ulong> _stageLoadedClientIds = new(); // 스테이지 전환 시 씬 로드 완료 보고한 클라이언트 목록
     Dictionary<ulong, int> _playerLives = new(); // 전원 사망 판정용:각 클라이언트의 최신 목숨 캐시(호스트만 판정에 사용, NotifyLifeChanged가 호출될 때마다 갱신)
+    bool _allPlayersDeadNotified; // 전원 사망 중복 알림 방지(호스트 전용, 재도전 시 리셋됨)
 
     StageScene _stageScene;
 
@@ -310,6 +311,10 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     void NotifyAllPlayersDead()
     {
+        if (_allPlayersDeadNotified) return; // 이미 알린 상태면 중복 전파 방지
+
+        _allPlayersDeadNotified = true;
+
         OnAllPlayersDead?.Invoke(); // 호스트 자신의 로컬 처리
 
         NotifyAllPlayersDeadClientRpc();
@@ -529,6 +534,7 @@ public class NetworkGameManager : NetworkBehaviour
     public void NotifyRestart()
     {
         _playerLives.Clear(); // 전원 사망 판정 캐시 초기화(재도전으로 목숨이 복구되므로 이전 스테이지의 0 값이 남아있으면 안 됨)
+        _allPlayersDeadNotified = false; // 재도전 시 다음 전원사망 판정이 다시 가능하도록 리셋
 
         NotifyRestartClientRpc();
     }
