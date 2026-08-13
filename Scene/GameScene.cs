@@ -740,6 +740,9 @@ public class GameScene : MonoBehaviour
     {
         _isSpectating = true;
 
+        // _isDead를 세팅해서 Attack() 등 사망 가드가 걸린 로직이 정상적으로 막히게 함
+        // (안 하면 죽는 순간 좌클릭을 누르고 있었을 때 관전 중에도 계속 발사가 이어짐)
+        _player.DisablePlayerAndUI();
         _player.SetSpectatingVisualHidden(true);
         _spectatorController.EnterSpectate(_cameraTarget);
     }
