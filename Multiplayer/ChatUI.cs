@@ -38,6 +38,7 @@ public class ChatUI : MonoBehaviour
         _panelGroup.blocksRaycasts = false;
 
         _inputField.characterLimit = MaxMessageLength;
+        _inputField.onSubmit.AddListener(HandleSubmit);
         _inputField.onEndEdit.AddListener(HandleEndEdit);
 
         NetworkGameManager.Instance.OnChatMessageReceived += HandleMessageReceived;
@@ -52,7 +53,7 @@ public class ChatUI : MonoBehaviour
 
     void Update()
     {
-        if (_inputField.isFocused) return; // 입력 중엔 onEndEdit 쪽에서 텍스트 유무만으로 전송 여부를 판단함
+        if (_inputField.isFocused) return; // 입력 중엔 onSubmit/onEndEdit 쪽에서 처리함
         if (Time.frameCount == _lastCloseFrame) return; // 방금 닫힌 바로 그 프레임엔 재오픈 방지
         if (IsEnterPressed() == false) return;
 
@@ -79,29 +80,31 @@ public class ChatUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 입력창 편집 종료 처리 — 내용이 있으면 전송, 빈 문자열이면 창만 닫음
-    /// Enter 여부는 별도로 판별하지 않음:한글 조합 중 Enter나 키패드 Enter는 TMP_InputField 내부 처리 시점과
-    /// New Input System의 wasPressedThisFrame 프레임이 어긋나 감지가 누락될 수 있어, 텍스트 유무만으로 판단함
-    /// (클릭 등으로 창을 벗어나 편집이 끝난 경우에도 남아있던 내용은 그대로 전송됨)
+    /// Enter로 실제 제출된 경우에만 TMP_InputField가 호출함(자체 판정) — 좌클릭/우클릭으로 포커스를 잃거나
+    /// ESC로 취소한 경우엔 호출되지 않으므로, 별도의 Enter 프레임 판정 없이도 정확히 전송 시점만 걸러짐
+    /// (New Input System으로 Enter를 직접 재판별하면 한글 조합/키패드 Enter에서 프레임이 어긋나는 문제가 있었음)
+    /// </summary>
+    void HandleSubmit(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+
+        NetworkGameManager.Instance.RequestChatMessageServerRpc(text);
+    }
+
+    /// <summary>
+    /// 입력창 편집 종료 처리 — 원인 무관(Enter 제출, ESC 취소, 클릭으로 포커스 이탈 전부 포함) 창 닫기/정리만 담당
+    /// 전송 여부는 HandleSubmit이 이미 판단했으므로 여기선 텍스트 내용을 보지 않음
     /// </summary>
     void HandleEndEdit(string text)
     {
-        bool shouldSend = string.IsNullOrWhiteSpace(text) == false;
-
         _inputField.text = string.Empty;
-
-        if (shouldSend)
-        {
-            NetworkGameManager.Instance.RequestChatMessageServerRpc(text);
-        }
-
         _inputField.DeactivateInputField();
         _panelGroup.interactable = false;
         _panelGroup.blocksRaycasts = false;
         _inputSystemHandler.SetInputDisabled(false); // 채팅 종료 — 탱크 조작 차단 해제
         _lastCloseFrame = Time.frameCount;
 
-        RefreshActivity(); // 전송/닫기 자체도 활동으로 간주해 페이드 타이머 리셋
+        RefreshActivity(); // 닫기 자체도 활동으로 간주해 페이드 타이머 리셋
     }
 
     /// <summary>
