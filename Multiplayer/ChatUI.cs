@@ -20,6 +20,7 @@ public class ChatUI : MonoBehaviour
     const int MaxMessageLength = 100;
     const float FadeOutDelay = 5f; // 마지막 활동 후 페이드가 시작되기까지 대기 시간
     const float FadeOutDuration = 1f; // 페이드아웃에 걸리는 시간
+    static readonly string[] PlayerColors = { "#00FF00", "#0099FF", "#000000", "#FFFF00" }; // 1P 연두 / 2P 파랑 / 3P 검정 / 4P 노랑
 
     Coroutine _fadeRoutine;
     int _lastCloseFrame = -1; // 입력창을 닫은 바로 그 프레임에 Enter가 재감지되어 다시 열리는 것 방지
@@ -108,13 +109,32 @@ public class ChatUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 채팅 메시지 수신(서버 릴레이) — 발신자 닉네임을 조회해 로그에 한 줄 추가
+    /// 채팅 메시지 수신(서버 릴레이) — 발신자 닉네임을 조회해 색상과 함께 로그에 한 줄 추가
     /// </summary>
     void HandleMessageReceived(ulong senderClientId, string message)
     {
-        string nickname = ResolveNickname(senderClientId);
-        AppendLog($"{nickname}:{message}");
+        string nickname = SanitizeForRichText(ResolveNickname(senderClientId));
+        string safeMessage = SanitizeForRichText(message);
+        string color = ResolveColor(senderClientId);
+        AppendLog($"<color={color}>{nickname}:{safeMessage}</color>");
         RefreshActivity();
+    }
+
+    /// <summary>
+    /// clientId로 채팅 색상 조회 — 범위를 벗어나면(5인 이상 접속 등 예외 상황) 기본 흰색으로 대체
+    /// </summary>
+    string ResolveColor(ulong clientId)
+    {
+        int index = (int)clientId;
+        return (index < PlayerColors.Length) ? PlayerColors[index] : "#FFFFFF";
+    }
+
+    /// <summary>
+    /// TMP 리치 텍스트 태그 주입 방지 — 닉네임/메시지에 '&lt;', '&gt;'가 섞여 있어도 색상 태그가 깨지지 않도록 치환
+    /// </summary>
+    static string SanitizeForRichText(string text)
+    {
+        return text.Replace("<", "‹").Replace(">", "›");
     }
 
     /// <summary>
