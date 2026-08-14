@@ -44,11 +44,12 @@ public class ShellNetworkOwner : NetworkBehaviour
 
     /// <summary>
     /// 클라이언트에도 폭발 범위 피해 판정을 재현하도록 NetworkGameManager에 신호 전달
+    /// hitNetworkObjectIds:서버가 실제로 맞혔다고 확인한 네트워크 오브젝트 id 목록(클라가 직접 재판정하지 않고 이 id로만 처리하게 함)
     /// </summary>
-    public void NotifyExplosionDamage(float explosionRadius, LayerMask hitLayer, HitData hitData)
+    public void NotifyExplosionDamage(float explosionRadius, LayerMask hitLayer, HitData hitData, ulong[] hitNetworkObjectIds)
     {
         NetworkGameManager.Instance.NotifyExplosionDamage(
-            transform.position, explosionRadius, hitLayer.value, hitData.Damage, hitData.IsPlayerAttack);
+            transform.position, explosionRadius, hitLayer.value, hitData.Damage, hitData.IsPlayerAttack, hitNetworkObjectIds);
     }
 
     /// <summary>

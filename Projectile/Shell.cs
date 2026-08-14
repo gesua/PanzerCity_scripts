@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -132,10 +134,10 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
             PlayExplosionEffect(hitTankOrHQ);
         }
 
-        ApplyExplosionDamage(transform.position, _explosionRadius, _hitLayer, hitData);
+        ApplyExplosionDamage(transform.position, _explosionRadius, _hitLayer, hitData, out List<ulong> hitNetworkObjectIds);
 
-        // 멀티플레이:클라이언트에도 동일한 판정을 재현하도록 신호 전달
-        _networkOwner?.NotifyExplosionDamage(_explosionRadius, _hitLayer, hitData);
+        // 멀티플레이:클라이언트에도 동일한 판정을 재현하도록 신호 전달(실제로 맞은 대상 id를 그대로 전달해서 클라가 다시 판정하지 않게 함)
+        _networkOwner?.NotifyExplosionDamage(_explosionRadius, _hitLayer, hitData, hitNetworkObjectIds.ToArray());
     }
 
     /// <summary>
@@ -157,17 +159,31 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
     /// <summary>
     /// 범위 피해 적용
     /// 서버(또는 싱글)의 로컬 판정과, 멀티에서 서버 신호를 받은 클라이언트의 재현 양쪽에서 재사용
+    /// hitNetworkObjectIds:실제로 맞은 대상 중 NetworkObject를 가진 것들의 id 목록(서버가 클라에 재현 신호를 보낼 때 사용)
+    /// skipNetworkObjects:true면 NetworkObject를 가진 대상은 실제 데미지 적용을 건너뜀(id 수집은 그대로 함) —
+    /// 클라이언트 재현 시, 이동하는 네트워크 오브젝트는 위치 오차로 서버와 판정이 갈릴 수 있어서
+    /// 정적인(NetworkObject 없는) 파괴물만 여기서 로컬 판정으로 처리하고, 나머지는 서버가 지정한 id로 직접 처리함
     /// </summary>
-    public static void ApplyExplosionDamage(Vector3 position, float radius, LayerMask hitLayer, HitData hitData)
+    public static void ApplyExplosionDamage(Vector3 position, float radius, LayerMask hitLayer, HitData hitData, out List<ulong> hitNetworkObjectIds, bool skipNetworkObjects = false)
     {
+        hitNetworkObjectIds = new List<ulong>();
+
         Collider[] colliders = Physics.OverlapSphere(position, radius, hitLayer);
 
         foreach (Collider col in colliders)
         {
-            if (col.TryGetComponent(out IExplosionDamageable damageable))
+            if (col.TryGetComponent(out IExplosionDamageable damageable) == false) continue;
+
+            NetworkObject networkObject = col.GetComponentInParent<NetworkObject>();
+
+            if (networkObject != null)
             {
-                damageable.TakeHit(hitData, radius, position);
+                hitNetworkObjectIds.Add(networkObject.NetworkObjectId);
+
+                if (skipNetworkObjects) continue;
             }
+
+            damageable.TakeHit(hitData, radius, position);
         }
     }
 

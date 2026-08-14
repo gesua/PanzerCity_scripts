@@ -230,21 +230,34 @@ public class NetworkGameManager : NetworkBehaviour
     /// 포탄 폭발 범위 피해 동기화 — 서버가 폭발 판정을 마친 뒤 호출(Shell이 호출)
     /// 벽/큐브 파괴, 폭발 피해를 받는 대상(경전차 등)의 판정을 클라이언트에도 동일하게 재현시킴
     /// HitData의 AtkTank(MonoBehaviour 참조)는 RPC로 못 보내서 isPlayerAttack(bool)만 별도 전달
+    /// hitNetworkObjectIds:서버가 실제로 맞혔다고 확인한 네트워크 오브젝트 id — 클라가 좌표+반경으로 직접 재판정하면
+    /// NetworkTransform 보간 오차로 이동하는 대상(적 등)의 생사가 서버와 갈릴 수 있어서, 이 id들만 직접 지정해 처리함
     /// </summary>
-    public void NotifyExplosionDamage(Vector3 position, float radius, int hitLayerValue, int damage, bool isPlayerAttack)
+    public void NotifyExplosionDamage(Vector3 position, float radius, int hitLayerValue, int damage, bool isPlayerAttack, ulong[] hitNetworkObjectIds)
     {
-        NotifyExplosionDamageClientRpc(position, radius, hitLayerValue, damage, isPlayerAttack);
+        NotifyExplosionDamageClientRpc(position, radius, hitLayerValue, damage, isPlayerAttack, hitNetworkObjectIds);
     }
 
     [ClientRpc]
-    void NotifyExplosionDamageClientRpc(Vector3 position, float radius, int hitLayerValue, int damage, bool isPlayerAttack)
+    void NotifyExplosionDamageClientRpc(Vector3 position, float radius, int hitLayerValue, int damage, bool isPlayerAttack, ulong[] hitNetworkObjectIds)
     {
         // 호스트 자신은 서버 로컬에서 Shell.Explode()가 이미 직접 판정했으므로 중복 방지
         if (IsServer) return;
 
         HitData hitData = new HitData(damage, position, isPlayerAttack);
         LayerMask hitLayer = hitLayerValue;
-        Shell.ApplyExplosionDamage(position, radius, hitLayer, hitData);
+
+        // 정적인(비네트워크) 파괴물만 로컬 판정으로 처리 — 네트워크 오브젝트는 아래에서 서버가 지정한 id로 직접 처리하므로 여기선 스킵
+        Shell.ApplyExplosionDamage(position, radius, hitLayer, hitData, out _, skipNetworkObjects: true);
+
+        // 서버가 실제로 맞혔다고 확인해준 네트워크 오브젝트에게만 정확히 적용(로컬 재판정 없이 그대로 신뢰)
+        foreach (ulong id in hitNetworkObjectIds)
+        {
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(id, out NetworkObject targetObject) == false) continue;
+            if (targetObject.TryGetComponent(out IExplosionDamageable damageable) == false) continue;
+
+            damageable.TakeHit(hitData, radius, position);
+        }
     }
 
     /// <summary>
