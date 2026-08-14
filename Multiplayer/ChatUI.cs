@@ -20,7 +20,6 @@ public class ChatUI : MonoBehaviour
     const int MaxMessageLength = 100;
     const float FadeOutDelay = 5f; // 마지막 활동 후 페이드가 시작되기까지 대기 시간
     const float FadeOutDuration = 1f; // 페이드아웃에 걸리는 시간
-    static readonly string[] PlayerColors = { "#00FF00", "#0099FF", "#000000", "#FFFF00" }; // 1P 연두 / 2P 파랑 / 3P 검정 / 4P 노랑
 
     Coroutine _fadeRoutine;
     int _lastCloseFrame = -1; // 입력창을 닫은 바로 그 프레임에 Enter가 재감지되어 다시 열리는 것 방지
@@ -113,45 +112,53 @@ public class ChatUI : MonoBehaviour
     /// </summary>
     void HandleMessageReceived(ulong senderClientId, string message)
     {
-        string nickname = SanitizeForRichText(ResolveNickname(senderClientId));
-        string safeMessage = SanitizeForRichText(message);
-        string color = ResolveColor(senderClientId);
+        string nickname = ChatFormatUtility.SanitizeForRichText(ResolveNickname(senderClientId));
+        string safeMessage = ChatFormatUtility.SanitizeForRichText(message);
+        string color = ChatFormatUtility.ResolveColor(senderClientId);
         AppendLog($"<color={color}>{nickname}:{safeMessage}</color>");
         RefreshActivity();
     }
 
     /// <summary>
-    /// clientId로 채팅 색상 조회 — 범위를 벗어나면(5인 이상 접속 등 예외 상황) 기본 흰색으로 대체
-    /// </summary>
-    string ResolveColor(ulong clientId)
-    {
-        int index = (int)clientId;
-        return (index < PlayerColors.Length) ? PlayerColors[index] : "#FFFFFF";
-    }
-
-    /// <summary>
-    /// TMP 리치 텍스트 태그 주입 방지 — 닉네임/메시지에 '&lt;', '&gt;'가 섞여 있어도 색상 태그가 깨지지 않도록 치환
-    /// </summary>
-    static string SanitizeForRichText(string text)
-    {
-        return text.Replace("<", "‹").Replace(">", "›");
-    }
-
-    /// <summary>
     /// clientId로 접속 중인 플레이어의 닉네임 조회 — 조회 실패 시 P1~P4로 대체 표시
+    /// 다른 접속자와 닉네임이 겹치면 표시명 뒤에 (P#)를 붙여 구분함
     /// </summary>
     string ResolveNickname(ulong clientId)
     {
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client) == false)
+        string fallback = $"{clientId + 1}P";
+        string nickname = GetRawNickname(clientId);
+
+        if (string.IsNullOrEmpty(nickname)) return fallback;
+
+        return (HasDuplicateNickname(clientId, nickname)) ? $"{nickname}({fallback})" : nickname;
+    }
+
+    /// <summary>
+    /// PlayerNetworkOwner에 동기화된 원본 닉네임 조회 — 실패 시 빈 문자열
+    /// </summary>
+    string GetRawNickname(ulong clientId)
+    {
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client) == false) return string.Empty;
+        if (client.PlayerObject == null) return string.Empty;
+        if (client.PlayerObject.TryGetComponent(out PlayerNetworkOwner owner) == false) return string.Empty;
+
+        return owner.Nickname;
+    }
+
+    /// <summary>
+    /// 현재 접속 중인 다른 클라이언트 중 같은 닉네임이 있는지 확인
+    /// </summary>
+    bool HasDuplicateNickname(ulong clientId, string nickname)
+    {
+        foreach (ulong otherClientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            return $"P{clientId + 1}";
+            if (otherClientId == clientId) continue;
+
+            string otherNickname = GetRawNickname(otherClientId);
+            if (otherNickname == nickname) return true;
         }
 
-        if (client.PlayerObject == null) return $"P{clientId + 1}";
-        if (client.PlayerObject.TryGetComponent(out PlayerNetworkOwner owner) == false) return $"P{clientId + 1}";
-
-        string nickname = owner.Nickname;
-        return (string.IsNullOrEmpty(nickname)) ? $"P{clientId + 1}" : nickname;
+        return false;
     }
 
     void AppendLog(string line)

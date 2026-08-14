@@ -32,6 +32,8 @@ public class LobbyManager : MonoBehaviour
     const float HeartbeatInterval = 15f;
     const float LobbyPollInterval = 1.5f;
 
+    [SerializeField] NetworkObject _roomChatRelayPrefab; // 로비/룸 채팅 릴레이 — CreateLobbyAsync(StartHost 직후)에서 수동 스폰
+
     Lobby _currentLobby;
     float _heartbeatTimer;
     float _lobbyPollTimer;
@@ -279,6 +281,10 @@ public class LobbyManager : MonoBehaviour
             // 연결 끊김 감지 구독 (중복 방지)
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
+
+            // 룸 채팅 릴레이 스폰 — Game_Multi 씬 로드 전까지는 NetworkGameManager가 없으므로 별도로 스폰
+            NetworkObject roomChatRelay = Instantiate(_roomChatRelayPrefab);
+            roomChatRelay.Spawn();
 
             OnStatusChanged?.Invoke("UI_MP_MSG_ROOM_CREATED", new object[] { _currentLobby.Name });
         }
@@ -772,5 +778,28 @@ public class LobbyManager : MonoBehaviour
 
         _currentLobby = null;
         OnNetworkSceneLoadStarted?.Invoke(asyncOperation);
+    }
+
+    /// <summary>
+    /// clientId로 로비 닉네임 조회(호스트 전용 — 서버에서만 호출) — 호스트 자기 자신은 ConnectionApproval의
+    /// Payload가 비어있어 _clientIdToPlayerId에 매핑되지 않으므로 LocalClientId로 별도 분기
+    /// 조회 실패 시 빈 문자열 반환(호출부에서 P# 등으로 대체 표시)
+    /// </summary>
+    public string GetNicknameByClientId(ulong clientId)
+    {
+        if (clientId == NetworkManager.Singleton.LocalClientId) return _nickname;
+        if (_clientIdToPlayerId.TryGetValue(clientId, out string playerId) == false) return string.Empty;
+        if (_currentLobby == null) return string.Empty;
+
+        foreach (Player player in _currentLobby.Players)
+        {
+            if (player.Id != playerId) continue;
+            if (player.Data == null) continue;
+            if (player.Data.TryGetValue(KeyNickname, out PlayerDataObject data) == false) continue;
+
+            return data.Value;
+        }
+
+        return string.Empty;
     }
 }
