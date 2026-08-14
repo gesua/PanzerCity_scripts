@@ -9,7 +9,7 @@ using System.Collections.Generic;
 /// </summary>
 public class CameraBedrockFade : MonoBehaviour
 {
-    [SerializeField] Transform _player;
+    [SerializeField] CameraTarget _cameraTarget; // 카메라가 현재 바라보는 대상(관전 중엔 관전 대상, 평소엔 본인) — 단일 소스를 그대로 참조해서 별도 동기화가 필요 없음
     [SerializeField] LayerMask _obstacleLayer; // 투명화 시킬 레이어
     [SerializeField] Material _transparentMat; // 교체할 머터리얼
 
@@ -22,7 +22,9 @@ public class CameraBedrockFade : MonoBehaviour
         // 이전에 교체된 객체 복구
         if (_fadedObjects.Count > 0) RestoreObjects();
 
-        Vector3 dir = _player.position - transform.position;
+        if (_cameraTarget.Target == null) return; // 아직 대상이 설정되지 않았으면 레이캐스트 스킵(복구는 위에서 이미 처리됨)
+
+        Vector3 dir = _cameraTarget.Target.position - transform.position;
         float distance = dir.magnitude;
 
         Ray ray = new Ray(transform.position, dir.normalized);
@@ -30,7 +32,7 @@ public class CameraBedrockFade : MonoBehaviour
 
         foreach (RaycastHit hit in hits)
         {
-            if(hit.collider.TryGetComponent(out MeshRenderer rend))
+            if (hit.collider.TryGetComponent(out MeshRenderer rend))
             {
                 FadeObject(rend);
                 if (_fadedObjects.Contains(rend) == false) _fadedObjects.Add(rend);

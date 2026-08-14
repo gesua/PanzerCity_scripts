@@ -19,7 +19,6 @@ public class SpectatorController : MonoBehaviour
     public void EnterSpectate(CameraTarget cameraTarget)
     {
         _cameraTarget = cameraTarget;
-        _cameraTarget.SetSpectateFollowMode(true); // 원격 대상 추적이라 NetworkTransform 보간 흔들림을 부드럽게 걸러냄
 
         NetworkGameManager.Instance.OnPlayerLifeChanged += HandlePlayerLifeChanged;
 
@@ -38,11 +37,6 @@ public class SpectatorController : MonoBehaviour
         if (NetworkGameManager.Instance != null)
         {
             NetworkGameManager.Instance.OnPlayerLifeChanged -= HandlePlayerLifeChanged;
-        }
-
-        if (_cameraTarget != null)
-        {
-            _cameraTarget.SetSpectateFollowMode(false); // 로컬 플레이어 복귀 후엔 지연 없는 즉시 추적으로 되돌림
         }
 
         _cameraTarget = null;

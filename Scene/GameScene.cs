@@ -735,15 +735,17 @@ public class GameScene : MonoBehaviour
 
     /// <summary>
     /// 관전 모드 진입 — 조작을 막고 탱크 잔해를 숨긴 뒤 카메라를 아군에게 넘김
+    /// 댐핑 비활성화:관전 대상은 NetworkTransform 보간으로 들어오는 위치라, Cinemachine 댐핑이 미세한 흔들림을 오히려 증폭시켜서 관전 중엔 꺼둠
     /// </summary>
     void EnterSpectateMode()
     {
         _isSpectating = true;
 
         // _isDead를 세팅해서 Attack() 등 사망 가드가 걸린 로직이 정상적으로 막히게 함
-        // (안 하면 죽는 순간 좌클릭을 누르고 있었을 때 관전 중에도 계속 발사가 이어짐)
         _player.DisablePlayerAndUI();
+
         _player.SetSpectatingVisualHidden(true);
+        _cameraTarget.DisableDamping();
         _spectatorController.EnterSpectate(_cameraTarget);
     }
 
@@ -757,6 +759,7 @@ public class GameScene : MonoBehaviour
         _isSpectating = false;
 
         _player.SetSpectatingVisualHidden(false);
+        _cameraTarget.ResetDamping(); // 로컬 플레이어 복귀 후엔 원래 댐핑 값으로 복원(로컬 조작 시의 카메라 연출감 유지)
         _spectatorController.ExitSpectate();
     }
 
