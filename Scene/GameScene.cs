@@ -50,7 +50,6 @@ public class GameScene : MonoBehaviour
     [SerializeField] RectTransform _turretCrosshair;   // 포탑 조준점(O) UI
     [SerializeField] ReloadIndicator _reloadIndicator; // 재장전 표시 UI
     [SerializeField] TankDirectionUI _tankDirectionUI;         // 차체/포탑 방향 UI
-    [SerializeField] CameraBedrockChange _cameraBedrockChange; // 외곽벽 투명화(MainCamera에 붙어있음)
 
     Vector3 _playerSpawnPoint; // 플레이어 시작 지점(싱글 전용)
     int _localSpawnIndex; // 멀티플레이:로컬 플레이어의 스폰 인덱스
@@ -127,7 +126,6 @@ public class GameScene : MonoBehaviour
             // 프리팹에 연결할 참조 주입
             _cameraTarget.SetTarget(_player.transform);
             _tankDirectionUI.SetPlayer(_player);
-            _cameraBedrockChange.SetPlayer(_player.transform);
             _playerHPUI.SetPlayer(_player);
             _hitDirectionIndicator.SetPlayer(_player.transform);
             _sniperMode.SetPlayerVisualReferences(_player);

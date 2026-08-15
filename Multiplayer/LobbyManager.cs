@@ -33,6 +33,7 @@ public class LobbyManager : MonoBehaviour
     const float LobbyPollInterval = 1.5f;
 
     [SerializeField] NetworkObject _roomChatRelayPrefab; // 로비/룸 채팅 릴레이 — CreateLobbyAsync(StartHost 직후)에서 수동 스폰
+    NetworkObject _spawnedRoomChatRelay; // 게임 시작 시 명시적으로 Despawn하기 위해 보관
 
     Lobby _currentLobby;
     float _heartbeatTimer;
@@ -283,8 +284,8 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
 
             // 룸 채팅 릴레이 스폰 — Game_Multi 씬 로드 전까지는 NetworkGameManager가 없으므로 별도로 스폰
-            NetworkObject roomChatRelay = Instantiate(_roomChatRelayPrefab);
-            roomChatRelay.Spawn();
+            _spawnedRoomChatRelay = Instantiate(_roomChatRelayPrefab);
+            _spawnedRoomChatRelay.Spawn();
 
             OnStatusChanged?.Invoke("UI_MP_MSG_ROOM_CREATED", new object[] { _currentLobby.Name });
         }
@@ -576,6 +577,14 @@ public class LobbyManager : MonoBehaviour
             };
 
             await LobbyService.Instance.UpdateLobbyAsync(_currentLobby.Id, options);
+
+            // 룸 채팅 릴레이 정리 — DontDestroyOnLoad가 아니라서 씬 전환 시 Unity가 그냥 파괴해버리면
+            // NGO 입장에선 정상 Despawn 절차를 안 거친 게 되어 클라이언트에 지연된 삭제 메시지 경고가 남을 수 있음
+            if (_spawnedRoomChatRelay != null)
+            {
+                _spawnedRoomChatRelay.Despawn();
+                _spawnedRoomChatRelay = null;
+            }
 
             // 호스트는 폴링 대기 없이 즉시 처리
             _currentLobby = null;
