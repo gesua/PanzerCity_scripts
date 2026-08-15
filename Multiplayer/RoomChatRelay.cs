@@ -25,19 +25,21 @@ public class RoomChatRelay : NetworkBehaviour
     public void RequestChatMessageServerRpc(string message, RpcParams rpcParams = default)
     {
         ulong senderId = rpcParams.Receive.SenderClientId;
-        string displayName = ResolveDisplayName(senderId);
+        int playerIndex = LobbyManager.Instance.GetPlayerIndexByClientId(senderId);
+        string displayName = ResolveDisplayName(senderId, playerIndex);
         string safeMessage = ChatFormatUtility.SanitizeForRichText(message);
-        string color = ChatFormatUtility.ResolveColor(senderId);
+        string color = ChatFormatUtility.ResolveColor(playerIndex);
 
         NotifyChatMessageClientRpc($"<color={color}>{displayName}:{safeMessage}</color>");
     }
 
     /// <summary>
-    /// 발신자 표시명 조회 — 다른 접속자와 닉네임이 겹치면 P#를 붙여 구분(GameScene ChatUI와 동일한 방식)
+    /// 발신자 표시명 조회 — 다른 접속자와 닉네임이 겹치면 룸 자리 번호(#P)를 붙여 구분(GameScene ChatUI와 동일한 방식)
+    /// 자리 조회 자체가 실패한 경우(-1)에만 clientId 기반으로 대체
     /// </summary>
-    string ResolveDisplayName(ulong clientId)
+    string ResolveDisplayName(ulong clientId, int playerIndex)
     {
-        string fallback = $"{clientId + 1}P";
+        string fallback = (playerIndex >= 0) ? $"{playerIndex + 1}P" : $"{clientId + 1}P";
         string nickname = ChatFormatUtility.SanitizeForRichText(LobbyManager.Instance.GetNicknameByClientId(clientId));
 
         if (string.IsNullOrEmpty(nickname)) return fallback;

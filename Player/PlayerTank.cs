@@ -176,7 +176,7 @@ public class PlayerTank : TankBase
     }
 
     /// <summary>
-    /// 멀티플레이:플레이어 구분 색상 적용(PlayerNetworkOwner가 OwnerClientId를 인덱스로 호출)
+    /// 멀티플레이:플레이어 구분 색상 적용(PlayerNetworkOwner가 룸에서 배정받은 자리 인덱스로 호출 — clientId 아님)
     /// renderer.material로 접근하면 최초 호출 시 Unity가 자동으로 인스턴 복제해줘서 원본 메터리얼은 훼손되지 않음
     /// </summary>
     public void SetTankColorByIndex(int colorIndex)

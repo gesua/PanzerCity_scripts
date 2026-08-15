@@ -20,6 +20,7 @@ public class ChatUI : MonoBehaviour
     const int MaxMessageLength = 100;
     const float FadeOutDelay = 5f; // 마지막 활동 후 페이드가 시작되기까지 대기 시간
     const float FadeOutDuration = 1f; // 페이드아웃에 걸리는 시간
+    const float BottomScrollThreshold = 0.02f; // 이 값 이하면 "맨 아래(최신)를 보고 있다"고 판단
 
     Coroutine _fadeRoutine;
     int _lastCloseFrame = -1; // 입력창을 닫은 바로 그 프레임에 Enter가 재감지되어 다시 열리는 것 방지
@@ -112,21 +113,24 @@ public class ChatUI : MonoBehaviour
     /// </summary>
     void HandleMessageReceived(ulong senderClientId, string message)
     {
-        string nickname = ChatFormatUtility.SanitizeForRichText(ResolveNickname(senderClientId));
+        TryGetOwner(senderClientId, out PlayerNetworkOwner senderOwner);
+        int playerIndex = (senderOwner != null) ? senderOwner.PlayerIndex : -1;
+
+        string nickname = ChatFormatUtility.SanitizeForRichText(ResolveNickname(senderClientId, senderOwner, playerIndex));
         string safeMessage = ChatFormatUtility.SanitizeForRichText(message);
-        string color = ChatFormatUtility.ResolveColor(senderClientId);
+        string color = ChatFormatUtility.ResolveColor(playerIndex);
         AppendLog($"<color={color}>{nickname}:{safeMessage}</color>");
         RefreshActivity();
     }
 
     /// <summary>
-    /// clientId로 접속 중인 플레이어의 닉네임 조회 — 조회 실패 시 P1~P4로 대체 표시
-    /// 다른 접속자와 닉네임이 겹치면 표시명 뒤에 (P#)를 붙여 구분함
+    /// 발신자 닉네임 조회 — 조회 실패 시 룸 자리 번호(#P)로 대체, 자리 조회마저 실패하면 clientId 기반으로 대체
+    /// 다른 접속자와 닉네임이 겹치면 표시명 뒤에 (#P)를 붙여 구분함
     /// </summary>
-    string ResolveNickname(ulong clientId)
+    string ResolveNickname(ulong clientId, PlayerNetworkOwner owner, int playerIndex)
     {
-        string fallback = $"{clientId + 1}P";
-        string nickname = GetRawNickname(clientId);
+        string fallback = (playerIndex >= 0) ? $"{playerIndex + 1}P" : $"{clientId + 1}P";
+        string nickname = (owner != null) ? owner.Nickname : string.Empty;
 
         if (string.IsNullOrEmpty(nickname)) return fallback;
 
@@ -134,15 +138,15 @@ public class ChatUI : MonoBehaviour
     }
 
     /// <summary>
-    /// PlayerNetworkOwner에 동기화된 원본 닉네임 조회 — 실패 시 빈 문자열
+    /// clientId로 접속 중인 플레이어의 PlayerNetworkOwner 조회 — 실패 시 false
     /// </summary>
-    string GetRawNickname(ulong clientId)
+    bool TryGetOwner(ulong clientId, out PlayerNetworkOwner owner)
     {
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client) == false) return string.Empty;
-        if (client.PlayerObject == null) return string.Empty;
-        if (client.PlayerObject.TryGetComponent(out PlayerNetworkOwner owner) == false) return string.Empty;
+        owner = null;
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client) == false) return false;
+        if (client.PlayerObject == null) return false;
 
-        return owner.Nickname;
+        return client.PlayerObject.TryGetComponent(out owner);
     }
 
     /// <summary>
@@ -154,7 +158,8 @@ public class ChatUI : MonoBehaviour
         {
             if (otherClientId == clientId) continue;
 
-            string otherNickname = GetRawNickname(otherClientId);
+            TryGetOwner(otherClientId, out PlayerNetworkOwner otherOwner);
+            string otherNickname = (otherOwner != null) ? otherOwner.Nickname : string.Empty;
             if (otherNickname == nickname) return true;
         }
 
@@ -163,9 +168,13 @@ public class ChatUI : MonoBehaviour
 
     void AppendLog(string line)
     {
+        // 새 메시지가 오기 직전에 이미 맨 아래(최신)를 보고 있었는지 — 위로 스크롤해서 이전 채팅을 보는 중이면 건드리지 않기 위함
+        bool wasAtBottom = (_scrollRect == null) || (_scrollRect.verticalNormalizedPosition <= BottomScrollThreshold);
+
         _logText.text = (string.IsNullOrEmpty(_logText.text)) ? line : $"{_logText.text}\n{line}";
 
         if (_scrollRect == null) return;
+        if (wasAtBottom == false) return; // 스크롤을 올려 이전 채팅을 보는 중이면 새 메시지가 와도 위치 유지
 
         Canvas.ForceUpdateCanvases();
         _scrollRect.verticalNormalizedPosition = 0f; // 맨 아래로

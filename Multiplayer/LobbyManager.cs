@@ -66,6 +66,8 @@ public class LobbyManager : MonoBehaviour
     public event Action OnGameStart; // 게임 시작 신호
     public event Action<AsyncOperation> OnNetworkSceneLoadStarted; // 클라이언트가 Game_Multi 씬 로드 시작을 수신
 
+    public int MyPlayerIndex { get; private set; } = -1; // 룸에서 배정받은 자리(Players 리스트 내 위치) — Game_Multi 씬 로드 시작 시 확정
+
     void Awake()
     {
         if (Instance != null)
@@ -785,6 +787,16 @@ public class LobbyManager : MonoBehaviour
             loadingUI.Show();
         }
 
+        // 룸에서 배정받은 자리 확정(clientId는 재접속마다 계속 증가/재사용 안 되므로, 안정적인 값이 필요한 곳엔 이 값을 써야 함)
+        string myPlayerId = AuthenticationService.Instance.PlayerId;
+        for (int i = 0; i < _currentLobby.Players.Count; i++)
+        {
+            if (_currentLobby.Players[i].Id != myPlayerId) continue;
+
+            MyPlayerIndex = i;
+            break;
+        }
+
         _currentLobby = null;
         OnNetworkSceneLoadStarted?.Invoke(asyncOperation);
     }
@@ -810,5 +822,39 @@ public class LobbyManager : MonoBehaviour
         }
 
         return string.Empty;
+    }
+
+    /// <summary>
+    /// clientId로 룸에서 배정받은 자리(Players 리스트 내 위치) 조회(호스트 전용 — 서버에서만 호출)
+    /// GetNicknameByClientId와 동일하게 호스트 자기 자신은 LocalClientId로 별도 분기
+    /// 조회 실패 시 -1 반환(호출부에서 clientId 기반 등으로 대체 표시)
+    /// </summary>
+    public int GetPlayerIndexByClientId(ulong clientId)
+    {
+        string playerId;
+
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            playerId = AuthenticationService.Instance.PlayerId;
+        }
+        else if (_clientIdToPlayerId.TryGetValue(clientId, out string mappedId))
+        {
+            playerId = mappedId;
+        }
+        else
+        {
+            return -1;
+        }
+
+        if (_currentLobby == null) return -1;
+
+        for (int i = 0; i < _currentLobby.Players.Count; i++)
+        {
+            if (_currentLobby.Players[i].Id != playerId) continue;
+
+            return i;
+        }
+
+        return -1;
     }
 }

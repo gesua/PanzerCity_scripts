@@ -18,9 +18,12 @@ public class PlayerNetworkOwner : NetworkBehaviour
     NetworkVariable<bool> _isInvincible = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     // 채팅 발신자 닉네임 표시용:Owner만 로컬에서 직접 쓸 수 있음, 스폰 시 1회 세팅 후 값이 바뀌지 않음
     NetworkVariable<FixedString64Bytes> _nickname = new NetworkVariable<FixedString64Bytes>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    // 탱크 색상/채팅 색상 통일용:룸에서 배정받은 자리
+    NetworkVariable<int> _playerIndex = new NetworkVariable<int>(-1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     public int CurrentLife => _life.Value; // 다른 클라이언트가 초기 UI 세팅 시 조회용
     public string Nickname => _nickname.Value.ToString(); // 채팅 UI가 발신자 닉네임 조회 시 사용
+    public int PlayerIndex => _playerIndex.Value; // 채팅 UI가 발신자 색상 조회 시 사용
 
     // 완전히 패배(목숨 0 상태에서 한 번 더 사망)했음을 나타내는 네트워크 동기화 전용 값
     // PlayerData.Life는 UI 등 다른 소비자가 있어 0 밑으로 못 내려가므로, 네트워크 동기화 값(_life)에만 별도로 표시
@@ -38,7 +41,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
 
         _playerTank.SetNetworkOwnership(IsOwner);
         _playerTank.SetNetworkOwner(this);
-        _playerTank.SetTankColorByIndex((int)OwnerClientId); // 플레이어 구분 색상 적용
         _equipCamera.enabled = IsOwner; // 상점 장비칸 미리보기
 
         _playerTank.OnPlayerRespawn += HandleRemoteRespawn;
@@ -46,6 +48,8 @@ public class PlayerNetworkOwner : NetworkBehaviour
         _life.OnValueChanged += HandleLifeValueChanged;
         // 무적 판정:전원(서버 포함)이 이 값의 변경을 받아서 각자 로컬 TankModel에 반영
         _isInvincible.OnValueChanged += HandleInvincibleValueChanged;
+        // 탱크 색상:clientId 대신 룸 자리 기반이라 값이 늦게 동기화될 수 있어 반응형으로 처리(값이 도착하는 즉시 적용)
+        _playerIndex.OnValueChanged += HandlePlayerIndexValueChanged;
         // 상점 열림/닫힘:로컬에서 다른 플레이어의 탱크 모델을 숨기고 복원하기 위해 구독
         NetworkGameManager.Instance.OnShopActiveChanged += HandleShopActiveChanged;
 
@@ -68,6 +72,9 @@ public class PlayerNetworkOwner : NetworkBehaviour
             // 닉네임 동기화:로비에서 설정한 닉네임을 네트워크로 전파(FixedString64Bytes 용량 초과 방지를 위해 안전 길이로 절단)
             string nickname = LobbyManager.Instance.Nickname;
             _nickname.Value = (nickname.Length > 20) ? nickname.Substring(0, 20) : nickname;
+
+            // 룸 자리 인덱스 동기화:탱크 색상/채팅 색상이 여기 반응해서 적용됨
+            _playerIndex.Value = LobbyManager.Instance.MyPlayerIndex;
         }
     }
 
@@ -108,6 +115,16 @@ public class PlayerNetworkOwner : NetworkBehaviour
     void HandleInvincibleValueChanged(bool previousValue, bool currentValue)
     {
         _playerTank.Model.SetNoDamage(currentValue);
+    }
+
+    /// <summary>
+    /// 룸 자리 인덱스 동기화 — 값이 도착하는(또는 바뀌는) 즉시 탱크 색상 적용
+    /// clientId 기반 즉시 호출과 달리, NetworkVariable 동기화를 기다려야 해서 반응형으로 처리함
+    /// (원격 관찰자 입장에서 스폰 시점에 값이 아직 안 왔더라도, 도착하는 순간 이 핸들러가 다시 불려 색상이 뒤늦게라도 맞게 적용됨)
+    /// </summary>
+    void HandlePlayerIndexValueChanged(int previousValue, int currentValue)
+    {
+        _playerTank.SetTankColorByIndex(currentValue);
     }
 
     /// <summary>
