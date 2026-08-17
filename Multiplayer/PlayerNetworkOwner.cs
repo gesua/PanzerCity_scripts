@@ -78,6 +78,19 @@ public class PlayerNetworkOwner : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// 네트워크 디스폰 시 정리 — OnNetworkSpawn에서 구독한 외부(NetworkGameManager) 이벤트 해제
+    /// _playerTank/NetworkVariable 등 같은 오브젝트 안의 구독은 이 오브젝트와 함께 파괴되므로 별도 해제가 필요 없지만,
+    /// NetworkGameManager.OnShopActiveChanged는 외부 싱글톤 이벤트라 해제하지 않으면 디스폰 후에도 파괴된 오브젝트를 향해 계속 호출됨
+    /// </summary>
+    public override void OnNetworkDespawn()
+    {
+        if (NetworkGameManager.Instance != null)
+        {
+            NetworkGameManager.Instance.OnShopActiveChanged -= HandleShopActiveChanged;
+        }
+    }
+
     void SetLifeValue(int life)
     {
         _life.Value = life;

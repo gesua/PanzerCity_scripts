@@ -46,6 +46,7 @@ public class NetworkGameManager : NetworkBehaviour
         Instance = this;
 
         NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnLoadEventCompleted;
+        NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
 
         // 클라이언트 측 DroppedItem_Multi 스폰/디스폰을 Pool 시스템으로 위임
         if (_droppedItemMultiPrefab == null)
@@ -74,6 +75,7 @@ public class NetworkGameManager : NetworkBehaviour
         if (NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnLoadEventCompleted;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
         }
 
         base.OnDestroy();
@@ -122,6 +124,82 @@ public class NetworkGameManager : NetworkBehaviour
 
         // 전원 씬 로드 완료 시점 — 로딩창 종료 및 적 스폰을 동시에 시작하라는 신호
         NotifyAllClientsReadyClientRpc();
+    }
+
+    /// <summary>
+    /// 클라이언트 연결 종료 처리(서버 전용) — 다음 스테이지/스테이지 로드 준비 상태 정리 + 남은 탱크 정리
+    /// 로딩화면 대기 중이든 게임 플레이 중이든 동일하게 호출됨(NetworkManager 레벨 콜백이라 시점에 상관없이 발동)
+    /// </summary>
+    void HandleClientDisconnect(ulong clientId)
+    {
+        if (IsServer == false) return; // 서버만 처리
+
+        _playerLives.Remove(clientId); // 전원 사망 판정 캐시 정리
+
+        RemoveFromNextStageReady(clientId);
+        RemoveFromStageLoaded(clientId);
+
+        // 나간 클라이언트의 탱크 정리 — 콜백이 불리는 시점에 따라 프레임워크가 이미 정리했을 수도 있어 방어적으로 체크
+        // (소유자 연결 종료 시 자동 파괴되는 게 기본 동작이지만, 정리가 누락되는 경우가 보고돼 있어 명시적으로 처리)
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client) &&
+            client.PlayerObject != null &&
+            client.PlayerObject.IsSpawned)
+        {
+            client.PlayerObject.Despawn(true);
+        }
+
+        CheckAllPlayersDead(clientId); // 나간 클라이언트를 제외한 나머지 기준으로 전원사망 재판정(유일한 생존자였을 경우 대비)
+    }
+
+    /// <summary>
+    /// 다음 스테이지 준비 목록에서 나간 클라이언트 정리 — 준비 완료 상태로 나가서 카운트가 부풀어 있으면 바로잡고,
+    /// 나간 클라이언트가 유일한 미준비자였다면 남은 인원 기준으로 즉시 다음 스테이지 진행
+    /// </summary>
+    void RemoveFromNextStageReady(ulong clientId)
+    {
+        _readyForNextStageClientIds.Remove(clientId);
+
+        int readyCount = _readyForNextStageClientIds.Count;
+        int totalCount = GetConnectedCountExcluding(clientId);
+        NotifyNextStageReadyCountClientRpc(readyCount, totalCount);
+
+        if (totalCount > 0 && readyCount >= totalCount)
+        {
+            _readyForNextStageClientIds.Clear(); // 다음 스테이지 상점을 위해 초기화
+            NotifyAllReadyForNextStageClientRpc();
+        }
+    }
+
+    /// <summary>
+    /// 스테이지 로드 완료 목록에서 나간 클라이언트 정리 — 위와 동일한 이유로 카운트를 바로잡음
+    /// </summary>
+    void RemoveFromStageLoaded(ulong clientId)
+    {
+        _stageLoadedClientIds.Remove(clientId);
+
+        int loadedCount = _stageLoadedClientIds.Count;
+        int totalCount = GetConnectedCountExcluding(clientId);
+
+        if (totalCount > 0 && loadedCount >= totalCount)
+        {
+            _stageLoadedClientIds.Clear(); // 다음 전환을 위해 초기화
+            NotifyAllClientsReadyClientRpc();
+        }
+    }
+
+    /// <summary>
+    /// 현재 접속 인원에서 특정 클라이언트를 제외한 총원 계산
+    /// disconnect 콜백이 불리는 시점에 따라 ConnectedClientsIds가 나가는 클라이언트를 아직 포함하고 있을 수 있어 방어적으로 제외
+    /// </summary>
+    int GetConnectedCountExcluding(ulong excludedClientId)
+    {
+        int count = 0;
+        foreach (ulong id in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+            if (id == excludedClientId) continue;
+            count++;
+        }
+        return count;
     }
 
     /// <summary>
@@ -306,11 +384,14 @@ public class NetworkGameManager : NetworkBehaviour
     /// <summary>
     /// 전원 사망 판정(호스트 전용) — 접속한 모든 클라이언트가 완전히 패배(EliminatedLife)했으면 신호 전파
     /// 목숨 0은 "마지막 목숨으로 아직 생존 중"인 상태라 여기 해당 안 됨 — 그 상태에서 한 번 더 죽어야 EliminatedLife로 내려감(PlayerNetworkOwner.MarkEliminated)
+    /// excludeClientId:연결 종료 처리 중 호출된 경우, 콜백 시점에 따라 ConnectedClientsIds에 나가는 클라이언트가 아직 남아있을 수 있어 판정에서 제외하기 위함(기본값은 아무도 제외하지 않음)
     /// </summary>
-    void CheckAllPlayersDead()
+    void CheckAllPlayersDead(ulong excludeClientId = ulong.MaxValue)
     {
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
+            if (clientId == excludeClientId) continue;
+
             // 아직 캐시에 없는(값을 한 번도 안 보낸) 클라이언트는 생존으로 간주해 판정 보류
             if (_playerLives.TryGetValue(clientId, out int life) == false) return;
             if (life != PlayerNetworkOwner.EliminatedLife) return;
