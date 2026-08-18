@@ -32,22 +32,47 @@ public class RoomChatUI : MonoBehaviour
         _inputField.onEndEdit.AddListener(HandleEndEdit);
 
         _inputField.ActivateInputField(); // 항상 포커스 상태로 시작
+
+        // 룸에서 나가는 3가지 경로 전부 구독 — 다음 룸에 들어갈 때(BindRelay)까지 기다리지 않고 나가는 즉시 이전 대화 이력 초기화
+        LobbyManager.Instance.OnKicked += HandleLeftRoom;
+        LobbyManager.Instance.OnLeftLobby += HandleLeftRoom;
+        LobbyManager.Instance.OnHostLeft += HandleLeftRoom;
     }
 
     void OnDisable()
     {
+        LobbyManager.Instance.OnKicked -= HandleLeftRoom;
+        LobbyManager.Instance.OnLeftLobby -= HandleLeftRoom;
+        LobbyManager.Instance.OnHostLeft -= HandleLeftRoom;
+
         if (_relay == null) return;
 
         _relay.OnChatMessageReceived -= HandleMessageReceived;
     }
 
     /// <summary>
+    /// 룸에서 나가는 모든 경로(직접 나가기/호스트 퇴장/강퇴)에서 공통으로 호출 — 이전 룸의 대화 이력을 즉시 비움
+    /// </summary>
+    void HandleLeftRoom()
+    {
+        _logText.text = string.Empty;
+    }
+
+    /// <summary>
     /// RoomChatRelay가 스폰될 때 스스로 호출해서 연결함(런타임 동적 스폰이라 Inspector로 미리 연결 불가)
+    /// 새 룸에 들어와 새 릴레이가 바인딩되는 것이므로, 이전 릴레이 구독을 정리하고 이전 룸의 대화 이력도 초기화함
     /// </summary>
     public void BindRelay(RoomChatRelay relay)
     {
+        if (_relay != null)
+        {
+            _relay.OnChatMessageReceived -= HandleMessageReceived;
+        }
+
         _relay = relay;
         _relay.OnChatMessageReceived += HandleMessageReceived;
+
+        _logText.text = string.Empty;
     }
 
     /// <summary>

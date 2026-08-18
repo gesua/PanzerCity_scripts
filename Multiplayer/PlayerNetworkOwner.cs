@@ -63,6 +63,10 @@ public class PlayerNetworkOwner : NetworkBehaviour
         // 로컬 소유일 때만 GameScene에 스폰 완료를 알림
         if (IsOwner)
         {
+            // 룸 자리 인덱스 동기화:탱크 색상/채팅 색상뿐 아니라 GameScene.Initialize()(바로 아래 NotifyLocalPlayerSpawned가
+            // 동기적으로 트리거함)도 스폰 인덱스로 이 값을 즉시 읽으므로, 다른 무엇보다 먼저 설정해야 함
+            _playerIndex.Value = LobbyManager.Instance.MyPlayerIndex;
+
             NetworkGameManager.Instance.NotifyLocalPlayerSpawned(_playerTank);
 
             // 목숨이 바뀔 때마다 서버에 보고
@@ -72,22 +76,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
             // 닉네임 동기화:로비에서 설정한 닉네임을 네트워크로 전파(FixedString64Bytes 용량 초과 방지를 위해 안전 길이로 절단)
             string nickname = LobbyManager.Instance.Nickname;
             _nickname.Value = (nickname.Length > 20) ? nickname.Substring(0, 20) : nickname;
-
-            // 룸 자리 인덱스 동기화:탱크 색상/채팅 색상이 여기 반응해서 적용됨
-            _playerIndex.Value = LobbyManager.Instance.MyPlayerIndex;
-        }
-    }
-
-    /// <summary>
-    /// 네트워크 디스폰 시 정리 — OnNetworkSpawn에서 구독한 외부(NetworkGameManager) 이벤트 해제
-    /// _playerTank/NetworkVariable 등 같은 오브젝트 안의 구독은 이 오브젝트와 함께 파괴되므로 별도 해제가 필요 없지만,
-    /// NetworkGameManager.OnShopActiveChanged는 외부 싱글톤 이벤트라 해제하지 않으면 디스폰 후에도 파괴된 오브젝트를 향해 계속 호출됨
-    /// </summary>
-    public override void OnNetworkDespawn()
-    {
-        if (NetworkGameManager.Instance != null)
-        {
-            NetworkGameManager.Instance.OnShopActiveChanged -= HandleShopActiveChanged;
         }
     }
 
@@ -97,11 +85,12 @@ public class PlayerNetworkOwner : NetworkBehaviour
     }
 
     /// <summary>
-    /// 목숨 UI 동기화
+    /// 목숨 UI 동기화 — OwnerClientId는 사망 판정용 안정적 키(NetworkGameManager._playerLives)로,
+    /// PlayerIndex는 UI 표시 슬롯으로 각각 따로 씀(용도가 달라서 하나로 겸용할 수 없음)
     /// </summary>
     void HandleLifeValueChanged(int previousValue, int currentValue)
     {
-        NetworkGameManager.Instance.NotifyLifeChanged((int)OwnerClientId, currentValue);
+        NetworkGameManager.Instance.NotifyLifeChanged(OwnerClientId, PlayerIndex, currentValue);
     }
 
     /// <summary>
@@ -162,7 +151,7 @@ public class PlayerNetworkOwner : NetworkBehaviour
         StageScene stageScene = NetworkGameManager.Instance.StageScene;
         if (stageScene == null) return;
 
-        Vector3 spawnPos = stageScene.GetSpawnPoint((int)OwnerClientId);
+        Vector3 spawnPos = stageScene.GetSpawnPoint(PlayerIndex);
         _playerTank.Respawn(spawnPos, null); // CinemachineBrain은 RespawnRoutine에서 실제로 쓰이지 않아 null 전달
     }
 

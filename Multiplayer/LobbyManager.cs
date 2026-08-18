@@ -588,6 +588,10 @@ public class LobbyManager : MonoBehaviour
                 _spawnedRoomChatRelay = null;
             }
 
+            // 호스트는 자신의 _currentLobby가 바로 아래서 null이 되므로, 그 전에 자리를 먼저 확정해둠
+            // (HandleNetworkSceneLoad가 나중에 호스트 자신에 대해서도 호출되지만, 그때는 이미 null이라 스킵됨)
+            ResolveMyPlayerIndex();
+
             // 호스트는 폴링 대기 없이 즉시 처리
             _currentLobby = null;
             OnGameStart?.Invoke();
@@ -787,7 +791,22 @@ public class LobbyManager : MonoBehaviour
             loadingUI.Show();
         }
 
-        // 룸에서 배정받은 자리 확정(clientId는 재접속마다 계속 증가/재사용 안 되므로, 안정적인 값이 필요한 곳엔 이 값을 써야 함)
+        // 룸에서 배정받은 자리 확정(호스트는 StartGameAsync에서 이미 계산해뒀을 수 있음 — 그 경우 아래는 그냥 스킵됨)
+        ResolveMyPlayerIndex();
+
+        _currentLobby = null;
+        OnNetworkSceneLoadStarted?.Invoke(asyncOperation);
+    }
+
+    /// <summary>
+    /// 본인의 룸 자리 인덱스 확정 — _currentLobby가 유효한 동안 호출해야 함(null이면 조용히 스킵)
+    /// 호스트는 자신의 _currentLobby가 StartGameAsync에서 곧바로 null이 되므로 거기서 먼저 계산해두고,
+    /// 클라이언트는 HandleNetworkSceneLoad 시점까지 _currentLobby가 유효하게 남아있으므로 거기서 계산함
+    /// </summary>
+    void ResolveMyPlayerIndex()
+    {
+        if (_currentLobby == null) return;
+
         string myPlayerId = AuthenticationService.Instance.PlayerId;
         for (int i = 0; i < _currentLobby.Players.Count; i++)
         {
@@ -796,9 +815,6 @@ public class LobbyManager : MonoBehaviour
             MyPlayerIndex = i;
             break;
         }
-
-        _currentLobby = null;
-        OnNetworkSceneLoadStarted?.Invoke(asyncOperation);
     }
 
     /// <summary>

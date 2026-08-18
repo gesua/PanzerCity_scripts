@@ -373,8 +373,9 @@ public class NetworkGameManager : NetworkBehaviour
     /// <summary>
     /// 목숨 UI 동기화 — 각 클라이언트가 자기 로컬에서 NetworkVariable 변경을 감지해서 호출(PlayerNetworkOwner가 호출)
     /// NetworkVariable 자체가 이미 네트워크 동기화를 처리하므로 여기서는 로컬 이벤트 발행만 담당
+    /// senderClientId(사망 판정용 안정적 키)와 playerIndex(UI 표시 슬롯)는 서로 다른 값이라 각각 받음
     /// </summary>
-    public void NotifyLifeChanged(int playerIndex, int life)
+    public void NotifyLifeChanged(ulong senderClientId, int playerIndex, int life)
     {
         OnPlayerLifeChanged?.Invoke(playerIndex, life);
 
@@ -382,7 +383,7 @@ public class NetworkGameManager : NetworkBehaviour
         // 호스트만 판정해서 신호를 전파(각자 판정하면 도착 순서에 따라 클라이언트마다 판정 시점이 어긋날 수 있음)
         if (IsServer == false) return;
 
-        _playerLives[(ulong)playerIndex] = life;
+        _playerLives[senderClientId] = life;
         CheckAllPlayersDead();
     }
 

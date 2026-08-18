@@ -132,11 +132,11 @@ public class GameScene : MonoBehaviour
 
             _player.Initialize();
 
-            // 멀티플레이:clientId가 곧 spawnIndex(0,1,2,3 고정 배정, 재접속이 없어 매치 내내 유지됨)
-            // 로컬 플레이어 자신의 인덱스만 알면 되므로 별도 서버 전달 없이 OwnerClientId를 그대로 사용
+            // 멀티플레이:룸에서 배정받은 자리(PlayerIndex)를 스폰 인덱스로 사용
+            // (clientId는 재접속마다 계속 증가하고 재사용도 안 돼서 스폰 인덱스로 쓸 수 없음)
             if (_player.TryGetComponent(out PlayerNetworkOwner networkOwner))
             {
-                _localSpawnIndex = (int)networkOwner.OwnerClientId;
+                _localSpawnIndex = networkOwner.PlayerIndex;
             }
 
             RespawnPlayer(_currentStage.GetSpawnPoint(_localSpawnIndex));
@@ -150,7 +150,7 @@ public class GameScene : MonoBehaviour
                 if (client.PlayerObject == null) continue;
                 if (client.PlayerObject.TryGetComponent(out PlayerNetworkOwner clientNetworkOwner) == false) continue;
 
-                _gameInfoUI.UpdateLife((int)clientNetworkOwner.OwnerClientId, clientNetworkOwner.CurrentLife);
+                _gameInfoUI.UpdateLife(clientNetworkOwner.PlayerIndex, clientNetworkOwner.CurrentLife);
             }
 
             // 목숨 UI:다른 플레이어의 목숨 변경 수신(내 것은 아래 로컬 PlayerData 구독으로 별도 처리)

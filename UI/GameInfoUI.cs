@@ -55,6 +55,16 @@ public class GameInfoUI : MonoBehaviour
     }
 
     /// <summary>
+    /// 멀티플레이:특정 플레이어의 목숨 슬롯 비활성화 — 게임 도중 해당 클라이언트가 연결 종료했을 때 사용
+    /// </summary>
+    public void HideLifeSlot(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= _lifeSlots.Length) return;
+
+        _lifeSlots[playerIndex].Root.SetActive(false);
+    }
+
+    /// <summary>
     /// 싱글플레이:멀티용 슬롯 크기가 작아서 빈 공간 대비 글자가 작아 보이므로 확대
     /// </summary>
     public void SetSingleplayerScale()
