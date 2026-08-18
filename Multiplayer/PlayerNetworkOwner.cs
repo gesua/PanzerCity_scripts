@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -58,6 +59,11 @@ public class PlayerNetworkOwner : NetworkBehaviour
         if (IsOwner == false)
         {
             _playerTank.InitializeAliveState();
+
+            // 소유자 쪽 OnNetworkSpawn(playerIndex/life를 세팅하는 코드)도 스폰 후 네트워크를 한 바퀴 거쳐야 실행되므로,
+            // 이 관찰자가 스폰을 받은 시점엔 아직 소유자의 초기값이 도착 전일 수 있음(호스트 자신을 제외한 모든 원격 클라이언트에서 발생)
+            // playerIndex는 -1이 "미도착"을 명확히 구분해주는 값이라, 실제로 도착할 때까지 기다렸다가 동기화
+            StartCoroutine(SyncInitialStateWhenReady());
         }
 
         // 로컬 소유일 때만 GameScene에 스폰 완료를 알림
@@ -79,9 +85,42 @@ public class PlayerNetworkOwner : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// 네트워크 디스폰 시 정리 — OnNetworkSpawn에서 구독한 외부(NetworkGameManager) 이벤트 해제
+    /// _playerTank/NetworkVariable 등 같은 오브젝트 안의 구독은 이 오브젝트와 함께 파괴되므로 별도 해제가 필요 없지만,
+    /// NetworkGameManager.OnShopActiveChanged는 외부 싱글톤 이벤트라 해제하지 않으면 디스폰 후에도 파괴된 오브젝트를 향해 계속 호출됨
+    /// </summary>
+    public override void OnNetworkDespawn()
+    {
+        if (NetworkGameManager.Instance != null)
+        {
+            NetworkGameManager.Instance.OnShopActiveChanged -= HandleShopActiveChanged;
+        }
+    }
+
     void SetLifeValue(int life)
     {
         _life.Value = life;
+    }
+
+    /// <summary>
+    /// 원격 관찰자 전용:소유자의 초기 playerIndex/life 값이 네트워크로 도착할 때까지 기다렸다가 한 번 동기화
+    /// playerIndex(-1이 "미도착" sentinel)가 정상 값으로 바뀌는 시점을 기준으로 삼음 — life는 0이 정상값일 수도 있어
+    /// 그 자체론 미도착 여부를 못 가리므로, 소유자 쪽에서 거의 동시에 세팅되는 playerIndex에 편승해서 판단함
+    /// </summary>
+    IEnumerator SyncInitialStateWhenReady()
+    {
+        const float timeout = 3f; // 이 정도 지나도 안 오면 다른 문제로 보고 포기(무한 대기 방지)
+        float elapsed = 0f;
+
+        while (_playerIndex.Value < 0 && elapsed < timeout)
+        {
+            yield return null;
+            elapsed += Time.deltaTime;
+        }
+
+        HandlePlayerIndexValueChanged(-1, _playerIndex.Value);
+        HandleLifeValueChanged(0, _life.Value);
     }
 
     /// <summary>
@@ -134,6 +173,9 @@ public class PlayerNetworkOwner : NetworkBehaviour
     /// </summary>
     void HandleShopActiveChanged(bool active)
     {
+        // 방어적 가드:OnNetworkDespawn에서 구독을 해제하지만, 연결 종료로 인한 디스폰 시점에 따라
+        // 해제가 완료되기 전에 이미 파괴된 인스턴스로 이벤트가 도달하는 경우가 있어 추가로 체크
+        if (this == null) return;
         if (IsOwner) return; // 소유자 자신은 장비칸 미리보기 대상이라 계속 보여야 함
 
         _playerTank.SetShopVisualHidden(active);

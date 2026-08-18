@@ -39,6 +39,16 @@ public class RoomChatUI : MonoBehaviour
         LobbyManager.Instance.OnHostLeft += HandleLeftRoom;
     }
 
+    void OnEnable()
+    {
+        // 호스트는 방을 만드는 순간 이 UI가 아직 비활성이라 RoomChatRelay.OnNetworkSpawn 쪽의 바인딩 시도가 씹힘
+        // (참가자는 이미 UI가 켜진 채로 들어와서 해당 없음) — 활성화 시점에 이미 스폰된 릴레이가 있는지 거꾸로 확인
+        if (RoomChatRelay.Instance == null) return;
+        if (_relay == RoomChatRelay.Instance) return; // 이미 연결돼 있으면 중복 바인딩(로그 초기화 재발생) 방지
+
+        BindRelay(RoomChatRelay.Instance);
+    }
+
     void OnDisable()
     {
         LobbyManager.Instance.OnKicked -= HandleLeftRoom;

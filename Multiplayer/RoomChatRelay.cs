@@ -1,5 +1,6 @@
 using System;
 using Unity.Netcode;
+using UnityEngine;
 
 /// <summary>
 /// 로비/룸 단계 채팅 릴레이 — Game_Multi 씬 로드 전에는 NetworkGameManager가 존재하지 않으므로 별도로 둠
@@ -9,13 +10,28 @@ using Unity.Netcode;
 /// </summary>
 public class RoomChatRelay : NetworkBehaviour
 {
+    // 호스트는 방을 만드는 순간(CreateLobbyAsync) 이 릴레이가 곧바로 스폰되는데, 그 시점엔 룸 UI가 아직 비활성이라
+    // RoomChatUI.Instance가 null이라서 OnNetworkSpawn 쪽의 바인딩이 조용히 씹힐 수 있음 — RoomChatUI가 나중에
+    // 활성화될 때 이 참조로 거꾸로 찾아 연결할 수 있도록 공개해둠(참가자는 이미 UI가 켜진 채로 들어와서 문제 없었음)
+    public static RoomChatRelay Instance { get; private set; }
+
     public event Action<string> OnChatMessageReceived; // 이미 발신자 표시명까지 합쳐진 완성 문자열
 
     public override void OnNetworkSpawn()
     {
+        Instance = this;
+
         // RoomChatUI는 씬에 미리 배치돼있지만, 이 오브젝트는 런타임 동적 스폰이라 Inspector로 미리 연결할 수 없어
         // 스폰되는 시점에 스스로 찾아가서 연결함
         RoomChatUI.Instance?.BindRelay(this);
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     /// <summary>
