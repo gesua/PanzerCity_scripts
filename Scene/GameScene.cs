@@ -111,6 +111,15 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 멀티플레이:다른 플레이어의 연결 종료 수신(NetworkGameManager가 호출) — 해당 목숨 슬롯 비활성화
+    /// 나간 클라이언트 본인은 이미 연결이 끊겨 이 신호를 받을 수 없으므로 별도 필터링 불필요
+    /// </summary>
+    void HandleOtherPlayerLeft(int playerIndex)
+    {
+        _gameInfoUI.HideLifeSlot(playerIndex);
+    }
+
+    /// <summary>
     /// 플레이어 바인딩 및 게임 씬 초기화
     /// 싱글: Start()에서 즉시 호출 / 멀티: 로컬 플레이어 스폰 후 호출
     /// </summary>
@@ -155,6 +164,9 @@ public class GameScene : MonoBehaviour
 
             // 목숨 UI:다른 플레이어의 목숨 변경 수신(내 것은 아래 로컬 PlayerData 구독으로 별도 처리)
             NetworkGameManager.Instance.OnPlayerLifeChanged += HandleOtherPlayerLifeChanged;
+
+            // 목숨 UI:다른 플레이어가 연결 종료했을 때 해당 슬롯 비활성화
+            NetworkGameManager.Instance.OnPlayerLeft += HandleOtherPlayerLeft;
 
             // 멀티플레이: 모든 클라이언트 로딩 완료(게임 실제 시작 시점) 수신
             NetworkGameManager.Instance.OnAllClientsReady += HandleAllClientsReady;

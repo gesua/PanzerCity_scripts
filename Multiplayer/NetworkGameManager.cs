@@ -29,6 +29,7 @@ public class NetworkGameManager : NetworkBehaviour
     public event Action<PlayerTank> OnLocalPlayerSpawned; // 로컬 플레이어 스폰 완료 알림
     public event Action OnAllClientsReady; // 모든 클라이언트 씬 로드 완료(로딩창/적 스폰 동시 시작용, 로컬 신호)
     public event Action<int, int> OnPlayerLifeChanged; // 목숨 UI 갱신용(playerIndex, life)
+    public event Action<int> OnPlayerLeft; // 목숨 UI 슬롯 비활성화용(playerIndex = 나간 클라이언트의 clientId)
     public event Action<int, int> OnNextStageReadyCountChanged; // 상점 다음 스테이지 준비 인원 변경(readyCount, totalCount)
     public event Action OnAllReadyForNextStage; // 전원 준비 완료 — 다음 스테이지로 이동 신호
     public event Action<bool> OnShopActiveChanged; // 로컬 상점 UI 열림/닫힘 알림(순수 로컬 신호, 네트워크 전파 없음)
@@ -153,7 +154,17 @@ public class NetworkGameManager : NetworkBehaviour
             client.PlayerObject.Despawn(true);
         }
 
+        NotifyPlayerLeftClientRpc((int)clientId); // 목숨 UI 슬롯 비활성화 신호(전원에게 전파)
         CheckAllPlayersDead(clientId); // 나간 클라이언트를 제외한 나머지 기준으로 전원사망 재판정(유일한 생존자였을 경우 대비)
+    }
+
+    /// <summary>
+    /// 클라이언트 연결 종료를 전원에게 알림 — 목숨 UI에서 해당 슬롯을 비활성화하는 용도
+    /// </summary>
+    [ClientRpc]
+    void NotifyPlayerLeftClientRpc(int playerIndex)
+    {
+        OnPlayerLeft?.Invoke(playerIndex);
     }
 
     /// <summary>
