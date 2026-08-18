@@ -74,7 +74,12 @@ public class NetworkGameManager : NetworkBehaviour
     {
         if (NetworkManager.Singleton != null)
         {
-            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnLoadEventCompleted;
+            // Shutdown 처리 도중엔 SceneManager 같은 하위 서브시스템이 Singleton 자체보다 먼저 사라질 수 있어 별도 체크
+            if (NetworkManager.Singleton.SceneManager != null)
+            {
+                NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnLoadEventCompleted;
+            }
+
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
         }
 

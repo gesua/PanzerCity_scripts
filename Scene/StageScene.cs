@@ -34,6 +34,19 @@ public class StageScene : MonoBehaviour
     public event Action OnBaseWallDestroyed; // 기지 벽 파괴
     public event Action OnAllEnemiesDefeatedNotify; // 모든 적 격파 알림(UI용, 멀티 동기화 대상)
 
+    void Awake()
+    {
+        // 멀티플레이 여부 판단 + OnAllClientsReady 구독을 Start보다 먼저 실행되는 Awake에서 처리
+        // SceneManager.sceneLoaded(GameScene이 이걸 구독해서 RequestStageLoadedServerRpc를 호출함)는 Start보다 먼저 호출되는데,
+        // 이 구독을 Start까지 미루면 그 사이에 신호가 지나가버릴 수 있음
+        // (특히 혼자 플레이 중일 땐 RPC가 네트워크 왕복 없이 로컬에서 즉시 처리되어 레이스 컨디션이 발생하기 쉬움)
+        _isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
+        if (_isMultiplayer) // 멀티플레이:전원 씬 로드 완료 신호를 받은 뒤에 적 스폰 시작
+        {
+            NetworkGameManager.Instance.OnAllClientsReady += HandleAllClientsReady;
+        }
+    }
+
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -48,12 +61,7 @@ public class StageScene : MonoBehaviour
 
         _baseWall.OnBaseWallDestroyed += HandleBaseWallDestroyed;
 
-        _isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening);
-        if (_isMultiplayer) // 멀티플레이:전원 씬 로드 완료 신호를 받은 뒤에 적 스폰 시작
-        {
-            NetworkGameManager.Instance.OnAllClientsReady += HandleAllClientsReady;
-        }
-        else // 싱글플레이:즉시 시작
+        if (_isMultiplayer == false) // 싱글플레이:즉시 시작
         {
             _enemySpawner.Initialize(_stageID);
         }
