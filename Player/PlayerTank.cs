@@ -47,6 +47,8 @@ public class PlayerTank : TankBase
     bool _isNetworkOwner = true; // 네트워크 소유자인지(싱글 플레이:항상 true)
     PlayerNetworkOwner _networkOwner; // 멀티플레이 여부 및 발사 요청 전달용
 
+    HitData _lastHitData; // 멀티플레이:마지막 피격 데이터
+
     float _reloadTimer; // 재장전 시간 잴거
     int _prevHp; // 이전 체력(피격 확인용)
 
@@ -211,6 +213,31 @@ public class PlayerTank : TankBase
     public void SpawnShellOnServer(Vector3 firePosition, Quaternion fireRotation)
     {
         SpawnShell(firePosition, fireRotation);
+    }
+
+
+    /// <summary>
+    /// 멀티플레이:피격 처리
+    /// </summary>
+    public override void TakeHit(ref HitData hitData)
+    {
+        if (_networkOwner != null && _isNetworkOwner == false)
+        {
+            _lastHitData = hitData; // 오너의 값이 뒤늦게 도착했을 때 재사용
+            _model.ApplySyncedHp(_networkOwner.SyncedHp, hitData);
+            return;
+        }
+
+        base.TakeHit(ref hitData); // 오너 클라이언트(및 싱글플레이)는 기존대로 직접 계산
+    }
+
+    /// <summary>
+    /// 멀티플레이:HP 동기화
+    /// </summary>
+    /// <param name="syncedHp"></param>
+    public void ApplySyncedHp(int syncedHp)
+    {
+        _model.ApplySyncedHp(syncedHp, _lastHitData);
     }
 
     /// <summary>

@@ -108,6 +108,22 @@ public class TankModel : MonoBehaviour
     }
 
     /// <summary>
+    /// HP 동기화
+    /// </summary>
+    public void ApplySyncedHp(int syncedHp, HitData hitData)
+    {
+        if (IsAlive == false) return; // 이미 사망 상태면 무시
+
+        int clampedHp = Mathf.Clamp(syncedHp, 0, _maxHp);
+        if (clampedHp == _currentHp) return; // 실제로 값이 바뀐 경우에만 반영(중복 이벤트 방지 — 오너의 값이 아직 도착 전인 호출은 여기서 조용히 스킵됨)
+
+        _currentHp = clampedHp;
+        OnHpChanged?.Invoke(_currentHp, _maxHp);
+        if (IsAlive == false) OnDead?.Invoke(hitData);
+        OnHit?.Invoke(hitData);
+    }
+
+    /// <summary>
     /// 무적 세팅
     /// </summary>
     public void SetNoDamage(bool noDamage)

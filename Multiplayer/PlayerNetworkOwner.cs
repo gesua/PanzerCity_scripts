@@ -15,6 +15,8 @@ public class PlayerNetworkOwner : NetworkBehaviour
 
     // 목숨 UI 동기화용:Owner만 로컬에서 직접 쓸 수 있음(목숨은 서버 권위가 아니라 각자 로컬 판단 기반)
     NetworkVariable<int> _life = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    // HP 동기화용
+    NetworkVariable<int> _hp = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     // 무적 판정 동기화용:서버가 자기 쪽 TankModel 사본에도 반영해야 데미지 판정에서 실제로 걸러짐(연출과 별개)
     NetworkVariable<bool> _isInvincible = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     // 채팅 발신자 닉네임 표시용:Owner만 로컬에서 직접 쓸 수 있음, 스폰 시 1회 세팅 후 값이 바뀌지 않음
@@ -23,6 +25,7 @@ public class PlayerNetworkOwner : NetworkBehaviour
     NetworkVariable<int> _playerIndex = new NetworkVariable<int>(-1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     public int CurrentLife => _life.Value; // 다른 클라이언트가 초기 UI 세팅 시 조회용
+    public int SyncedHp => _hp.Value;
     public string Nickname => _nickname.Value.ToString(); // 채팅 UI가 발신자 닉네임 조회 시 사용
     public int PlayerIndex => _playerIndex.Value; // 채팅 UI가 발신자 색상 조회 시 사용
 
@@ -47,6 +50,8 @@ public class PlayerNetworkOwner : NetworkBehaviour
         _playerTank.OnPlayerRespawn += HandleRemoteRespawn;
         // 목숨 UI:전원이 이 값의 변경을 받아서 NetworkGameManager로 릴레이
         _life.OnValueChanged += HandleLifeValueChanged;
+        // HP
+        _hp.OnValueChanged += HandleHpValueChanged;
         // 무적 판정:전원(서버 포함)이 이 값의 변경을 받아서 각자 로컬 TankModel에 반영
         _isInvincible.OnValueChanged += HandleInvincibleValueChanged;
         // 탱크 색상:clientId 대신 룸 자리 기반이라 값이 늦게 동기화될 수 있어 반응형으로 처리(값이 도착하는 즉시 적용)
@@ -79,6 +84,10 @@ public class PlayerNetworkOwner : NetworkBehaviour
             GameManager.Instance.PlayerData.OnLifeChanged += SetLifeValue;
             SetLifeValue(GameManager.Instance.PlayerData.Life); // 스폰 시점의 현재 값도 즉시 반영
 
+            // HP 바뀔 때마다 서버에 보고
+            _playerTank.Model.OnHpChanged += HandleLocalHpChanged;
+            HandleLocalHpChanged(_playerTank.Model.CurrentHp, _playerTank.Model.MaxHp);
+
             // 닉네임 동기화:로비에서 설정한 닉네임을 네트워크로 전파(FixedString64Bytes 용량 초과 방지를 위해 안전 길이로 절단)
             string nickname = LobbyManager.Instance.Nickname;
             _nickname.Value = (nickname.Length > 20) ? nickname.Substring(0, 20) : nickname;
@@ -103,6 +112,14 @@ public class PlayerNetworkOwner : NetworkBehaviour
         _life.Value = life;
     }
 
+    void HandleLocalHpChanged(int current, int max) => _hp.Value = current;
+
+    void HandleHpValueChanged(int previousValue, int currentValue)
+    {
+        if (IsOwner) return; // 오너 자신은 TakeDamage에서 이미 직접 반영
+        _playerTank.ApplySyncedHp(currentValue);
+    }
+
     /// <summary>
     /// 원격 관찰자 전용:소유자의 초기 playerIndex/life 값이 네트워크로 도착할 때까지 기다렸다가 한 번 동기화
     /// playerIndex(-1이 "미도착" sentinel)가 정상 값으로 바뀌는 시점을 기준으로 삼음 — life는 0이 정상값일 수도 있어
@@ -121,6 +138,7 @@ public class PlayerNetworkOwner : NetworkBehaviour
 
         HandlePlayerIndexValueChanged(-1, _playerIndex.Value);
         HandleLifeValueChanged(0, _life.Value);
+        HandleHpValueChanged(0, _hp.Value);
     }
 
     /// <summary>
