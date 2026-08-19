@@ -929,6 +929,10 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.SetInputDisabled(true);
         Cursor.lockState = CursorLockMode.None;
 
+        // 멀티플레이:탈락 상태였다면 상점 진입을 계기로 마지막 목숨(0)으로 복귀
+        bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+        if (isMultiplayer) _player.NetworkOwner.ReviveFromEliminationAtShop();
+
         // 상점 열렸을 땐 재도전 막아놓음
         _pauseUI.RetryBtn.SetActive(false);
 

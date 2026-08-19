@@ -142,6 +142,17 @@ public class PlayerNetworkOwner : NetworkBehaviour
     }
 
     /// <summary>
+    /// 탈락 상태에서 다음 스테이지 진입(상점 오픈 시점) — 팀이 스테이지를 클리어하면 탈락자도 마지막 목숨(0)으로 복귀
+    /// 탈락 상태가 아니면(정상적으로 목숨이 남아있으면) 아무 것도 안 함 — GameScene이 호출
+    /// </summary>
+    public void ReviveFromEliminationAtShop()
+    {
+        if (_life.Value != EliminatedLife) return;
+
+        _life.Value = 0;
+    }
+
+    /// <summary>
     /// 무적 판정 네트워크 반영(PlayerTank가 호출) — 소유 클라이언트만 쓸 수 있음
     /// </summary>
     public void SetInvincible(bool invincible)
