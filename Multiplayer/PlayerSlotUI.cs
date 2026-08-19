@@ -23,7 +23,8 @@ public class PlayerSlotUI : MonoBehaviour
     public void SetPlayer(string nickname, bool isReady, bool isHost, bool canKick, string playerId)
     {
         _playerId = playerId;
-        _nicknameText.text = (isHost) ? $"[Host] {nickname}" : nickname;
+        //_nicknameText.text = (isHost) ? $"[Host] {nickname}" : nickname;
+        _nicknameText.text = nickname;
         SetReadyStatus(isReady);
         _kickButton.gameObject.SetActive(canKick);
     }
