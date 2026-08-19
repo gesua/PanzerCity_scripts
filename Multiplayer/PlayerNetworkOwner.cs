@@ -200,6 +200,7 @@ public class PlayerNetworkOwner : NetworkBehaviour
     void HandleRemoteRespawn()
     {
         if (IsOwner) return; // 소유자 자신은 GameScene이 이미 처리
+        if (CurrentLife == EliminatedLife) return; // 완전히 탈락한 경우엔 리스폰 연출 재생 안 함
 
         StageScene stageScene = NetworkGameManager.Instance.StageScene;
         if (stageScene == null) return;
