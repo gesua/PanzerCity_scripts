@@ -218,10 +218,33 @@ public class PlayerNetworkOwner : NetworkBehaviour
     void HandleRemoteRespawn()
     {
         if (IsOwner) return; // 소유자 자신은 GameScene이 이미 처리
-        if (CurrentLife == EliminatedLife) return; // 완전히 탈락한 경우엔 리스폰 연출 재생 안 함
+        StartCoroutine(PlayRemoteRespawnIfNotEliminated());
+    }
+
+    /// <summary>
+    /// 이 이벤트는 소유자 쪽 DeadRoutine 사망 타이머가 끝나면 무조건 발생하는데, 그 시점에 목숨이 0이면
+    /// "마지막 목숨으로 부활"인지 "완전히 탈락"인지 구분이 안 됨 — 탈락 판정(MarkEliminated)은 소유자가
+    /// 별도로 내려서 네트워크로 전파하는 값이라, 이 타이머보다 늦게 도착하는 경우가 흔함(특히 관찰자 입장)
+    /// 그래서 0으로 들어오면 짧게 기다려서 탈락 신호가 뒤늦게라도 오는지 한 번 더 확인한 뒤에 재생 여부를 결정함
+    /// </summary>
+    IEnumerator PlayRemoteRespawnIfNotEliminated()
+    {
+        if (CurrentLife == 0)
+        {
+            const float graceWindow = 1f; // 탈락 판정 + 네트워크 전파를 기다려줄 유예 시간
+            float elapsed = 0f;
+
+            while (CurrentLife == 0 && elapsed < graceWindow)
+            {
+                yield return null;
+                elapsed += Time.deltaTime;
+            }
+        }
+
+        if (CurrentLife == EliminatedLife) yield break; // 유예 시간 안에 탈락으로 확정됨 — 리스폰 연출 재생 안 함
 
         StageScene stageScene = NetworkGameManager.Instance.StageScene;
-        if (stageScene == null) return;
+        if (stageScene == null) yield break;
 
         Vector3 spawnPos = stageScene.GetSpawnPoint(PlayerIndex);
         _playerTank.Respawn(spawnPos, null); // CinemachineBrain은 RespawnRoutine에서 실제로 쓰이지 않아 null 전달
