@@ -3,6 +3,7 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 
 /// <summary>
@@ -42,6 +43,8 @@ public class ChatUI : MonoBehaviour
         _inputField.onEndEdit.AddListener(HandleEndEdit);
 
         NetworkGameManager.Instance.OnChatMessageReceived += HandleMessageReceived;
+        // 목숨이 EliminatedLife가 되는 것만 걸러서 탈락 안내 메시지로 표시(전용 브로드캐스트 없이 기존 동기화 재사용)
+        NetworkGameManager.Instance.OnPlayerLifeChanged += HandlePlayerEliminated;
     }
 
     void OnDisable()
@@ -49,6 +52,7 @@ public class ChatUI : MonoBehaviour
         if (NetworkGameManager.Instance == null) return;
 
         NetworkGameManager.Instance.OnChatMessageReceived -= HandleMessageReceived;
+        NetworkGameManager.Instance.OnPlayerLifeChanged -= HandlePlayerEliminated;
     }
 
     void Update()
@@ -163,6 +167,73 @@ public class ChatUI : MonoBehaviour
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// 목숨 변경 중 완전히 탈락(EliminatedLife)한 경우만 걸러서 채팅창에 안내 메시지 표시
+    /// 전용 브로드캐스트 없이, 이미 전원에게 동기화되는 OnPlayerLifeChanged에 얹혀서 각자 로컬로 판단
+    /// </summary>
+    void HandlePlayerEliminated(int playerIndex, int life)
+    {
+        if (life != PlayerNetworkOwner.EliminatedLife) return;
+        if (TryGetOwnerByPlayerIndex(playerIndex, out ulong clientId, out PlayerNetworkOwner owner) == false) return;
+
+        string displayName = ChatFormatUtility.SanitizeForRichText(ResolveEliminatedDisplayName(clientId, owner, playerIndex));
+        string message = LocalizationSettings.StringDatabase.GetLocalizedString("Localization", "UI_MP_MSG_PLAYER_OUT", arguments: new object[] { displayName });
+
+        AppendLog(message);
+        RefreshActivity();
+
+        ShowSpectateHintIfEliminatedIsMe(clientId);
+    }
+
+    /// <summary>
+    /// 탈락 안내 전용 표시명 조회 — 닉네임 중복 여부와 무관하게 항상 "닉네임(#P)" 형식으로 자리를 붙임
+    /// (겹칠 때만 붙이는 일반 채팅 ResolveNickname과 달리, 탈락 알림은 매치 내내 봐온 탱크 색상/자리와
+    /// 항상 바로 연결되는 게 유용해서 매번 붙임)
+    /// </summary>
+    string ResolveEliminatedDisplayName(ulong clientId, PlayerNetworkOwner owner, int playerIndex)
+    {
+        string fallback = (playerIndex >= 0) ? $"{playerIndex + 1}P" : $"{clientId + 1}P";
+        string nickname = (owner != null) ? owner.Nickname : string.Empty;
+
+        return (string.IsNullOrEmpty(nickname)) ? fallback : $"{nickname}({fallback})";
+    }
+
+    /// <summary>
+    /// playerIndex로 해당 플레이어의 PlayerNetworkOwner를 역으로 조회(최대 4명이라 선형 탐색으로 충분함)
+    /// </summary>
+    bool TryGetOwnerByPlayerIndex(int playerIndex, out ulong clientId, out PlayerNetworkOwner owner)
+    {
+        foreach (NetworkClient client in NetworkManager.Singleton.ConnectedClientsList)
+        {
+            if (client.PlayerObject == null) continue;
+            if (client.PlayerObject.TryGetComponent(out PlayerNetworkOwner candidateOwner) == false) continue;
+            if (candidateOwner.PlayerIndex != playerIndex) continue;
+
+            clientId = client.ClientId;
+            owner = candidateOwner;
+            return true;
+        }
+
+        clientId = 0;
+        owner = null;
+        return false;
+    }
+
+    /// <summary>
+    /// 관전 대상 전환(Q/E) 안내는 방금 탈락한 그 플레이어 본인 화면에만 표시 — 탈락 순간이 실제로 관전을 시작하는
+    /// 시점이라 그때 보여줌(3명 미만이면 전환할 대상 자체가 없으므로 생략)
+    /// </summary>
+    void ShowSpectateHintIfEliminatedIsMe(ulong eliminatedClientId)
+    {
+        if (eliminatedClientId != NetworkManager.Singleton.LocalClientId) return;
+        if (NetworkManager.Singleton.ConnectedClientsIds.Count < 3) return;
+
+        string message = LocalizationSettings.StringDatabase.GetLocalizedString("Localization", "UI_SPECTATE_CHANGE");
+
+        AppendLog(message);
+        RefreshActivity();
     }
 
     void AppendLog(string line)
