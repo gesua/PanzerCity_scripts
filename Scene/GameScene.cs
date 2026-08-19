@@ -126,6 +126,10 @@ public class GameScene : MonoBehaviour
     void Initialize(PlayerTank player)
     {
         _player = player; // 로컬 플레이어 바인딩
+        if (_reloadIndicator != null)
+        {
+            _reloadIndicator.SetCenterCrosshair(_centerCrosshair); // 싱글/멀티 공통: 재장전 완료 시 중앙 조준점 연출 연결
+        }
 
         // 멀티플레이 전용
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
