@@ -17,15 +17,13 @@ public class ReloadIndicator : MonoBehaviour
     RectTransform _centerCrosshair; // 화면 중앙 조준점
     Vector3 _centerCrosshairBaseScale = Vector3.one;
     Vector3 _completeIconBaseScale = Vector3.one;
-    Color _completeIconBaseColor = new Color32(255, 255, 255, 76);
+    Color _completeIconBaseColor = new Color32(255, 255, 255, 76); // ResetCompletionFeedback가 Awake보다 먼저 들어옴
     Coroutine _completionFeedbackRoutine;
 
     void Awake()
     {
         // 완료 아이콘은 연출이 끝난 뒤 반드시 원래 크기와 투명도로 돌아와야 함
         if (_completeImage == null) return;
-
-        Debug.Log("Awake");
 
         _completeIconBaseScale = _completeImage.rectTransform.localScale;
         _completeIconBaseColor = _completeImage.color;
@@ -117,8 +115,6 @@ public class ReloadIndicator : MonoBehaviour
 
         if (_completeImage != null)
         {
-            Debug.Log("ApplyCompletionFeedback");
-
             _completeImage.rectTransform.localScale = _completeIconBaseScale * scaleMultiplier;
             _completeImage.color = Color.Lerp(_completeIconBaseColor, Color.white, 1f - normalizedTime);
         }
@@ -144,8 +140,6 @@ public class ReloadIndicator : MonoBehaviour
 
         if (_completeImage != null)
         {
-            Debug.Log("ResetCompletionFeedback");
-
             _completeImage.rectTransform.localScale = _completeIconBaseScale;
             _completeImage.color = _completeIconBaseColor;
         }

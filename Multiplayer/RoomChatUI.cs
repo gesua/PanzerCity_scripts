@@ -41,15 +41,16 @@ public class RoomChatUI : MonoBehaviour
         {
             _inputField.ActivateInputField();
         }
-
-        // 룸에서 나가는 3가지 경로 전부 구독 — 다음 룸에 들어갈 때(BindRelay)까지 기다리지 않고 나가는 즉시 이전 대화 이력 초기화
-        LobbyManager.Instance.OnKicked += HandleLeftRoom;
-        LobbyManager.Instance.OnLeftLobby += HandleLeftRoom;
-        LobbyManager.Instance.OnHostLeft += HandleLeftRoom;
     }
 
     void OnEnable()
     {
+        // 룸에서 나가는 3가지 경로 전부 구독 — OnDisable에서 나갈 때마다 해제되므로, 재진입할 때마다 여기서 다시 구독해야 함
+        // (Start()는 오브젝트 생애주기에 한 번만 실행돼서 거기 두면 두 번째 룸부터 구독이 안 됨 — 실제로 이 문제였음)
+        LobbyManager.Instance.OnKicked += HandleLeftRoom;
+        LobbyManager.Instance.OnLeftLobby += HandleLeftRoom;
+        LobbyManager.Instance.OnHostLeft += HandleLeftRoom;
+
         // 호스트는 방을 만드는 순간 이 UI가 아직 비활성이라 RoomChatRelay.OnNetworkSpawn 쪽의 바인딩 시도가 씹힘
         // (참가자는 이미 UI가 켜진 채로 들어와서 해당 없음) — 활성화 시점에 이미 스폰된 릴레이가 있는지 거꾸로 확인
         if (RoomChatRelay.Instance == null) return;
@@ -71,10 +72,20 @@ public class RoomChatUI : MonoBehaviour
 
     /// <summary>
     /// 룸에서 나가는 모든 경로(직접 나가기/호스트 퇴장/강퇴)에서 공통으로 호출 — 이전 룸의 대화 이력을 즉시 비움
+    /// 릴레이 참조도 같이 정리해야 함 — 안 그러면 다음 룸에 들어가서 아직 연결 전인데도 입력이 활성 상태로 남아있고,
+    /// 그 상태로 전송을 시도하면 이미 사라진 이전 릴레이를 호출하게 됨
     /// </summary>
     void HandleLeftRoom()
     {
         _logText.text = string.Empty;
+
+        if (_relay != null)
+        {
+            _relay.OnChatMessageReceived -= HandleMessageReceived;
+            _relay = null;
+        }
+
+        _inputField.interactable = false; // 다음 룸의 릴레이가 연결될 때까지 다시 비활성 상태로
     }
 
     /// <summary>
