@@ -371,7 +371,7 @@ public class LobbyScene : MonoBehaviour
         }
 
         // 우선순위에 맞춰 클라이언트 단에서 정렬
-        var sortedLobbies = lobbies.OrderBy(lobby =>
+        List<Lobby> sortedLobbies = lobbies.OrderBy(lobby =>
         {
             if (lobby.IsLocked) return 4; // 시작한 방 (가장 마지막)
             if (lobby.HasPassword && lobby.AvailableSlots == 0) return 3; // 풀방 (암호방)
@@ -380,7 +380,7 @@ public class LobbyScene : MonoBehaviour
             return 0; // 풀방 아니고 암호 없는 일반 방 (가장 우선)
         }).ThenBy(lobby => lobby.AvailableSlots).ToList();
 
-        foreach (Lobby lobby in lobbies)
+        foreach (Lobby lobby in sortedLobbies)
         {
             GameObject item = Instantiate(_lobbyItemPrefab, _lobbyListParent);
 
