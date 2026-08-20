@@ -31,7 +31,16 @@ public class RoomChatUI : MonoBehaviour
         _inputField.onSubmit.AddListener(HandleSubmit);
         _inputField.onEndEdit.AddListener(HandleEndEdit);
 
-        _inputField.ActivateInputField(); // 항상 포커스 상태로 시작
+        // 릴레이 연결 전까지는 입력 비활성화 — 연결이 늦는 클라이언트가 타이핑해도 전송이 조용히 씹히는 문제 방지
+        // (OnEnable이 여기보다 먼저 실행되므로, 호스트처럼 이미 연결된 경우엔 비활성화하지 않고 바로 포커스를 잡음)
+        if (_relay == null)
+        {
+            _inputField.interactable = false;
+        }
+        else
+        {
+            _inputField.ActivateInputField();
+        }
 
         // 룸에서 나가는 3가지 경로 전부 구독 — 다음 룸에 들어갈 때(BindRelay)까지 기다리지 않고 나가는 즉시 이전 대화 이력 초기화
         LobbyManager.Instance.OnKicked += HandleLeftRoom;
@@ -83,6 +92,9 @@ public class RoomChatUI : MonoBehaviour
         _relay.OnChatMessageReceived += HandleMessageReceived;
 
         _logText.text = string.Empty;
+
+        _inputField.interactable = true; // 연결 완료 — 입력 가능하게 전환
+        _inputField.ActivateInputField(); // 여태 비활성이라 못 잡았던 포커스를 여기서 잡음
     }
 
     /// <summary>

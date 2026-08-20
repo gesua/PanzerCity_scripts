@@ -17,13 +17,15 @@ public class ReloadIndicator : MonoBehaviour
     RectTransform _centerCrosshair; // 화면 중앙 조준점
     Vector3 _centerCrosshairBaseScale = Vector3.one;
     Vector3 _completeIconBaseScale = Vector3.one;
-    Color _completeIconBaseColor;
+    Color _completeIconBaseColor = new Color32(255, 255, 255, 76);
     Coroutine _completionFeedbackRoutine;
 
     void Awake()
     {
         // 완료 아이콘은 연출이 끝난 뒤 반드시 원래 크기와 투명도로 돌아와야 함
         if (_completeImage == null) return;
+
+        Debug.Log("Awake");
 
         _completeIconBaseScale = _completeImage.rectTransform.localScale;
         _completeIconBaseColor = _completeImage.color;
@@ -51,6 +53,8 @@ public class ReloadIndicator : MonoBehaviour
 
     public void UpdateReload(float current, float max)
     {
+        if (gameObject.activeInHierarchy == false) return; // 오브젝트가 꺼진 상태에서 호출되면 무시(StartCoroutine 오류 방지)
+
         float ratio = max > 0f ? Mathf.Clamp01(current / max) : 1f;
         _fillImage.fillAmount = ratio;
         _baseImage.fillAmount = 1 - ratio; // 뒷판 그냥 띄우면 이상하게 보임
@@ -113,6 +117,8 @@ public class ReloadIndicator : MonoBehaviour
 
         if (_completeImage != null)
         {
+            Debug.Log("ApplyCompletionFeedback");
+
             _completeImage.rectTransform.localScale = _completeIconBaseScale * scaleMultiplier;
             _completeImage.color = Color.Lerp(_completeIconBaseColor, Color.white, 1f - normalizedTime);
         }
@@ -138,6 +144,8 @@ public class ReloadIndicator : MonoBehaviour
 
         if (_completeImage != null)
         {
+            Debug.Log("ResetCompletionFeedback");
+
             _completeImage.rectTransform.localScale = _completeIconBaseScale;
             _completeImage.color = _completeIconBaseColor;
         }
