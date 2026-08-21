@@ -497,8 +497,12 @@ public class PlayerTank : TankBase
         _commander.SetVisible(true); // 전차장 활성화
         _miniMapTankIcon.Show(); // 미니맵 아이콘 보이기
         _model.Initialize(); // HP 초기화
-        _reloadTimer = 0; // 재장전 상태 초기화
-        _reloadIndicator.UpdateReload(_model.MinAttackTime - _reloadTimer, _model.MinAttackTime); // 게이지도 즉시 완료 상태로 갱신
+        // _reloadIndicator는 SetSceneReferences로 로컬 플레이어에게만 주입됨 — 원격 플레이어를 관찰하는 클라이언트에선 null
+        if (_reloadIndicator != null)
+        {
+            _reloadTimer = 0; // 재장전 상태 초기화
+            _reloadIndicator.UpdateReload(_model.MinAttackTime - _reloadTimer, _model.MinAttackTime); // 게이지도 즉시 완료 상태로 갱신
+        }
         OnRespawnComplete?.Invoke(_respawnShieldDuration); // 리스폰 무적 시작
     }
 
