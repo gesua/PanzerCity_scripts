@@ -17,9 +17,19 @@ public class QuickSlot : MonoBehaviour
     const float PunchScaleUpTime = 0.14f; // 복귀 소요 시간
     const float PunchScaleAmount = 0.85f; // 축소 시 배율
 
+    const float AcquireFlashUpTime = 0.08f; // 획득 점등 상승 시간
+    const float AcquireFlashDownTime = 0.15f; // 획득 점등 하강 시간
+    static readonly Color AcquireFlashColor = new Color(1f, 0.965f, 0.69f); // #FFF6B0(연노랑)
+
+    const float RingDangerThreshold = 0.2f; // 이 비율 이하로 남으면 위험색으로 전환
+    static readonly Color32 RingDangerColor = new Color32(255, 75, 75, 100); // #FF4B4B(빨강)
+    static readonly Color32 RingNormalColor = new Color32(255, 255, 255, 100); // 하양
+
     RectTransform _rectTransform; // 펀치 스케일용 캐싱
     Coroutine _punchScaleRoutine;
     Coroutine _durationRingRoutine;
+    Coroutine _acquireFlashRoutine;
+    int _previousCount; // 획득 점등 판단용(0에서 증가한 순간 감지)
 
     void Awake()
     {
@@ -29,10 +39,22 @@ public class QuickSlot : MonoBehaviour
     public void SetCount(int count)
     {
         bool available = (count > 0);
+        bool isAcquired = (_previousCount == 0 && count > 0);
 
         if (available) // 아이콘 밝게
         {
-            _icon.color = Color.white;
+            if (isAcquired) // 0에서 증가한 순간엔 점등 연출이 흰색까지 정리하므로 즉시 대입은 생략
+            {
+                if (_acquireFlashRoutine != null)
+                {
+                    StopCoroutine(_acquireFlashRoutine);
+                }
+                _acquireFlashRoutine = StartCoroutine(AcquireFlashRoutine());
+            }
+            else
+            {
+                _icon.color = Color.white;
+            }
         }
         else // 아이콘 어둡게
         {
@@ -41,6 +63,37 @@ public class QuickSlot : MonoBehaviour
 
         _CountImg.SetActive(available);
         _countText.text = count.ToString();
+        _previousCount = count;
+    }
+
+    /// <summary>
+    /// 아이템 획득 시(0개에서 증가한 순간) 아이콘이 밝게 튀었다가 원래 흰색으로 가라앉는 연출
+    /// </summary>
+    IEnumerator AcquireFlashRoutine()
+    {
+        // 상승: 흰색 -> 점등색
+        float elapsed = 0f;
+        while (elapsed < AcquireFlashUpTime)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / AcquireFlashUpTime);
+            _icon.color = Color.Lerp(Color.white, AcquireFlashColor, t);
+            yield return null;
+        }
+        _icon.color = AcquireFlashColor;
+
+        // 하강: 점등색 -> 흰색
+        elapsed = 0f;
+        while (elapsed < AcquireFlashDownTime)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / AcquireFlashDownTime);
+            _icon.color = Color.Lerp(AcquireFlashColor, Color.white, t);
+            yield return null;
+        }
+        _icon.color = Color.white;
+
+        _acquireFlashRoutine = null;
     }
 
     /// <summary>
@@ -107,6 +160,9 @@ public class QuickSlot : MonoBehaviour
     {
         _durationRing.gameObject.SetActive(true);
         _durationRing.fillAmount = 1f;
+        _durationRing.color = RingNormalColor;
+
+        float dangerStartRatio = (1f - RingDangerThreshold); // 이 비율(t)을 넘으면 위험색 전환 시작
 
         float elapsed = 0f;
         while (elapsed < duration)
@@ -114,10 +170,19 @@ public class QuickSlot : MonoBehaviour
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
             _durationRing.fillAmount = (1f - t);
+
+            bool isDangerZone = (t > dangerStartRatio);
+            if (isDangerZone) // 위험 구간에서는 남은 비율(1-t)이 줄어들수록 점점 더 붉게
+            {
+                float dangerT = Mathf.Clamp01((t - dangerStartRatio) / RingDangerThreshold);
+                _durationRing.color = Color32.Lerp(RingNormalColor, RingDangerColor, dangerT);
+            }
+
             yield return null;
         }
 
         _durationRing.fillAmount = 0f;
+        _durationRing.color = RingNormalColor; // 다음 재생을 위해 원복
         _durationRing.gameObject.SetActive(false);
         _durationRingRoutine = null;
     }
