@@ -16,6 +16,7 @@ public class QuickSlotUI : MonoBehaviour
     {
         _presenter = presenter;
         _presenter.OnInventoryChanged += Refresh;
+        _presenter.OnItemUsed += HandleItemUsed;
         Refresh();
     }
 
@@ -39,6 +40,21 @@ public class QuickSlotUI : MonoBehaviour
     {
         if (slotIndex < 0 || slotIndex >= SlotItemIDs.Length) return;
         _presenter.TryUseItemById(SlotItemIDs[slotIndex]);
+    }
+
+    /// <summary>
+    /// 아이템 사용 시 해당 슬롯에 펀치 스케일/남은 시간 링 연출 재생
+    /// </summary>
+    void HandleItemUsed(ItemConfig config)
+    {
+        for (int i = 0; i < SlotItemIDs.Length; i++)
+        {
+            bool isMatchingSlot = (SlotItemIDs[i] == config.Id);
+            if (isMatchingSlot == false) continue;
+
+            _slots[i].PlayUseFeedback(config.Duration);
+            break;
+        }
     }
 
     int CountItemsById(int itemID)
