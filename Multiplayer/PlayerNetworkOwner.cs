@@ -13,6 +13,12 @@ public class PlayerNetworkOwner : NetworkBehaviour
     [SerializeField] Camera _equipCamera; // 상점 장비칸 탱크 미리보기용 카메라
     PlayerTank _playerTank;
 
+    [Header("----- 클라이언트 이동 감지(엔진 이펙트용) -----")]
+    [SerializeField] float _movementThreshold = 0.05f; // 초당 이동 거리 기준(이 값보다 크면 '움직이는 중'으로 판단)
+
+    Vector3 _lastPosition;
+    bool _wasMovingLocally;
+
     // 목숨 UI 동기화용:Owner만 로컬에서 직접 쓸 수 있음(목숨은 서버 권위가 아니라 각자 로컬 판단 기반)
     NetworkVariable<int> _life = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     // HP 동기화용
@@ -69,6 +75,9 @@ public class PlayerNetworkOwner : NetworkBehaviour
             // 이 관찰자가 스폰을 받은 시점엔 아직 소유자의 초기값이 도착 전일 수 있음(호스트 자신을 제외한 모든 원격 클라이언트에서 발생)
             // playerIndex는 -1이 "미도착"을 명확히 구분해주는 값이라, 실제로 도착할 때까지 기다렸다가 동기화
             StartCoroutine(SyncInitialStateWhenReady());
+
+            // 원격 관찰자 로컬 이동 감지 초기화(엔진 이펙트용)
+            _lastPosition = transform.position;
         }
 
         // 로컬 소유일 때만 GameScene에 스폰 완료를 알림
@@ -105,6 +114,29 @@ public class PlayerNetworkOwner : NetworkBehaviour
         {
             NetworkGameManager.Instance.OnShopActiveChanged -= HandleShopActiveChanged;
         }
+    }
+
+    /// <summary>
+    /// 원격 관찰자는 소유자의 로컬 입력(PlayerTank.Move)이 전혀 돌지 않으므로,
+    /// NetworkTransform으로 받은 위치 변화를 직접 관찰해서 엔진 이펙트 여부를 스스로 판단
+    /// (소유자 자신은 이미 Move()에서 SetEngineEffect를 호출하므로 스킵)
+    /// </summary>
+    void Update()
+    {
+        if (IsOwner) return;
+        if (_playerTank.IsDead) return; // 사망 중엔 판정하지 않음(순간이동성 위치 이동으로 오탐 방지)
+        if (Time.deltaTime <= 0f) return; // 일시정지 등으로 deltaTime이 0이면 스킵(0으로 나누기 방지)
+
+        float speed = Vector3.Distance(transform.position, _lastPosition) / Time.deltaTime;
+        bool isMoving = (speed > _movementThreshold);
+
+        if (isMoving != _wasMovingLocally)
+        {
+            _wasMovingLocally = isMoving;
+            _playerTank.SetEngineEffect(isMoving);
+        }
+
+        _lastPosition = transform.position;
     }
 
     void SetLifeValue(int life)

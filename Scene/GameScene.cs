@@ -357,9 +357,11 @@ public class GameScene : MonoBehaviour
             bool isTutorialScene = _currentStage.gameObject.scene.name == "Stage00";
             _player.ItemPickup.SetTutorialMode(isTutorialScene);
 
-            // 튜토리얼 시작시 소모품 아이템 지급 (퀵슬롯 1~4키 입력을 암시적으로 전달)
             if (isTutorialScene)
             {
+                _pauseUI.RetryBtn.SetActive(false); // 재도전 버튼 막음
+
+                // 튜토리얼 시작시 소모품 아이템 지급 (퀵슬롯 1~4키 입력을 암시적으로 전달)
                 AddCheatItem(1002);
                 AddCheatItem(1003); AddCheatItem(1003);
                 AddCheatItem(1004); AddCheatItem(1004); AddCheatItem(1004);
