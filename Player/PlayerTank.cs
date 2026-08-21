@@ -70,7 +70,9 @@ public class PlayerTank : TankBase
     public event Action OnPlayerRespawn;  // 리스폰
     public event Action<float> OnRespawnComplete; // 리스폰 완료<무적 지속시간>
 
-    Coroutine _shieldVisualRoutine; // 재시작 시 중복 방지용 핸들
+    // 재시작 시 중복 방지용 핸들
+    Coroutine _shieldVisualRoutine; // 실드 이펙트
+    Coroutine _deadRoutine; // 사망
 
     protected override void Awake()
     {
@@ -92,13 +94,20 @@ public class PlayerTank : TankBase
 
     public void Initialize()
     {
+        // 이전 생명주기에서 대기 중이던 사망 코루틴이 있다면 정리(재도전 시 뒤늦게 발동해 중복 리스폰을 유발하는 문제 방지)
+        if (_deadRoutine != null)
+        {
+            StopCoroutine(_deadRoutine);
+            _deadRoutine = null;
+        }
+
         _mover.Initialize(_model);
         _prevHp = _model.CurrentHp;
 
         _turret.SetRotSpeed(_model.TurretRotSpeed);
 
         // 초기화
-        _turret.SetCrosshairVisible(true);
+        _turret.SetCrosshairVisible(false); // RespawnRoutine()에서 이펙트 이후 다시 켜줌
         _turret.ResetRotation();
         _reloadTimer = 0;
         _isAttack = false;
@@ -431,7 +440,8 @@ public class PlayerTank : TankBase
         GameManager.Instance.EffectManager.SpawnEffect(EffectType.SmallExplosion, TurretTr.position);
 
         // 사망 지속시간 뒤에 Invoke
-        StartCoroutine(DeadRoutine());
+        if (_deadRoutine != null) StopCoroutine(_deadRoutine);
+        _deadRoutine = StartCoroutine(DeadRoutine());
     }
 
     /// <summary>
@@ -442,6 +452,7 @@ public class PlayerTank : TankBase
         yield return new WaitForSeconds(_deadDuration);
 
         OnPlayerRespawn?.Invoke();
+        _deadRoutine = null;
     }
 
     /// <summary>
