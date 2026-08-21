@@ -76,7 +76,7 @@ public class DataManager : MonoBehaviour
         }
 
         // HACK:임시로 마지막 스테이지 변경
-        _lastStageID = 7109;
+        _lastStageID = 7117;
     }
 
     /// <summary>
