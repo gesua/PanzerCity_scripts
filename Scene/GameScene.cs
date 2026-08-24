@@ -169,6 +169,10 @@ public class GameScene : MonoBehaviour
             // 목숨 UI:다른 플레이어의 목숨 변경 수신(내 것은 아래 로컬 PlayerData 구독으로 별도 처리)
             NetworkGameManager.Instance.OnPlayerLifeChanged += HandleOtherPlayerLifeChanged;
 
+            // 퀵슬롯 UI:기지 무적/EMP는 공유 상태라 누가 발동했든 전원 링을 공유해야 함
+            NetworkGameManager.Instance.OnBaseShieldActivated += duration => _quickSlotUI.PlayEffectFeedback(1002, duration);
+            NetworkGameManager.Instance.OnEMPFieldActivated += duration => _quickSlotUI.PlayEffectFeedback(1004, duration);
+
             // 목숨 UI:다른 플레이어가 연결 종료했을 때 해당 슬롯 비활성화
             NetworkGameManager.Instance.OnPlayerLeft += HandleOtherPlayerLeft;
 

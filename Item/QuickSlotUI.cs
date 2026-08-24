@@ -47,12 +47,22 @@ public class QuickSlotUI : MonoBehaviour
     /// </summary>
     void HandleItemUsed(ItemConfig config)
     {
+        PlayEffectFeedback(config.Id, config.Duration);
+    }
+
+    /// <summary>
+    /// 해당 슬롯에 펀치 스케일/남은 시간 링 연출 재생
+    /// 본인이 직접 사용했을 때(HandleItemUsed)뿐 아니라, 멀티에서 다른 사람이 발동한 공유 효과(기지 무적/EMP)를
+    /// 통지받았을 때(GameScene이 NetworkGameManager 이벤트를 구독해서 호출)도 재사용됨
+    /// </summary>
+    public void PlayEffectFeedback(int itemID, float duration)
+    {
         for (int i = 0; i < SlotItemIDs.Length; i++)
         {
-            bool isMatchingSlot = (SlotItemIDs[i] == config.Id);
+            bool isMatchingSlot = (SlotItemIDs[i] == itemID);
             if (isMatchingSlot == false) continue;
 
-            _slots[i].PlayUseFeedback(config.Duration);
+            _slots[i].PlayUseFeedback(duration);
             break;
         }
     }

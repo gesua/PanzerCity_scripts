@@ -36,6 +36,8 @@ public class NetworkGameManager : NetworkBehaviour
     public event Action OnRestartRequested; // 재도전 동기화 — 호스트 재도전 신호
     public event Action OnAllPlayersDead; // 전원 사망 동기화 — 접속한 모든 클라이언트의 목숨이 0이 됨(비호스트만 실제로 반응함, 호스트는 판정 시점에 이미 로컬 처리)
     public event Action<ulong, string> OnChatMessageReceived; // 채팅 메시지 수신(senderClientId, message) — 전원(호스트 포함) 동일하게 수신
+    public event Action<float> OnBaseShieldActivated; // 기지 무적 발동(퀵슬롯 UI 등 로컬 연출용)
+    public event Action<float> OnEMPFieldActivated;   // EMP 신규 발동(퀵슬롯 UI 등 로컬 연출용)
 
     void Awake()
     {
@@ -449,6 +451,7 @@ public class NetworkGameManager : NetworkBehaviour
         if (_stageScene == null) return;
 
         _stageScene.BaseWall.ActivateShield(duration); // 서버(호스트) 자신의 로컬 적용
+        OnBaseShieldActivated?.Invoke(duration);
 
         NotifyBaseShieldClientRpc(duration);
     }
@@ -461,6 +464,7 @@ public class NetworkGameManager : NetworkBehaviour
 
         if (_stageScene == null) return;
         _stageScene.BaseWall.ActivateShield(duration);
+        OnBaseShieldActivated?.Invoke(duration);
     }
 
     /// <summary>
@@ -474,6 +478,7 @@ public class NetworkGameManager : NetworkBehaviour
         if (_stageScene == null) return;
 
         _stageScene.EnemySpawner.StartEMPField(duration); // 서버 권위 판정 + 호스트 자신의 연출
+        OnEMPFieldActivated?.Invoke(duration);
 
         ulong[] enemyIds = _stageScene.EnemySpawner.GetActiveEnemyNetworkObjectIds();
         NotifyEMPVisualClientRpc(enemyIds, duration, true); // 새 연출 시작
@@ -498,6 +503,8 @@ public class NetworkGameManager : NetworkBehaviour
         }
 
         _stageScene.EnemySpawner.PlayEMPVisual(targets, duration, isNewTrigger);
+
+        if (isNewTrigger) OnEMPFieldActivated?.Invoke(duration); // 늦게 합류한 적 알림(NotifyLateEMPVisual)에서는 재발행 안 함
     }
 
     /// <summary>
