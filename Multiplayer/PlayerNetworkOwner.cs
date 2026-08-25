@@ -227,7 +227,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
     void HandlePlayerIndexValueChanged(int previousValue, int currentValue)
     {
         _playerTank.SetTankColorByIndex(currentValue);
-        _playerTank.SetCommanderByIndex(currentValue);
     }
 
     /// <summary>

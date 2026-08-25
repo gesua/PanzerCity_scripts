@@ -19,8 +19,8 @@ public class CommanderController : MonoBehaviour
     [SerializeField] float _blinkSpanMin = 2f;
     [SerializeField] float _blinkSpanMax = 5f;
 
-    [Header("----- BlendShape 인덱스 -----")]
-    [SerializeField] int _eyeBlkIndex = 0; // 눈 깜빡임 인덱스
+    //[Header("----- BlendShape 인덱스 -----")]
+    int _eyeBlkIndex = 0;
     int _faceLayer = 1;
 
     // 눈 깜빡임 관련

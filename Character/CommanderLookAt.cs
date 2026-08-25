@@ -6,16 +6,6 @@ using UnityEngine;
 /// </summary>
 public class CommanderLookAt : MonoBehaviour
 {
-    /// <summary>
-    /// 로컬 축 종류(리그마다 다른 축 컨벤션 보정용)
-    /// </summary>
-    public enum LocalAxis
-    {
-        X,
-        Y,
-        Z
-    }
-
     [Header("----- 컴포넌트 -----")]
     [SerializeField] Transform _body;
     [SerializeField] Transform _head;
@@ -24,11 +14,6 @@ public class CommanderLookAt : MonoBehaviour
     [SerializeField] float _bodyRotateSpeed = 180f;
     [SerializeField] float _headRotateSpeed = 8f;
     [SerializeField] float _maxPitch = 30f;
-
-    [Header("----- 리그별 축 보정(헤드 피치) -----")]
-    [SerializeField] LocalAxis _pitchInputAxis = LocalAxis.Z; // localDir에서 상하 각도 판단 기준 축(제네릭 리그 기본값: Z)
-    [SerializeField] LocalAxis _pitchOutputAxis = LocalAxis.X; // 계산된 피치를 대입할 헤드 로컬 축(제네릭 리그 기본값: X)
-    [SerializeField] bool _invertPitchOutput = true; // 대입 시 부호 반전 여부(제네릭 리그 기본값: 반전 필요)
 
     bool _lookAt;
 
@@ -85,11 +70,9 @@ public class CommanderLookAt : MonoBehaviour
         if (localDir.sqrMagnitude < Util.Epsilon) return;
 
         // 목표 상하 각도 계산
-        // 리그마다 로컬 축 방향이 달라서 입력/출력 축을 필드로 분리함
-        // (제네릭 리그 기본값: 입력 축=Z, 출력 축=X, 반전=true — 이 리그의 로컬 축은 X=Pitch(-위/+아래), Y=Roll, Z=Yaw(-좌/+우)로 Unity 월드 컨벤션과 다름)
-        float pitchInputValue = localDir[(int)_pitchInputAxis];
-        float horizontalDistance = GetHorizontalMagnitude(localDir, _pitchInputAxis);
-        float targetPitch = Mathf.Atan2(pitchInputValue, horizontalDistance) * Mathf.Rad2Deg;
+        // 이 리그의 로컬 축: X=Pitch(-위/+아래), Y=Roll, Z=Yaw(-좌/+우) — Unity 월드 컨벤션과 다름
+        float horizontalDistance = Mathf.Sqrt(localDir.x * localDir.x + localDir.y * localDir.y);
+        float targetPitch = Mathf.Atan2(localDir.z, horizontalDistance) * Mathf.Rad2Deg;
 
         // 목표 회전 한계값 적용
         targetPitch = Mathf.Clamp(targetPitch, -_maxPitch, _maxPitch);
@@ -98,27 +81,9 @@ public class CommanderLookAt : MonoBehaviour
         _currentPitch = Mathf.Lerp(_currentPitch, targetPitch, _headRotateSpeed * Time.deltaTime);
 
         // 매핑 대입
-        Vector3 finalEuler = Vector3.zero;
-        finalEuler[(int)_pitchOutputAxis] = (_invertPitchOutput) ? -_currentPitch : _currentPitch;
+        Vector3 finalEuler = new Vector3(-_currentPitch, 0f, 0f);
 
         // Animator 덮어씌움
         _head.localRotation = Quaternion.Euler(finalEuler);
-    }
-
-    /// <summary>
-    /// 지정한 축을 제외한 나머지 두 축으로 수평 거리(피치 계산용 분모) 산출
-    /// </summary>
-    float GetHorizontalMagnitude(Vector3 v, LocalAxis excludeAxis)
-    {
-        float sum = 0f;
-
-        for (int i = 0; i < 3; i++)
-        {
-            if (i == (int)excludeAxis) continue;
-
-            sum += v[i] * v[i];
-        }
-
-        return Mathf.Sqrt(sum);
     }
 }
