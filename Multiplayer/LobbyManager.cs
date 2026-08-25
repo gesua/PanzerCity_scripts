@@ -40,6 +40,7 @@ public class LobbyManager : MonoBehaviour
     float _lobbyPollTimer;
     string _nickname;
     string _hostedLobbyId; // 로비 단계 정리용으로 유지
+    string _joinedLobbyId; // 클라이언트용:_currentLobby와 달리 게임 시작 후에도 유지되어 방장 이탈 감지에 사용됨
     Dictionary<ulong, string> _clientIdToPlayerId = new Dictionary<ulong, string>(); // Netcode clientId ↔ Lobby Player.Id
 
     bool _isHeartbeating; // 하트비트 중복 방지용(응답이 주기보다 늦게 오면 재진입 가능)
@@ -201,6 +202,7 @@ public class LobbyManager : MonoBehaviour
             {
                 NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
                 _currentLobby = null;
+                _joinedLobbyId = null;
                 NetworkManager.Singleton.Shutdown();
                 OnKicked?.Invoke();
                 return;
@@ -372,6 +374,7 @@ public class LobbyManager : MonoBehaviour
             };
 
             _currentLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId, options);
+            _joinedLobbyId = _currentLobby.Id; // _currentLobby와 달리 게임 시작 후에도 유지되어 방장 이탈 감지에 쓰임
 
             string joinCode = _currentLobby.Data[KeyRelayJoinCode].Value;
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
@@ -402,6 +405,7 @@ public class LobbyManager : MonoBehaviour
         {
             // 참가 실패 시 _currentLobby 보장
             _currentLobby = null;
+            _joinedLobbyId = null;
             OnStatusChanged?.Invoke("UI_MP_ERR_JOIN_FAIL", new object[] { e.Message });
         }
     }
@@ -628,7 +632,12 @@ public class LobbyManager : MonoBehaviour
     /// </summary>
     public async Task LeaveLobbyAsync()
     {
-        if (_currentLobby == null) return;
+        // _currentLobby는 게임 시작 신호와 함께 곧바로 null이 되므로, 역할에 맞게 유지되는 ID를 대신 사용
+        // (RemoveDisconnectedPlayerAsync의 _hostedLobbyId와 같은 이유)
+        // 주의:IsHost 프로퍼티 자체가 _currentLobby 기반이라 게임 중엔 항상 false가 되므로 여기선 쓸 수 없음
+        bool isHost = _hostedLobbyId != null;
+        string lobbyId = isHost ? _hostedLobbyId : _joinedLobbyId;
+        if (lobbyId == null) return;
 
         try
         {
@@ -636,19 +645,21 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
 
             // 호스트는 로비 자체를 삭제, 클라이언트는 본인만 나감
-            if (IsHost)
+            if (isHost)
             {
-                await LobbyService.Instance.DeleteLobbyAsync(_currentLobby.Id);
+                await LobbyService.Instance.DeleteLobbyAsync(lobbyId);
             }
             else
             {
                 await LobbyService.Instance.RemovePlayerAsync(
-                    _currentLobby.Id,
+                    lobbyId,
                     AuthenticationService.Instance.PlayerId
                 );
             }
 
             _currentLobby = null;
+            _hostedLobbyId = null;
+            _joinedLobbyId = null;
             NetworkManager.Singleton.Shutdown();
             OnLeftLobby?.Invoke();
         }
@@ -678,7 +689,7 @@ public class LobbyManager : MonoBehaviour
             return;
         }
 
-        if (_currentLobby == null) return;
+        if (_joinedLobbyId == null) return;
 
         NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
 
@@ -727,8 +738,9 @@ public class LobbyManager : MonoBehaviour
     async Task HandleHostLeftAsync()
     {
         // 폴링 즉시 중단을 위해 먼저 null 설정 후 ID 보존
-        string lobbyId = _currentLobby.Id;
+        string lobbyId = _joinedLobbyId;
         _currentLobby = null;
+        _joinedLobbyId = null;
 
         try
         {
