@@ -185,6 +185,9 @@ public class GameScene : MonoBehaviour
             // 멀티플레이: 전원 사망 신호 수신(관전 중이던 클라이언트도 여기서 게임오버로 전환됨)
             NetworkGameManager.Instance.OnAllPlayersDead += HandleAllPlayersDead;
 
+            // 멀티플레이: 방장 연결 종료 감지(LobbyManager가 UGS 로비/Netcode 연결 종료 기준으로 판별) — 메인메뉴로 강제 이동
+            LobbyManager.Instance.OnHostLeft += HandleHostLeft;
+
             // 관전 모드:카메라 대상 순환 전환(Q/E)
             _inputSystemHandler.OnSpectatePrevInput += HandleSpectatePrevInput;
             _inputSystemHandler.OnSpectateNextInput += HandleSpectateNextInput;
@@ -341,6 +344,11 @@ public class GameScene : MonoBehaviour
             NetworkGameManager.Instance.OnAllClientsReady -= HandleAllClientsReady;
             NetworkGameManager.Instance.OnRestartRequested -= _gameOverUI.OnClickRestart;
             NetworkGameManager.Instance.OnAllPlayersDead -= HandleAllPlayersDead;
+        }
+
+        if (LobbyManager.Instance != null)
+        {
+            LobbyManager.Instance.OnHostLeft -= HandleHostLeft;
         }
 
         _inputSystemHandler.OnSpectatePrevInput -= HandleSpectatePrevInput;
@@ -825,6 +833,15 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 멀티플레이:방장 연결 종료 수신(LobbyManager가 호출) — 남은 클라이언트를 메인메뉴로 강제 이동
+    /// 정리 로직은 평소 메인메뉴 나가기(HandleTitleRequested)와 동일해서 그대로 재사용
+    /// </summary>
+    void HandleHostLeft()
+    {
+        HandleTitleRequested();
+    }
+
+    /// <summary>
     /// 리스폰 무적
     /// </summary>
     void HandleRespawnComplete(float duration)
@@ -1102,6 +1119,15 @@ public class GameScene : MonoBehaviour
 
         Time.timeScale = 1f;
         UnsubscribeStage();
+
+        // 멀티플레이 로비 정리(호스트는 로비 삭제, 클라이언트는 본인만 나감) — 아래 Shutdown보다 반드시 먼저 호출해야 함
+        // LeaveLobbyAsync가 내부에서 가장 먼저 LobbyManager 자체의 OnClientDisconnectCallback 구독을 해제하는데,
+        // 이걸 먼저 안 하면 바로 아래 Shutdown()으로 인한 자기 자신의 연결 종료가 "방장이 나감"으로 오인식되어
+        // HandleHostLeft가 불필요하게 다시 호출됨(싱글플레이는 LobbyManager.Instance가 없거나 로비가 없어 안전하게 무시됨)
+        if (LobbyManager.Instance != null)
+        {
+            _ = LobbyManager.Instance.LeaveLobbyAsync();
+        }
 
         // 멀티플레이 매치 중(또는 종료 후) 메인메뉴로 돌아갈 때 네트워크 세션이 안 끊긴 채 남으면
         // 다음 멀티플레이 시도 때 좀비 연결 상태 위에서 새 세션이 시작돼버림(LobbyScene.ShutdownNetwork()와 동일한 패턴)
