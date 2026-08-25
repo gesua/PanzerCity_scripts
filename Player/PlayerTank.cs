@@ -19,6 +19,7 @@ public class PlayerTank : TankBase
     [SerializeField] GameObject _destroyedTurret; // 파괴된 포탑
     [SerializeField] GameObject _destroyedBarrel; // 파괴된 주포
     [SerializeField] CommanderController _commander; // 전차장 캐릭터
+    [SerializeField] CommanderController[] _commanderVariants; // 2P~4P용 휴머노이드 전차장(인덱스 0=1P는 미사용, 1~3=2P~4P), 프리팹에 비활성 상태로 미리 배치
     [SerializeField] ItemPickup _itemPickup; // 아이템 줍기 단축키
     [SerializeField] ItemDropper _itemDropper; // 아이템 바닥에 버리는 용도
     [SerializeField] LoopEffect _shieldEffect; // 실드 이펙트
@@ -205,6 +206,23 @@ public class PlayerTank : TankBase
         }
 
         _miniMapTankIcon.SetIconSpriteByIndex(colorIndex);
+    }
+
+    /// <summary>
+    /// 플레이어 인덱스에 맞는 전차장 캐릭터로 교체(2P~4P 전용, 1P는 제네릭 유지)
+    /// </summary>
+    public void SetCommanderByIndex(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= _commanderVariants.Length) return;
+        if (playerIndex == 0) return; // 1P는 기본(제네릭) 커맨더 유지
+
+        CommanderController variant = _commanderVariants[playerIndex];
+
+        if (variant == null) return; // 해당 슬롯에 배정된 휴머노이드 캐릭터가 없으면 무시
+
+        _commander.gameObject.SetActive(false); // 기존 커맨더 비활성화
+        _commander = variant; // 참조를 새 캐릭터로 전환
+        _commander.gameObject.SetActive(true); // 새 커맨더 활성화
     }
 
     /// <summary>
