@@ -33,6 +33,11 @@ public class CommanderController : MonoBehaviour
 
     public Transform CommanderRoot => _commanderRoot;
 
+    public void SetCommanderRoot(Transform root)
+    {
+        _commanderRoot = root;
+    }
+
     void Start()
     {
         SetNextBlink();
@@ -123,6 +128,8 @@ public class CommanderController : MonoBehaviour
     /// </summary>
     public void SetSadFace()
     {
+        Debug.Log("슬픈 표정");
+
         if (_animator.isActiveAndEnabled)
         {
             _animator.CrossFade("sad", 0.1f, _faceLayer);
@@ -164,6 +171,9 @@ public class CommanderController : MonoBehaviour
     public void OnCallChangeFace(string faceName)
     {
         if (_isDead) return;
+
+        Debug.Log($"표정 바뀜 {faceName} " + StackTraceUtility.ExtractStackTrace());
+
         _animator.CrossFade(faceName, 0.1f, _faceLayer);
     }
 }

@@ -19,7 +19,7 @@ public class PlayerTank : TankBase
     [SerializeField] GameObject _destroyedTurret; // 파괴된 포탑
     [SerializeField] GameObject _destroyedBarrel; // 파괴된 주포
     [SerializeField] CommanderController _commander; // 전차장 캐릭터
-    [SerializeField] CommanderController[] _commanderVariants; // 2P~4P용 휴머노이드 전차장(인덱스 0=1P는 미사용, 1~3=2P~4P), 프리팹에 비활성 상태로 미리 배치
+    [SerializeField] CommanderController[] _commanderVariants; // 2P~4P용 휴머노이드 전차장 프리팹(인덱스 0=1P는 미사용, 1~3=2P~4P), 필요한 시점에 Instantiate로 생성
     [SerializeField] ItemPickup _itemPickup; // 아이템 줍기 단축키
     [SerializeField] ItemDropper _itemDropper; // 아이템 바닥에 버리는 용도
     [SerializeField] LoopEffect _shieldEffect; // 실드 이펙트
@@ -216,13 +216,16 @@ public class PlayerTank : TankBase
         if (playerIndex < 0 || playerIndex >= _commanderVariants.Length) return;
         if (playerIndex == 0) return; // 1P는 기본(제네릭) 커맨더 유지
 
-        CommanderController variant = _commanderVariants[playerIndex];
+        CommanderController variantPrefab = _commanderVariants[playerIndex];
 
-        if (variant == null) return; // 해당 슬롯에 배정된 휴머노이드 캐릭터가 없으면 무시
+        if (variantPrefab == null) return; // 해당 슬롯에 배정된 휴머노이드 프리팹이 없으면 무시
 
-        _commander.gameObject.SetActive(false); // 기존 커맨더 비활성화
-        _commander = variant; // 참조를 새 캐릭터로 전환
-        _commander.gameObject.SetActive(true); // 새 커맨더 활성화
+        Transform commanderAnchor = _commander.CommanderRoot; // 새 캐릭터도 같은 앵커(Commander) 밑에 배치되도록 미리 저장 — _commander.transform.parent와 동일한 값
+
+        Destroy(_commander.gameObject); // 기존(제네릭) 커맨더는 다시 쓸 일이 없으므로(playerIndex는 게임 중 불변) 비활성화 대신 완전히 제거해 메모리 반환
+
+        _commander = Instantiate(variantPrefab, commanderAnchor); // 프리팹 생성 + Commander 앵커 하위로 배치 + 참조 전환
+        _commander.SetCommanderRoot(commanderAnchor); // CommanderRoot는 프리팹 바깥(Commander 앵커)이라 생성 시 직접 채워줘야 함
     }
 
     /// <summary>
