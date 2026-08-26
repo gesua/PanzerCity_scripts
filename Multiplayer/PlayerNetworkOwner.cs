@@ -30,10 +30,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
     // 탱크 색상/채팅 색상 통일용:룸에서 배정받은 자리
     NetworkVariable<int> _playerIndex = new NetworkVariable<int>(-1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
-    // 원격 관찰자 전용:playerIndex/life/hp 초기 동기화가 실시간 경로(OnValueChanged)로 이미 적용됐는지 여부
-    // SyncInitialStateWhenReady 코루틴의 캐치업 경로와 중복 실행되는 것을 막기 위한 가드
-    bool _initialSyncApplied;
-
     public int CurrentLife => _life.Value; // 다른 클라이언트가 초기 UI 세팅 시 조회용
     public int SyncedHp => _hp.Value;
     public string Nickname => _nickname.Value.ToString(); // 채팅 UI가 발신자 닉네임 조회 시 사용
@@ -174,8 +170,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
             elapsed += Time.deltaTime;
         }
 
-        if (_initialSyncApplied) yield break; // 실시간 경로가 이미 처리했으면 중복 적용 방지(스폰 후 값이 늦게 도착한 관찰자만 여기서 보정)
-
         HandlePlayerIndexValueChanged(-1, _playerIndex.Value);
         HandleLifeValueChanged(0, _life.Value);
         HandleHpValueChanged(0, _hp.Value);
@@ -234,8 +228,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
     /// </summary>
     void HandlePlayerIndexValueChanged(int previousValue, int currentValue)
     {
-        _initialSyncApplied = true; // 실시간으로 이미 반영됨을 표시(코루틴 캐치업 중복 방지용)
-
         _playerTank.SetTankColorByIndex(currentValue);
         _playerTank.SetCommanderByIndex(currentValue);
     }
