@@ -58,7 +58,7 @@ public class ShopUI : MonoBehaviour
     {
         EquipmentManager equipmentManager = GameManager.Instance.EquipmentManager;
 
-        _equipmentUI.Initialize(equipmentManager, _inventoryUI.Presenter);
+        _equipmentUI.Initialize(equipmentManager, _inventoryUI.Presenter, _itemTooltipUI);
         _trashCanUI.Initialize(_inventoryUI.Presenter);
 
         // 상점에 배치할 아이템 (항상 똑같음)

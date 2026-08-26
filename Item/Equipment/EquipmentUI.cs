@@ -11,16 +11,26 @@ public class EquipmentUI : MonoBehaviour
 
     EquipmentManager _equipmentManager;
     InventoryPresenter _inventoryPresenter;
+    ItemTooltipUI _tooltip;
 
-    public void Initialize(EquipmentManager equipmentManager, InventoryPresenter inventoryPresenter)
+    public void Initialize(EquipmentManager equipmentManager, InventoryPresenter inventoryPresenter, ItemTooltipUI tooltip)
     {
         _equipmentManager = equipmentManager;
         _inventoryPresenter = inventoryPresenter;
+        _tooltip = tooltip;
 
         // 슬롯 클릭 이벤트 구독
         _mainGunSlotUI.OnSlotClicked += HandleSlotClicked;
         _turretSlotUI.OnSlotClicked += HandleSlotClicked;
         _hullSlotUI.OnSlotClicked += HandleSlotClicked;
+
+        // 슬롯 호버 이벤트 구독(장착된 장비 툴팁)
+        _mainGunSlotUI.OnHoverEnter += HandleHoverEnter;
+        _turretSlotUI.OnHoverEnter += HandleHoverEnter;
+        _hullSlotUI.OnHoverEnter += HandleHoverEnter;
+        _mainGunSlotUI.OnHoverExit += HandleHoverExit;
+        _turretSlotUI.OnHoverExit += HandleHoverExit;
+        _hullSlotUI.OnHoverExit += HandleHoverExit;
 
         // 장착/해제 이벤트 구독
         _equipmentManager.OnEquipped += HandleEquipped;
@@ -39,6 +49,13 @@ public class EquipmentUI : MonoBehaviour
 
         _equipmentManager.OnEquipped -= HandleEquipped;
         _equipmentManager.OnUnequipped -= HandleUnequipped;
+
+        _mainGunSlotUI.OnHoverEnter -= HandleHoverEnter;
+        _turretSlotUI.OnHoverEnter -= HandleHoverEnter;
+        _hullSlotUI.OnHoverEnter -= HandleHoverEnter;
+        _mainGunSlotUI.OnHoverExit -= HandleHoverExit;
+        _turretSlotUI.OnHoverExit -= HandleHoverExit;
+        _hullSlotUI.OnHoverExit -= HandleHoverExit;
     }
 
     /// <summary>
@@ -81,5 +98,21 @@ public class EquipmentUI : MonoBehaviour
             EquipSlot.Hull => _hullSlotUI,
             _ => null
         };
+    }
+
+    /// <summary>
+    /// 장착된 장비 호버 시작 (툴팁 켜기) - 아이템 크기(OccupiedCells)와 무관하게 슬롯 아래쪽 중앙에 고정 표시
+    /// </summary>
+    void HandleHoverEnter(ItemModel item, Vector3 slotBottomCenterPos)
+    {
+        _tooltip.ShowAtFixedAnchor(item.Config, slotBottomCenterPos);
+    }
+
+    /// <summary>
+    /// 장착된 장비 호버 종료 (툴팁 끄기)
+    /// </summary>
+    void HandleHoverExit()
+    {
+        _tooltip.Hide();
     }
 }

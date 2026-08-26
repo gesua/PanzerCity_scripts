@@ -70,6 +70,23 @@ public class ItemTooltipUI : MonoBehaviour
     }
 
     /// <summary>
+    /// 장비 슬롯 전용 — 아이템의 OccupiedCells 크기와 무관하게 항상 고정 위치(슬롯 아래쪽 중앙)에 딱 붙여서 표시
+    /// 장비 슬롯은 아이템 크기와 관계없이 항상 1칸으로 표시되므로 GetSizeOffset(인벤토리 그리드 크기 보정)을 적용하지 않음
+    /// 툴팁 pivot이 (0.5, 0.5)라 transform.position = anchorPos로 두면 박스 중앙이 anchorPos에 오므로,
+    /// 박스 높이의 절반만큼 아래로 내려서 박스 윗변이 anchorPos에 딱 붙게 보정함
+    /// </summary>
+    /// <param name="config">표시할 아이템 설정</param>
+    /// <param name="anchorPos">기준이 되는 월드 위치(슬롯 아래쪽 중앙 등) - 이 지점에 툴팁 박스 윗변이 붙음</param>
+    public void ShowAtFixedAnchor(ItemConfig config, Vector3 anchorPos)
+    {
+        SetContent(config);
+
+        float halfHeight = _rectTransform.rect.height * 0.5f;
+        transform.position = anchorPos + new Vector3(-35f, -halfHeight, 0f);
+        gameObject.SetActive(true);
+    }
+
+    /// <summary>
     /// 이름/설명 텍스트 세팅 (Show, ShowAtAnchoredPosition 공용)
     /// </summary>
     void SetContent(ItemConfig config)
