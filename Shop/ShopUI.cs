@@ -21,6 +21,7 @@ public class ShopUI : MonoBehaviour
     [SerializeField] GameObject _clickBlocker; // 종료 버튼 눌렀을 때 다른 거 못 누르게 막는 용도
     [SerializeField] ItemTooltipUI _itemTooltipUI; // 툴팁 UI
     [SerializeField] TextMeshProUGUI _readyCountText; // 다음 스테이지 준비 인원 표시(멀티 전용)
+    [SerializeField] Image _exitButtonImage; // 출격 버튼 - 클릭 시 색 변경으로 "내가 눌렀는지" 표시(멀티 대기 중 구분용)
 
     [Header("----- 멀티플레이 원격 커서 -----")]
     [SerializeField] RectTransform _cursorLayerRoot; // 커서 이미지들이 배치될 부모
@@ -189,6 +190,7 @@ public class ShopUI : MonoBehaviour
         {
             SetInteractable(true); // 상점 열릴 때 상호작용 잠금 해제
             _isReadyForNextStage = false; // 새 상점이니 준비 상태 초기화(멀티)
+            _exitButtonImage.color = Color.white; // 출격 버튼 색 복구
 
             _shopOwnerUI.ShowWelcome(); // 인사
             RollEquipmentItem(); // 열릴 때마다 장비 새로 뽑기
@@ -447,6 +449,8 @@ public class ShopUI : MonoBehaviour
     /// </summary>
     public void OnClickExit()
     {
+        _exitButtonImage.color = Color.green; // 클릭 즉시 초록색으로 전환 - 대기 중에도 내가 눌렀는지 구분 가능
+
         if (_isMultiplayer)
         {
             if (_isReadyForNextStage) return; // 중복 클릭 방지

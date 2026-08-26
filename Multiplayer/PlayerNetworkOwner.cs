@@ -46,8 +46,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        Debug.Log($"OnNetworkSpawn, {_life.Value}, {_playerIndex.Value}");
-
         // Lobby 씬이 언로드돼도 파괴되지 않도록 보호(각 컴퓨터에서 로컬로 각자 적용됨)
         DontDestroyOnLoad(gameObject);
 
