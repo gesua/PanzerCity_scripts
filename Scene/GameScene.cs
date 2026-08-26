@@ -80,6 +80,12 @@ public class GameScene : MonoBehaviour
         // 멀티플레이:로컬 플레이어 스폰 신호를 기다림
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
+            // 목숨 UI:다른 플레이어의 목숨 변경/이탈 수신은 로컬 플레이어 스폰(Initialize)을 기다리지 않고 여기서 바로 구독
+            // — 다른 플레이어가 나보다 먼저 스폰되면서 늦게 도착한 값을 수동 동기화하는 신호(PlayerNetworkOwner.OnNetworkSpawn 참고)가
+            // 내가 구독하기 전에 지나가버려서 목숨 UI가 기본값으로 남는 문제 방지
+            NetworkGameManager.Instance.OnPlayerLifeChanged += HandleOtherPlayerLifeChanged;
+            NetworkGameManager.Instance.OnPlayerLeft += HandleOtherPlayerLeft;
+
             NetworkGameManager.Instance.OnLocalPlayerSpawned += HandleLocalPlayerSpawned;
         }
         else // 싱글플레이:즉시 초기화
@@ -166,15 +172,9 @@ public class GameScene : MonoBehaviour
                 _gameInfoUI.UpdateLife(clientNetworkOwner.PlayerIndex, clientNetworkOwner.CurrentLife);
             }
 
-            // 목숨 UI:다른 플레이어의 목숨 변경 수신(내 것은 아래 로컬 PlayerData 구독으로 별도 처리)
-            NetworkGameManager.Instance.OnPlayerLifeChanged += HandleOtherPlayerLifeChanged;
-
             // 퀵슬롯 UI:기지 무적/EMP는 공유 상태라 누가 발동했든 전원 링을 공유해야 함
             NetworkGameManager.Instance.OnBaseShieldActivated += duration => _quickSlotUI.PlayEffectFeedback(1002, duration);
             NetworkGameManager.Instance.OnEMPFieldActivated += duration => _quickSlotUI.PlayEffectFeedback(1004, duration);
-
-            // 목숨 UI:다른 플레이어가 연결 종료했을 때 해당 슬롯 비활성화
-            NetworkGameManager.Instance.OnPlayerLeft += HandleOtherPlayerLeft;
 
             // 멀티플레이: 모든 클라이언트 로딩 완료(게임 실제 시작 시점) 수신
             NetworkGameManager.Instance.OnAllClientsReady += HandleAllClientsReady;
@@ -1036,6 +1036,9 @@ public class GameScene : MonoBehaviour
 
     IEnumerator LoadStageRoutine(string sceneName)
     {
+        // 맵 관련 초기화
+        _player.ResetMud();
+        _player.ResetBush();
 
         // 일시정지 관련 초기화
         _isPaused = false;
