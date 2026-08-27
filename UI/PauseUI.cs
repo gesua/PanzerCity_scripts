@@ -5,6 +5,7 @@ public class PauseUI : MonoBehaviour
 {
     [SerializeField] GameObject _option;
     [SerializeField] GameObject _retryBtn;
+    [SerializeField] GameObject _warningPopup;
 
     public GameObject RetryBtn => _retryBtn;
     public bool IsOptionOpen => _option.activeSelf;
@@ -31,6 +32,16 @@ public class PauseUI : MonoBehaviour
     public void OnClickMainMenu()
     {
         OnMainMenuClicked?.Invoke();
+    }
+
+    public void OpenWarning()
+    {
+        _warningPopup.SetActive(true);
+    }
+
+    public void CloseWarning()
+    {
+        _warningPopup.SetActive(false);
     }
 
     public void SetActive(bool active)
