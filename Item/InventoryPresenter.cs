@@ -41,6 +41,7 @@ public class InventoryPresenter
         _view.OnCanPlace = (item, pos) => _model.CanPlace(item, pos);
         _view.OnItemHoverEnter += HandleItemHoverEnter;
         _view.OnItemHoverExit += HandleItemHoverExit;
+        _view.OnEquipmentItemDropped += HandleEquipmentItemDropped;
     }
 
     /// <summary>
@@ -82,6 +83,32 @@ public class InventoryPresenter
     }
 
     /// <summary>
+    /// 장비 슬롯 드래그 시작 시 공용 드래그 고스트 표시 (인벤토리 드래그와 동일한 비주얼 재사용)
+    /// </summary>
+    public void ShowDraggingGhost(ItemModel item, Vector2 screenPos)
+    {
+        _view.SetItemContainerRaycast(false);
+        _draggingItemUI.Show(item.Config.IconSprite, screenPos, GetItemSize(item));
+    }
+
+    /// <summary>
+    /// 드래그 고스트 위치 갱신
+    /// </summary>
+    public void MoveDraggingGhost(Vector2 screenPos)
+    {
+        _draggingItemUI.Follow(screenPos);
+    }
+
+    /// <summary>
+    /// 드래그 고스트 숨김
+    /// </summary>
+    public void HideDraggingGhost()
+    {
+        _view.SetItemContainerRaycast(true);
+        _draggingItemUI.Hide();
+    }
+
+    /// <summary>
     /// 드래그 강제 종료
     /// </summary>
     public void ForceDrop()
@@ -107,6 +134,26 @@ public class InventoryPresenter
     }
 
     /// <summary>
+    /// 장비 슬롯에서 드래그해온 아이템이 그리드 칸에 드롭됨 - 자리가 되면 해제 후 배치, 안 되면 무시(장착 상태 유지)
+    /// </summary>
+    void HandleEquipmentItemDropped(EquipmentSlotUI sourceSlot, Vector2Int gridPos)
+    {
+        ItemModel item = sourceSlot.EquippedItem;
+        if (item == null) return;
+        if (_model.CanPlace(item, gridPos) == false) return; // 자리가 안 되면 장착 상태 그대로 유지
+
+        _equipmentManager.Unequip(sourceSlot.SlotType); // 슬롯 아이콘 갱신은 OnUnequipped 이벤트로 자동 처리
+        if (_model.TryAddItem(item, gridPos) == false)
+        {
+            _equipmentManager.Equip(item); // 배치 실패 시 재장착(방어 코드, 이론상 CanPlace 통과 후엔 항상 성공)
+            return;
+        }
+
+        _view.AddItemView(item);
+        OnInventoryChanged?.Invoke();
+    }
+
+    /// <summary>
     /// 아이템 클릭 처리
     /// </summary>
     void HandleItemClicked(ItemModel item)
@@ -121,21 +168,28 @@ public class InventoryPresenter
         else if (item.Config.ItemType == ItemType.Equipment)
         {
             if (_isShop == false) return; // 상점이 아니면 장착 막음
+            EquipFromInventory(item);
+        }
+    }
 
-            // 장비 장착
-            RemoveItem(item);
-            ItemModel prevItem = _equipmentManager.Equip(item);
+    /// <summary>
+    /// 인벤토리 아이템을 장비로 장착 (클릭/드래그 공용) - 기존 장착 아이템이 있으면 인벤토리로 스왑
+    /// </summary>
+    public void EquipFromInventory(ItemModel item)
+    {
+        // 장비 장착
+        RemoveItem(item);
+        ItemModel prevItem = _equipmentManager.Equip(item);
 
-            // 기존 장착 아이템 인벤토리로 반환
-            if (prevItem == null) return;
+        // 기존 장착 아이템 인벤토리로 반환
+        if (prevItem == null) return;
 
-            bool added = AddItem(prevItem);
-            if (added == false)
-            {
-                // 자리가 없으면 장착을 되돌림
-                _equipmentManager.Equip(prevItem);
-                AddItem(item);
-            }
+        bool added = AddItem(prevItem);
+        if (added == false)
+        {
+            // 자리가 없으면 장착을 되돌림
+            _equipmentManager.Equip(prevItem);
+            AddItem(item);
         }
     }
 

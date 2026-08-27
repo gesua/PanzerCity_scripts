@@ -32,6 +32,22 @@ public class EquipmentUI : MonoBehaviour
         _turretSlotUI.OnHoverExit += HandleHoverExit;
         _hullSlotUI.OnHoverExit += HandleHoverExit;
 
+        // 슬롯 드래그 이벤트 구독(장착 해제 - 슬롯에서 인벤토리로 드래그)
+        _mainGunSlotUI.OnDragBegin += HandleDragBegin;
+        _turretSlotUI.OnDragBegin += HandleDragBegin;
+        _hullSlotUI.OnDragBegin += HandleDragBegin;
+        _mainGunSlotUI.OnDragging += HandleDragMove;
+        _turretSlotUI.OnDragging += HandleDragMove;
+        _hullSlotUI.OnDragging += HandleDragMove;
+        _mainGunSlotUI.OnDragEnded += HandleDragEnd;
+        _turretSlotUI.OnDragEnded += HandleDragEnd;
+        _hullSlotUI.OnDragEnded += HandleDragEnd;
+
+        // 슬롯 드롭 이벤트 구독(장착 - 인벤토리에서 슬롯으로 드래그)
+        _mainGunSlotUI.OnItemDropped += HandleItemDropped;
+        _turretSlotUI.OnItemDropped += HandleItemDropped;
+        _hullSlotUI.OnItemDropped += HandleItemDropped;
+
         // 장착/해제 이벤트 구독
         _equipmentManager.OnEquipped += HandleEquipped;
         _equipmentManager.OnUnequipped += HandleUnequipped;
@@ -56,6 +72,20 @@ public class EquipmentUI : MonoBehaviour
         _mainGunSlotUI.OnHoverExit -= HandleHoverExit;
         _turretSlotUI.OnHoverExit -= HandleHoverExit;
         _hullSlotUI.OnHoverExit -= HandleHoverExit;
+
+        _mainGunSlotUI.OnDragBegin -= HandleDragBegin;
+        _turretSlotUI.OnDragBegin -= HandleDragBegin;
+        _hullSlotUI.OnDragBegin -= HandleDragBegin;
+        _mainGunSlotUI.OnDragging -= HandleDragMove;
+        _turretSlotUI.OnDragging -= HandleDragMove;
+        _hullSlotUI.OnDragging -= HandleDragMove;
+        _mainGunSlotUI.OnDragEnded -= HandleDragEnd;
+        _turretSlotUI.OnDragEnded -= HandleDragEnd;
+        _hullSlotUI.OnDragEnded -= HandleDragEnd;
+
+        _mainGunSlotUI.OnItemDropped -= HandleItemDropped;
+        _turretSlotUI.OnItemDropped -= HandleItemDropped;
+        _hullSlotUI.OnItemDropped -= HandleItemDropped;
     }
 
     /// <summary>
@@ -114,5 +144,38 @@ public class EquipmentUI : MonoBehaviour
     void HandleHoverExit()
     {
         _tooltip.Hide();
+    }
+
+    /// <summary>
+    /// 장비 슬롯에서 드래그 시작 - 공용 드래그 고스트 표시(인벤토리 드래그와 동일한 비주얼 재사용)
+    /// </summary>
+    void HandleDragBegin(ItemModel item, Vector2 screenPos)
+    {
+        _tooltip.Hide();
+        _inventoryPresenter.ShowDraggingGhost(item, screenPos);
+    }
+
+    /// <summary>
+    /// 드래그 중 - 고스트 위치 갱신
+    /// </summary>
+    void HandleDragMove(Vector2 screenPos)
+    {
+        _inventoryPresenter.MoveDraggingGhost(screenPos);
+    }
+
+    /// <summary>
+    /// 드래그 종료 - 고스트 숨김(실제 해제/복구 처리는 드롭 시점에 InventoryPresenter 쪽에서 이미 완료됨)
+    /// </summary>
+    void HandleDragEnd()
+    {
+        _inventoryPresenter.HideDraggingGhost();
+    }
+
+    /// <summary>
+    /// 인벤토리 아이템이 슬롯에 드롭됨 - 장착 시도(클릭과 동일한 스왑 로직 재사용)
+    /// </summary>
+    void HandleItemDropped(ItemModel item)
+    {
+        _inventoryPresenter.EquipFromInventory(item);
     }
 }

@@ -17,6 +17,7 @@ public class GridCell : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
 
     Vector2Int _gridPos;
     public Action<ItemView, Vector2Int> OnDropped;
+    public Action<EquipmentSlotUI, Vector2Int> OnEquipmentDropped; // 장비 슬롯에서 드래그해온 아이템이 이 칸에 드롭됨
     public Action<Vector2Int> OnHoverEnter;
     public Action OnHoverExit;
 
@@ -32,9 +33,18 @@ public class GridCell : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
     /// </summary>
     public void OnDrop(PointerEventData eventData)
     {
-        ItemView itemView = eventData.pointerDrag?.GetComponent<ItemView>();
-        if (itemView == null) return;
-        OnDropped?.Invoke(itemView, _gridPos);
+        if (eventData.pointerDrag == null) return;
+
+        if (eventData.pointerDrag.TryGetComponent(out ItemView itemView))
+        {
+            OnDropped?.Invoke(itemView, _gridPos);
+            return;
+        }
+
+        if (eventData.pointerDrag.TryGetComponent(out EquipmentSlotUI equipmentSlot))
+        {
+            OnEquipmentDropped?.Invoke(equipmentSlot, _gridPos);
+        }
     }
 
     /// <summary>

@@ -29,13 +29,14 @@ public class InventoryView : MonoBehaviour
     public Func<ItemModel, Vector2Int, bool> OnCanPlace; // 놓을 수 있는 위치인지 체크
     public Action<ItemModel, Vector3> OnItemHoverEnter;  // 아이템에 마우스 올림 <아이템, 아이콘 월드 위치>
     public Action OnItemHoverExit;                       // 아이템에서 마우스 나감
+    public Action<EquipmentSlotUI, Vector2Int> OnEquipmentItemDropped; // 장비 슬롯에서 드래그해온 아이템이 그리드에 드롭됨
 
     public float CellSize => _cellSize;
 
     private void Awake()
     {
         // Pool 생성
-        GameManager.Instance.PoolManager.GetPool(_itemViewPath, includeInReturnAll:false);
+        GameManager.Instance.PoolManager.GetPool(_itemViewPath, includeInReturnAll: false);
     }
 
     public void Initialize(int width)
@@ -47,6 +48,7 @@ public class InventoryView : MonoBehaviour
             int y = i / width;
             _cells[i].Initialize(new Vector2Int(x, y));
             _cells[i].OnDropped += HandleDrop;
+            _cells[i].OnEquipmentDropped += HandleEquipmentDrop;
             _cells[i].OnHoverEnter += HandleHoverEnter;
             _cells[i].OnHoverExit += HandleHoverExit;
         }
@@ -59,6 +61,14 @@ public class InventoryView : MonoBehaviour
     {
         ItemModel item = GetItemByView(itemView);
         if (item != null) OnItemMoved?.Invoke(item, gridPos);
+    }
+
+    /// <summary>
+    /// 장비 슬롯에서 드래그해온 아이템 드롭 처리 - 상위(Presenter)로 그대로 전달
+    /// </summary>
+    void HandleEquipmentDrop(EquipmentSlotUI sourceSlot, Vector2Int gridPos)
+    {
+        OnEquipmentItemDropped?.Invoke(sourceSlot, gridPos);
     }
 
     void HandleHoverEnter(Vector2Int gridPos)
