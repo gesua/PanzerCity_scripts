@@ -11,6 +11,7 @@ public class TitleScene : MonoBehaviour
     [SerializeField] AudioListener _audioListener;
     [SerializeField] UnityEngine.EventSystems.EventSystem _eventSystem;
     [SerializeField] GameObject _option;
+    [SerializeField] GameObject _credits;
     [SerializeField] SaveSlotUI _saveSlotUI;
 
     [Header("----- 버튼 애니메이션 -----")]
@@ -184,6 +185,16 @@ public class TitleScene : MonoBehaviour
     public void OnClickOptions()
     {
         _option.SetActive(true);
+    }
+
+    public void OpenCredits()
+    {
+        _credits.SetActive(true);
+    }
+
+    public void CloseCredits()
+    {
+        _credits.SetActive(false);
     }
 
     /// <summary>
