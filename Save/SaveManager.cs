@@ -94,6 +94,8 @@ public class SaveManager : MonoBehaviour
     /// </summary>
     public void SaveCurrentProgress(int stageID, InventoryPresenter inventoryPresenter)
     {
+        Debug.Log($"{stageID}스테이지, 데이터 저장");
+
         SaveData data = _slotCache[CurrentSlotIndex];
 
         data.IsEmpty = false;

@@ -54,7 +54,6 @@ public class SaveSlotPanel : MonoBehaviour
         string actualName = _nameInput.text; // 빈 문자 와서 인자 대신 직접 읽기
         StartCoroutine(LockNameInputNextFrame());
 
-        Debug.Log($"newName: '{newName}' / _nameInput.text: '{_nameInput.text}'");
         OnNameEndEdit?.Invoke(actualName);
     }
 

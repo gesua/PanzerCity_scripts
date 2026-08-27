@@ -10,15 +10,13 @@ public enum SfxType
     StageStart,  // 스테이지 시작(2D)
     LifeUp,      // 1목숨 추가(2D)
     Pause,       // 일시정지(2D)
-
-    // 미검수
     GameOver,    // 게임오버(2D) : 소리 키우기, 주변 소리 다 없애기
-    StageClear,  // +스테이지 클리어(2D)
+    StageClear,  // 스테이지 클리어(2D)
     GameClear,   // 게임 클리어(마지막 스테이지)(2D)
-    TankHit,     // +탱크 피격음
+    TankHit,     // 탱크 피격음
     TankDestroy, // 탱크 파괴음 : 소리 키우기, 아이템 써서 동시에 죽을 때는 1번만 들리게 하기
     HQDestroy,   // HQ 파괴음(2D)
-    ShellExplosion, // +포탄 터지는 소리(3D)
+    ShellExplosion, // 포탄 터지는 소리(3D)
     ItemDrop,    // 아이템 드랍음(3D)
     ItemUse,     // 아이템 사용음(2D)
 }
