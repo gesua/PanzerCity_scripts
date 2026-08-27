@@ -88,6 +88,7 @@ public class InventoryPresenter
     public void ShowDraggingGhost(ItemModel item, Vector2 screenPos)
     {
         _view.SetItemContainerRaycast(false);
+        _view.SetDraggingItem(item); // 그리드 호버 시 실시간 유효/무효 하이라이트가 반영되도록 지정
         _draggingItemUI.Show(item.Config.IconSprite, screenPos, GetItemSize(item));
     }
 
@@ -105,6 +106,8 @@ public class InventoryPresenter
     public void HideDraggingGhost()
     {
         _view.SetItemContainerRaycast(true);
+        _view.SetDraggingItem(null);
+        _view.ResetCellColors(); // 혹시 남아있을 하이라이트 정리(방어 코드)
         _draggingItemUI.Hide();
     }
 

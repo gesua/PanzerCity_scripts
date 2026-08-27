@@ -93,6 +93,8 @@ public class EquipmentUI : MonoBehaviour
     /// </summary>
     void HandleSlotClicked(EquipSlot slot)
     {
+        _tooltip.Hide(); // 마우스가 슬롯 위에 그대로 있는 상태로 클릭하면 OnPointerExit이 발생하지 않아 툴팁이 갱신 없이 남음 → 명시적으로 숨김
+
         ItemModel item = _equipmentManager.Unequip(slot);
         if (item == null) return;
 

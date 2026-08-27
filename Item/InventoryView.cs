@@ -97,6 +97,14 @@ public class InventoryView : MonoBehaviour
     }
 
     /// <summary>
+    /// 외부(장비 슬롯 등)에서 시작된 드래그도 그리드 호버 시 실시간 유효/무효 하이라이트가 반영되도록 드래그 중인 아이템을 직접 지정
+    /// </summary>
+    public void SetDraggingItem(ItemModel item)
+    {
+        _draggingItem = item;
+    }
+
+    /// <summary>
     /// ItemView로 ItemModel 찾기
     /// </summary>
     ItemModel GetItemByView(ItemView itemView)
