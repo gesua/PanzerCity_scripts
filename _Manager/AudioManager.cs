@@ -3,7 +3,7 @@ using UnityEngine;
 
 public enum BgmType
 {
-    //Title,
+    Title,
 }
 public enum SfxType
 {
@@ -119,6 +119,14 @@ public class AudioManager : MonoBehaviour
         {
             Debug.LogWarning($"BGM 클립 없음: {bgmType}");
         }
+    }
+
+    /// <summary>
+    /// 배경음악 정지
+    /// </summary>
+    public void StopBgm()
+    {
+        _bgmAs.Stop();
     }
 
     /// <summary>

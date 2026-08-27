@@ -472,6 +472,7 @@ public class GameScene : MonoBehaviour
         // 스테이지 시작 소리 (싱글플레이에서만 여기서 재생, 멀티는 HandleAllClientsReady에서 재생)
         if (isMultiplayer == false)
         {
+            GameManager.Instance.AudioManager.StopBgm();
             GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);
         }
     }
@@ -481,8 +482,9 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleAllClientsReady()
     {
+        GameManager.Instance.AudioManager.StopBgm();
         // 스테이지 시작 소리 (멀티플레이 전용)
-        GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart); // HACK:2번 나오거나 필요없을 수도 있겠음
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.StageStart);
     }
 
     /// <summary>

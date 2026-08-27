@@ -32,6 +32,7 @@ public class TitleScene : MonoBehaviour
         yield return LocalizationSettings.InitializationOperation;
 
         GameManager manager = GameManager.Instance;
+        manager.AudioManager.PlayBgm(BgmType.Title);
 
         // 초기화가 끝나면 버튼이 위로 올라오면서 나타나는 애니메이션 실행
         StartCoroutine(ShowButtonRoutine());
