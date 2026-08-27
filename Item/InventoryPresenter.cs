@@ -140,16 +140,23 @@ public class InventoryPresenter
     {
         ItemModel item = sourceSlot.EquippedItem;
         if (item == null) return;
-        if (_model.CanPlace(item, gridPos) == false) return; // 자리가 안 되면 장착 상태 그대로 유지
+
+        if (_model.CanPlace(item, gridPos) == false)
+        {
+            _view.ResetCellColors(); // 남아있을 수 있는 하이라이트 정리
+            return; // 자리가 안 되면 장착 상태 그대로 유지
+        }
 
         _equipmentManager.Unequip(sourceSlot.SlotType); // 슬롯 아이콘 갱신은 OnUnequipped 이벤트로 자동 처리
         if (_model.TryAddItem(item, gridPos) == false)
         {
             _equipmentManager.Equip(item); // 배치 실패 시 재장착(방어 코드, 이론상 CanPlace 통과 후엔 항상 성공)
+            _view.ResetCellColors();
             return;
         }
 
         _view.AddItemView(item);
+        _view.ResetCellColors();
         OnInventoryChanged?.Invoke();
     }
 
@@ -180,6 +187,12 @@ public class InventoryPresenter
         // 장비 장착
         RemoveItem(item);
         ItemModel prevItem = _equipmentManager.Equip(item);
+
+        // 드래그로 장착한 경우 ItemView가 즉시 풀 반환되어 OnDragEnded 델리게이트가 비워지고,
+        // 정상적인 드래그 종료 정리(드래그 상태 리셋, 고스트 숨김, 레이캐스트 복구)가 생략될 수 있음 → 방어적으로 직접 정리
+        _draggingItemModel = null;
+        ForceDrop();
+        HideDraggingGhost();
 
         // 기존 장착 아이템 인벤토리로 반환
         if (prevItem == null) return;
@@ -265,8 +278,7 @@ public class InventoryPresenter
     /// </summary>
     public void TrashItem(ItemModel item)
     {
-        // OnEndDrag → OnDrop 순서이므로 드래그 상태는 이미 정리된 상태.
-        // 혹시 모를 순서 역전에 대비해 null 체크만 넣어둠
+        // 실제로는 OnDrop → OnEndDrag 순서로 실행되어 이 시점엔 드래그 상태가 아직 안 정리되어 있음
         if (_draggingItemModel != null)
         {
             _draggingItemModel = null;
@@ -274,6 +286,10 @@ public class InventoryPresenter
             _draggingItemUI.Hide();
         }
         RemoveItem(item);
+
+        // RemoveItem이 ItemView를 즉시 풀에 반환해 OnDragEnded 델리게이트가 비워지므로,
+        // InventoryView._draggingItem 리셋이 생략될 수 있음 → 방어적으로 직접 정리
+        ForceDrop();
     }
 
     /// <summary>
@@ -289,6 +305,10 @@ public class InventoryPresenter
         }
         OnItemDropped?.Invoke(item.Config);
         RemoveItem(item);
+
+        // RemoveItem이 ItemView를 즉시 풀에 반환해 OnDragEnded 델리게이트가 비워지므로,
+        // InventoryView._draggingItem 리셋이 생략될 수 있음 → 방어적으로 직접 정리
+        ForceDrop();
     }
 
     /// <summary>
