@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// 아이템 관련 데이터 (Item_Master 참조)
+/// 아이템 관련 데이터 (Item_Master.json)
 /// </summary>
 [System.Serializable]
 public class ItemMasterData

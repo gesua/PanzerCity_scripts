@@ -60,6 +60,15 @@ public class EnemySpawner : MonoBehaviour
         _spawnList = GameManager.Instance.DataManager.GetSpawnList(stageID);
         _stageSpawnCount = _spawnList.Count;
 
+        // 스테이지 설정 데이터에서 스폰 간격과 최대 동시 스폰 수를 적용
+        StageStatusData stageStatus = GameManager.Instance.DataManager.GetStageStatusData(stageID);
+
+        if (stageStatus != null)
+        {
+            _spawnSpan = stageStatus.SpawnSpan;
+            _maxSpawnCount = stageStatus.MaxSpawnCount;
+        }
+
         // 스폰 위치 순서 세팅
         _spawnPosIndex = GenerateRandomArray(_stageSpawnCount, _spawnPos.Length);
 

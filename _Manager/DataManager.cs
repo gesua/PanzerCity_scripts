@@ -10,13 +10,15 @@ public class DataManager : MonoBehaviour
     [System.Serializable] class TankDataList { public List<TankData> list; }
     [System.Serializable] class EnemySpawnDataList { public List<EnemySpawnData> list; }
     [System.Serializable] class ItemDropGroupList { public List<ItemDropGroupData> list; }
+    [System.Serializable] class StageStatusDataList { public List<StageStatusData> list; }
 
     Dictionary<int, TankData> _tankDataDict = new Dictionary<int, TankData>();
     Dictionary<int, List<int>> _spawnDataDict = new Dictionary<int, List<int>>();
     Dictionary<int, ItemMasterData> _itemMasterDict = new();
     Dictionary<int, List<ItemDropGroupData>> _itemDropGroupDict = new();
     Dictionary<int, ItemConfig> _itemConfigDict = new();
-    
+    Dictionary<int, StageStatusData> _stageStatusDict = new();
+
     int _lastStageID;
 
     public int LastStageID => _lastStageID;
@@ -30,9 +32,8 @@ public class DataManager : MonoBehaviour
     {
         LoadTankData();
         LoadEnemySpawnData();
+        LoadStageStatusData();
         LoadItemData();
-        // 나중에 다른 데이터 추가
-        // LoadStageData();
     }
 
     /// <summary>
@@ -94,6 +95,31 @@ public class DataManager : MonoBehaviour
     public string StageIDToSceneName(int stageID)
     {
         return "Stage" + (stageID - 7100).ToString("D2");
+    }
+
+    /// <summary>
+    /// 스테이지 기본 설정 데이터 가져오기
+    /// </summary>
+    void LoadStageStatusData()
+    {
+        TextAsset json = Resources.Load<TextAsset>("Data/Stage_Status");
+        StageStatusDataList dataList = JsonUtility.FromJson<StageStatusDataList>(json.text);
+
+        foreach (StageStatusData data in dataList.list)
+        {
+            _stageStatusDict[data.StageID] = data;
+        }
+    }
+
+    /// <summary>
+    /// stageID로 스테이지 기본 설정 가져오기
+    /// </summary>
+    public StageStatusData GetStageStatusData(int stageID)
+    {
+        if (_stageStatusDict.TryGetValue(stageID, out StageStatusData data)) return data;
+
+        Debug.LogWarning($"StageStatusData 없음:{stageID}");
+        return null;
     }
 
     /// <summary>

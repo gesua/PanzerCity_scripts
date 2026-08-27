@@ -1,5 +1,5 @@
 /// <summary>
-/// 아이템 드랍 그룹 데이터 (Item_DropGroup 참조)
+/// 아이템 드랍 그룹 데이터 (Item_DropGroup.json)
 /// </summary>
 [System.Serializable]
 public class ItemDropGroupData

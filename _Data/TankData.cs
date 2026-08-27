@@ -1,5 +1,5 @@
 /// <summary>
-/// 탱크 종류별 스탯 데이터 (Tank_Status 참조)
+/// 탱크 종류별 스탯 데이터 (Tank_Status.json)
 /// </summary>
 [System.Serializable]
 public class TankData
