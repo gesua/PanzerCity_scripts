@@ -113,6 +113,7 @@ public class AudioManager : MonoBehaviour
         if (_bgmDict.TryGetValue(bgmType, out AudioClip clip) && clip != null)
         {
             _bgmAs.clip = clip;
+            _bgmAs.loop = true; // BGM은 항상 반복 재생(그냥 명시적으로 적어둠)
             _bgmAs.Play();
         }
         else

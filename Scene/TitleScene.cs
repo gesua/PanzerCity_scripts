@@ -13,6 +13,7 @@ public class TitleScene : MonoBehaviour
     [SerializeField] GameObject _option;
     [SerializeField] GameObject _credits;
     [SerializeField] SaveSlotUI _saveSlotUI;
+    [SerializeField] TitleButtonSparkleManager _sparkleManager; // 세이브 슬롯 UI 표시 중 타이틀 버튼 반짝임을 제어하기 위한 참조
 
     [Header("----- 버튼 애니메이션 -----")]
     [SerializeField] CanvasGroup _titleButtonGroup;
@@ -95,11 +96,12 @@ public class TitleScene : MonoBehaviour
     }
 
     /// <summary>
-    /// 게임시작 버튼 — 세이브 슬롯 선택 UI 표시
+    /// 게임시작 버튼 — 세이브 슬롯 선택 UI 표시 (표시되는 동안 타이틀 버튼 반짝임 정지)
     /// </summary>
     public void OnClickStart()
     {
         _saveSlotUI.Show();
+        _sparkleManager.PauseAll(); // 세이브 슬롯 UI가 열리는 동안 타이틀 버튼 반짝임 정지
     }
 
     /// <summary>
@@ -196,6 +198,15 @@ public class TitleScene : MonoBehaviour
     public void CloseCredits()
     {
         _credits.SetActive(false);
+    }
+
+    /// <summary>
+    /// 세이브 슬롯 선택 화면 닫기 버튼 — 선택 없이 취소 (타이틀 버튼 반짝임 재개)
+    /// </summary>
+    public void OnClickCloseSaveSlot()
+    {
+        _saveSlotUI.Hide();
+        _sparkleManager.ResumeAll(); // 세이브 슬롯 UI가 닫히면 반짝임 재개
     }
 
     /// <summary>

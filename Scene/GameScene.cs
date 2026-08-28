@@ -1135,6 +1135,11 @@ public class GameScene : MonoBehaviour
         GameManager.Instance.PoolManager.ReturnAllPools();
 
         Time.timeScale = 1f;
+
+        // 커서 복구
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
         UnsubscribeStage();
 
         // 멀티플레이 로비 정리(호스트는 로비 삭제, 클라이언트는 본인만 나감) — 아래 Shutdown보다 반드시 먼저 호출해야 함
