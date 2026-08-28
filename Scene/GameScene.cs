@@ -44,6 +44,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] EquipmentUI _equipmentUI;   // 장비 UI
     [SerializeField] QuickSlotUI _quickSlotUI;   // 퀵슬롯 UI
     [SerializeField] DropZoneUI _dropZoneUI;     // 드롭존 UI
+    [SerializeField] HUDIntroDirector _hudIntroDirector; // HUD 등장 연출
     // 멀티에서 로컬에게 전달
     [SerializeField] Image _centerCrosshairImage;      // 조준점 색상용
     [SerializeField] RectTransform _centerCrosshair;   // 포탑 조준점(+) UI
@@ -323,6 +324,9 @@ public class GameScene : MonoBehaviour
         // HACK:카메라 w값 조절(나중에 하기)
         //bool isOpen = _rightPanelUI.IsOpen;
         //UpdateCameraRect(isOpen);
+
+        // HUD 등장 연출(최초 게임 시작)
+        if (_hudIntroDirector != null) _hudIntroDirector.PlayIntro();
     }
 
     /// <summary>
@@ -394,7 +398,6 @@ public class GameScene : MonoBehaviour
         // 플레이어 능력치 다시 세팅(장착한 거 적용)
         if (_player != null) _player.Initialize();
 
-        // 리스폰
         _currentStage.OnStageLoaded += HandleStageLoaded;
 
         // 재시작 시 목숨, 인벤토리 복구
@@ -1112,6 +1115,9 @@ public class GameScene : MonoBehaviour
 
         yield return new WaitForSeconds(0.1f); // 잠깐 기다리기
         loadingUI.Hide();
+
+        // HUD 등장 연출(스테이지 전환/재도전)
+        if (_hudIntroDirector != null) _hudIntroDirector.PlayIntro();
     }
 
     /// <summary>
