@@ -64,6 +64,7 @@ public class GameScene : MonoBehaviour
     bool _isShopOpen;
     bool _isRestarting;
     bool _isTutorial; // 튜토리얼 씬 여부
+    bool _hasPlayedHudIntro = false; // 스테이지당 1회 체크 플래그
 
     bool _OnCursor; // 마우스 커서 활성화 여부
 
@@ -324,9 +325,6 @@ public class GameScene : MonoBehaviour
         // HACK:카메라 w값 조절(나중에 하기)
         //bool isOpen = _rightPanelUI.IsOpen;
         //UpdateCameraRect(isOpen);
-
-        // HUD 등장 연출(최초 게임 시작)
-        if (_hudIntroDirector != null) _hudIntroDirector.PlayIntro();
     }
 
     /// <summary>
@@ -851,6 +849,13 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleRespawnComplete(float duration)
     {
+        // HUD 연출(스테이지당 첫 리스폰 완료 시에만 재생 — 이후 목숨 소비 리스폰에선 재생 안 함)
+        if (_hasPlayedHudIntro == false)
+        {
+            _hasPlayedHudIntro = true;
+            if (_hudIntroDirector != null) _hudIntroDirector.PlayIntro();
+        }
+
         _sniperMode.SetCommanderVisualLocked(false); // 전차장 표시 제어권 반환
         if (_respawnShieldRoutine != null) StopCoroutine(_respawnShieldRoutine);
         _respawnShieldRoutine = StartCoroutine(HyperShieldRoutine(duration));
@@ -1063,6 +1068,10 @@ public class GameScene : MonoBehaviour
             _inventoryUI.ExitStore(); // UI 위치 복귀
         }
 
+        // HUD 연출 초기화(로딩 화면이 뜨기 전에 미리 화면 밖으로 이동시켜, 유저에게 순간이동이 노출되지 않게 함)
+        _hasPlayedHudIntro = false;
+        if (_hudIntroDirector != null) _hudIntroDirector.PrepareOffscreen();
+
         // 로딩 이미지 띄우기
         LoadingUI loadingUI = GameManager.Instance.LoadingUI;
         loadingUI.Show();
@@ -1115,9 +1124,6 @@ public class GameScene : MonoBehaviour
 
         yield return new WaitForSeconds(0.1f); // 잠깐 기다리기
         loadingUI.Hide();
-
-        // HUD 등장 연출(스테이지 전환/재도전)
-        if (_hudIntroDirector != null) _hudIntroDirector.PlayIntro();
     }
 
     /// <summary>

@@ -29,26 +29,28 @@ public class HUDIntroDirector : MonoBehaviour
     }
 
     [SerializeField] float _slideDuration = 0.4f;
-    [SerializeField] float _waitTime = 1f;
     [SerializeField] HUDEntry[] _entries;
 
-    Vector2[] _shownPositions; // 각 엔트리의 원래(보여지는) 위치 캐시. 최초 1회만 캐싱됨
+    Vector2[] _shownPositions; // 각 엔트리의 원래(보여지는) 위치 캐시. 최초 1회만 캐싱됨(아래 PrepareOffscreen 참고)
+    Vector2[] _startPositions; // 각 엔트리의 화면 밖 시작 위치. PrepareOffscreen에서 채워지고 PlayIntro에서 사용됨
     Coroutine _introRoutine;
 
+    void Start()
+    {
+        // Game씬 최초 로드 시 자동으로 화면 밖 대기 상태로 세팅
+        // (로딩 화면이 이미 떠 있는 동안 실행되어야 순간이동이 유저에게 노출되지 않음 — TitleScene/LobbyManager가 보장)
+        PrepareOffscreen();
+    }
+
     /// <summary>
-    /// 등장 연출 재생. 게임 최초 시작, 스테이지 전환, 재도전 시 호출됨
-    /// 이미 재생 중이면 중단하고 새로 시작(재호출 대비, RightPanelUI.Toggle과 동일한 가드 패턴)
+    /// HUD를 화면 밖 대기 위치로 순간 이동시킴. 슬라이드인은 하지 않음
+    /// 로딩 UI가 화면을 가리고 있는 동안(Game씬 최초 로드 시, 또는 스테이지 전환 로딩 시작 시) 호출해야
+    /// "이미 보이던 UI가 갑자기 사라지는" 현상 없이 처리됨
     /// </summary>
-    public void PlayIntro()
+    public void PrepareOffscreen()
     {
         if (_entries == null || _entries.Length == 0) return;
 
-        if (_introRoutine != null) StopCoroutine(_introRoutine);
-        _introRoutine = StartCoroutine(IntroRoutine());
-    }
-
-    IEnumerator IntroRoutine()
-    {
         // 원래 위치는 최초 호출 시에만 캐싱함
         // (재호출 시 현재 위치를 다시 캐싱하면, 예를 들어 RightPanelUI가 플레이어 조작으로 닫혀있는 상태에서
         // 스테이지 전환이 일어났을 때 그 닫힌 위치를 "보여지는 위치"로 잘못 캐싱하게 됨)
@@ -65,19 +67,34 @@ public class HUDIntroDirector : MonoBehaviour
         }
 
         // 화면 밖 시작 위치로 순간 이동
-        Vector2[] startPositions = new Vector2[_entries.Length];
+        _startPositions = new Vector2[_entries.Length];
         for (int i = 0; i < _entries.Length; i++)
         {
             RectTransform target = _entries[i].Target;
             if (target == null) continue;
 
             Vector2 offset = GetOffscreenOffset(target, _entries[i].Direction);
-            startPositions[i] = _shownPositions[i] + offset;
-            target.anchoredPosition = startPositions[i];
+            _startPositions[i] = _shownPositions[i] + offset;
+            target.anchoredPosition = _startPositions[i];
         }
+    }
 
-        yield return new WaitForSeconds(_waitTime);
+    /// <summary>
+    /// 화면 밖에 대기 중인 HUD를 슬라이드인시킴. PrepareOffscreen이 먼저 호출되어 있어야 함
+    /// 게임 최초 시작, 스테이지 전환, 재도전 시 리스폰 완료 시점에 호출됨
+    /// 이미 재생 중이면 중단하고 새로 시작(재호출 대비, RightPanelUI.Toggle과 동일한 가드 패턴)
+    /// </summary>
+    public void PlayIntro()
+    {
+        if (_entries == null || _entries.Length == 0) return;
+        if (_startPositions == null) return; // PrepareOffscreen 미호출 상태에선 재생 안 함
 
+        if (_introRoutine != null) StopCoroutine(_introRoutine);
+        _introRoutine = StartCoroutine(IntroRoutine());
+    }
+
+    IEnumerator IntroRoutine()
+    {
         // 전체 엔트리 동시 슬라이드인(공유 타이머)
         float elapsed = 0f;
         while (elapsed < _slideDuration)
@@ -91,7 +108,7 @@ public class HUDIntroDirector : MonoBehaviour
                 RectTransform target = _entries[i].Target;
                 if (target == null) continue;
 
-                target.anchoredPosition = Vector2.Lerp(startPositions[i], _shownPositions[i], progress);
+                target.anchoredPosition = Vector2.Lerp(_startPositions[i], _shownPositions[i], progress);
             }
 
             yield return null;
