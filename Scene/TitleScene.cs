@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Localization.Settings;
 using UnityEngine.SceneManagement;
@@ -14,6 +15,10 @@ public class TitleScene : MonoBehaviour
     [SerializeField] GameObject _credits;
     [SerializeField] SaveSlotUI _saveSlotUI;
     [SerializeField] TitleButtonSparkleManager _sparkleManager; // 세이브 슬롯 UI 표시 중 타이틀 버튼 반짝임을 제어하기 위한 참조
+
+    [Header("----- 방장 이탈 알림 팝업 -----")]
+    [SerializeField] GameObject _hostLeftPopup;          // 패널 전체 켜고 끄기용(평소엔 비활성)
+    [SerializeField] TextMeshProUGUI _hostLeftPopupText; // 메시지 표시
 
     [Header("----- 버튼 애니메이션 -----")]
     [SerializeField] CanvasGroup _titleButtonGroup;
@@ -35,8 +40,31 @@ public class TitleScene : MonoBehaviour
         GameManager manager = GameManager.Instance;
         manager.AudioManager.PlayBgm(BgmType.Title);
 
+        // 멀티플레이 중 방장이 나가서 여기로 왔다면 팝업으로 안내(로컬라이징 초기화 이후라 GetLocalizedString 사용 가능)
+        if (LobbyManager.Instance != null && LobbyManager.Instance.ConsumeHostLeftNotification())
+        {
+            ShowHostLeftPopup();
+        }
+
         // 초기화가 끝나면 버튼이 위로 올라오면서 나타나는 애니메이션 실행
         StartCoroutine(ShowButtonRoutine());
+    }
+
+    /// <summary>
+    /// 방장 이탈 알림 팝업 표시
+    /// </summary>
+    void ShowHostLeftPopup()
+    {
+        _hostLeftPopupText.text = LocalizationSettings.StringDatabase.GetLocalizedString("Localization", "UI_MP_MSG_HOST_LEFT");
+        _hostLeftPopup.SetActive(true);
+    }
+
+    /// <summary>
+    /// 방장 이탈 알림 팝업 닫기 버튼
+    /// </summary>
+    public void OnClickCloseHostLeftPopup()
+    {
+        _hostLeftPopup.SetActive(false);
     }
 
     /// <summary>

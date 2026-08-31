@@ -41,6 +41,7 @@ public class LobbyManager : MonoBehaviour
     string _nickname;
     string _hostedLobbyId; // 로비 단계 정리용으로 유지
     string _joinedLobbyId; // 클라이언트용:_currentLobby와 달리 게임 시작 후에도 유지되어 방장 이탈 감지에 사용됨
+    bool _hostLeftNotificationPending; // 타이틀 씬에서 "방장이 나가서 왔다" 팝업을 한 번만 표시하기 위한 플래그
     Dictionary<ulong, string> _clientIdToPlayerId = new Dictionary<ulong, string>(); // Netcode clientId ↔ Lobby Player.Id
 
     bool _isHeartbeating; // 하트비트 중복 방지용(응답이 주기보다 늦게 오면 재진입 가능)
@@ -754,7 +755,22 @@ public class LobbyManager : MonoBehaviour
             Debug.LogWarning($"호스트 퇴장 후 로비 정리 실패:{e.Message}");
         }
 
+        // 타이틀 씬에서 "방장이 나가서 왔다"는 팝업을 띄울 수 있도록 알림 플래그 세팅(ConsumeHostLeftNotification 참고)
+        _hostLeftNotificationPending = true;
+
         OnHostLeft?.Invoke();
+    }
+
+    /// <summary>
+    /// 방장 이탈로 메인메뉴에 왔다는 알림이 대기 중이면 true를 반환하고 플래그를 소비함(한 번 확인하면 다음부턴 false)
+    /// 타이틀 씬이 Start()에서 호출해서 팝업 표시 여부를 판단하는 용도
+    /// </summary>
+    public bool ConsumeHostLeftNotification()
+    {
+        if (_hostLeftNotificationPending == false) return false;
+
+        _hostLeftNotificationPending = false;
+        return true;
     }
 
     /// <summary>
