@@ -3,11 +3,13 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// 게임 시작/스테이지 전환/재도전 시 플레이어 HUD들이 화면 바깥에서 안으로 슬라이드인하는 연출 전담 컴포넌트
-/// 각 UI 스크립트(PlayerHPUI, TankDirectionUI, QuickSlotUI, RightPanelUI, MiniMapUI 등)의 내부 로직에는 관여하지 않고,
+/// 게임 HUD, 상점 UI 등 화면 요소 전반이 화면 바깥에서 안으로 슬라이드인하는 연출 전담 범용 컴포넌트
+/// 각 UI 스크립트(PlayerHPUI, TankDirectionUI, QuickSlotUI, RightPanelUI, MiniMapUI, ShopUI 등)의 내부 로직에는 관여하지 않고,
 /// RectTransform의 anchoredPosition만 이동시킴
+/// 자동으로 화면 밖 위치를 잡지 않으므로(Start()에서 PrepareOffscreen을 호출하지 않음), 사용하는 쪽에서
+/// PrepareOffscreen() → (필요한 초기화) → PlayIntro() 순서로 명시적으로 호출해야 함
 /// </summary>
-public class HUDIntroDirector : MonoBehaviour
+public class SlideInDirector : MonoBehaviour
 {
     /// <summary>
     /// 슬라이드가 시작되는 화면 밖 방향(도착 지점 기준 상대 방향)
@@ -22,25 +24,24 @@ public class HUDIntroDirector : MonoBehaviour
     }
 
     [Serializable]
-    public class HUDEntry
+    public class SlideEntry
     {
         public RectTransform Target;
         public SlideDirection Direction;
     }
 
     [SerializeField] float _slideDuration = 0.4f;
-    [SerializeField] HUDEntry[] _entries;
+    [SerializeField] SlideEntry[] _entries;
 
     Vector2[] _shownPositions; // 각 엔트리의 원래(보여지는) 위치 캐시. 최초 1회만 캐싱됨(아래 PrepareOffscreen 참고)
     Vector2[] _startPositions; // 각 엔트리의 화면 밖 시작 위치. PrepareOffscreen에서 채워지고 PlayIntro에서 사용됨
     Coroutine _introRoutine;
 
-    void Start()
-    {
-        // Game씬 최초 로드 시 자동으로 화면 밖 대기 상태로 세팅
-        // (로딩 화면이 이미 떠 있는 동안 실행되어야 순간이동이 유저에게 노출되지 않음 — TitleScene/LobbyManager가 보장)
-        PrepareOffscreen();
-    }
+    /// <summary>
+    /// 슬라이드인 1회 소요 시간. 외부에서 "슬라이드인이 끝나는 시점"을 기준으로
+    /// 후속 연출(예: 상점 주인 인사)을 지연시켜야 할 때 참조용으로 사용
+    /// </summary>
+    public float SlideDuration => _slideDuration;
 
     /// <summary>
     /// HUD를 화면 밖 대기 위치로 순간 이동시킴. 슬라이드인은 하지 않음

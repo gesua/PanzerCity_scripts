@@ -44,7 +44,8 @@ public class GameScene : MonoBehaviour
     [SerializeField] EquipmentUI _equipmentUI;   // 장비 UI
     [SerializeField] QuickSlotUI _quickSlotUI;   // 퀵슬롯 UI
     [SerializeField] DropZoneUI _dropZoneUI;     // 드롭존 UI
-    [SerializeField] HUDIntroDirector _hudIntroDirector; // HUD 등장 연출
+    [SerializeField] SlideInDirector _hudIntroDirector; // HUD 등장 연출
+    [SerializeField] SlideInDirector _shopSlideInDirector; // 상점 UI 등장 연출
     // 멀티에서 로컬에게 전달
     [SerializeField] Image _centerCrosshairImage;      // 조준점 색상용
     [SerializeField] RectTransform _centerCrosshair;   // 포탑 조준점(+) UI
@@ -79,6 +80,10 @@ public class GameScene : MonoBehaviour
 
     private void Start()
     {
+        // HUD 연출 초기화(로딩 화면이 이미 떠 있는 동안 실행되어야 순간이동이 유저에게 노출되지 않음 — TitleScene/LobbyManager가 보장)
+        // SlideInDirector는 더 이상 자체 Start()에서 자동으로 화면 밖 위치를 잡지 않으므로 여기서 명시적으로 호출
+        if (_hudIntroDirector != null) _hudIntroDirector.PrepareOffscreen();
+
         // 멀티플레이:로컬 플레이어 스폰 신호를 기다림
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
@@ -317,7 +322,7 @@ public class GameScene : MonoBehaviour
         _dropZoneUI.Initialize(_inventoryUI.Presenter);
 
         // 상점 세팅
-        _shopUI.Initialize(_inventoryUI, _equipmentUI);
+        _shopUI.Initialize(_inventoryUI, _equipmentUI, _shopSlideInDirector);
 
         // 마우스 감도 적용
         _cameraTarget.SetSensitivity(GameManager.Instance.OptionManager.OptionData.MouseSensitivity);

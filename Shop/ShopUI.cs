@@ -31,6 +31,7 @@ public class ShopUI : MonoBehaviour
 
     InventoryUI _inventoryUI;
     EquipmentUI _equipmentUI;
+    SlideInDirector _slideInDirector; // 상점 UI(상점 주인 포함) 등장 연출
 
     bool _isMultiplayer;
     bool _isReadyForNextStage;
@@ -48,10 +49,11 @@ public class ShopUI : MonoBehaviour
 
     public event Action OnExitClicked;
 
-    public void Initialize(InventoryUI inventoryUI, EquipmentUI equipmentUI)
+    public void Initialize(InventoryUI inventoryUI, EquipmentUI equipmentUI, SlideInDirector slideInDirector)
     {
         _inventoryUI = inventoryUI;
         _equipmentUI = equipmentUI;
+        _slideInDirector = slideInDirector;
     }
 
     void Start()
@@ -178,6 +180,11 @@ public class ShopUI : MonoBehaviour
         EnsureShopInitialized(); // Start()가 아직 실행되기 전(최초 오픈 시점)이어도 커서 동기화 상태를 먼저 확정
 
         gameObject.SetActive(active);
+
+        // HUD 연출:상점 UI가 켜지는 그 즉시 화면 밖으로 세팅(한 프레임도 제자리에 노출되지 않도록)
+        // SlideInDirector는 자체적으로 화면 밖 위치를 자동으로 잡지 않으므로 여기서 명시적으로 호출
+        if (active && _slideInDirector != null) _slideInDirector.PrepareOffscreen();
+
         _clickBlocker.SetActive(false);
 
         // 멀티플레이:다른 플레이어들이 로컬에서 내 탱크를 숨기고 복원할 수 있도록 상점 열림/닫힘 신호 전달
@@ -192,7 +199,6 @@ public class ShopUI : MonoBehaviour
             _isReadyForNextStage = false; // 새 상점이니 준비 상태 초기화(멀티)
             _exitButtonImage.color = Color.white; // 출격 버튼 색 복구
 
-            _shopOwnerUI.ShowWelcome(); // 인사
             RollEquipmentItem(); // 열릴 때마다 장비 새로 뽑기
 
             _readyCountText.text = ""; // 멀티 준비 완료 텍스트 비워줌
@@ -204,6 +210,17 @@ public class ShopUI : MonoBehaviour
 
                 _previousCursorVisible = Cursor.visible; // 나갈 때 복원할 수 있도록 진입 전 상태 저장
                 Cursor.visible = false; // 커스텀 이미지 커서와 겹쳐 보이지 않도록 OS 기본 커서만 숨김 — CursorLockMode는 그대로 None 유지(잠그면 마우스 자유 이동/클릭 자체가 막혀서 상점 조작과 위치 추적이 둘 다 깨짐)
+            }
+
+            // HUD 연출:상점 UI(상점 주인 포함) 슬라이드인 시작. 인사(ShowWelcome)는 슬라이드인이 끝난 뒤 재생
+            if (_slideInDirector != null)
+            {
+                _slideInDirector.PlayIntro();
+                StartCoroutine(ShowWelcomeAfterSlideIn());
+            }
+            else
+            {
+                _shopOwnerUI.ShowWelcome(); // 연출 컴포넌트가 없으면(미할당 등) 기존처럼 즉시 인사
             }
         }
         else
@@ -475,6 +492,17 @@ public class ShopUI : MonoBehaviour
         yield return new WaitForSeconds(3f);
         SetShopActive(false); // 상점 정리 로직(커서 송신 중단/Cursor.visible 복원/원격 탱크 렌더러 복원 신호)이 전부 여기를 거쳐야 하므로 gameObject.SetActive 직접 호출 대신 이 메서드를 통해 닫음
         OnExitClicked?.Invoke();
+    }
+
+    /// <summary>
+    /// HUD 연출:상점 UI(상점 주인 포함) 슬라이드인이 끝날 때까지 대기 후 상점 주인 인사 재생
+    /// 상점 진입 시 Time.timeScale은 건드리지 않으므로(HandleStageClear 참고) SlideInDirector.IntroRoutine과
+    /// 동일하게 Time.deltaTime 기준으로 대기해야 슬라이드인 종료 시점과 정확히 일치함
+    /// </summary>
+    IEnumerator ShowWelcomeAfterSlideIn()
+    {
+        yield return new WaitForSeconds(_slideInDirector.SlideDuration);
+        _shopOwnerUI.ShowWelcome();
     }
 
     /// <summary>
