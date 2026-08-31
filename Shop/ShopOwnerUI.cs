@@ -59,6 +59,22 @@ public class ShopOwnerUI : MonoBehaviour
     }
 
     /// <summary>
+    /// 대사 패널 초기화(즉시 숨김). 상점이 새로 열릴 때(SetShopActive(true)) 호출해서
+    /// 이전 세션의 나가기 대사가 남아있는 상태로 등장 연출이 재생되는 걸 방지하기 위함
+    /// 타이핑 도중이었을 경우를 대비해 진행 중인 코루틴도 함께 정리
+    /// </summary>
+    public void ResetDialogue()
+    {
+        if (_typeRoutine != null)
+        {
+            StopCoroutine(_typeRoutine);
+            _typeRoutine = null;
+        }
+
+        _dialoguePanel.SetActive(false);
+    }
+
+    /// <summary>
     /// 상호작용 가능 여부 설정
     /// </summary>
     public void SetInteractable(bool isInteractable)

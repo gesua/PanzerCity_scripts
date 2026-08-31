@@ -200,6 +200,8 @@ public class ShopUI : MonoBehaviour
             _isReadyForNextStage = false; // 새 상점이니 준비 상태 초기화(멀티)
             _exitButtonImage.color = Color.white; // 출격 버튼 색 복구
 
+            _shopOwnerUI.ResetDialogue(); // 이전 세션의 나가기 대사가 남아있는 상태로 등장 연출이 재생되지 않도록 미리 정리
+
             RollEquipmentItem(); // 열릴 때마다 장비 새로 뽑기
 
             _readyCountText.text = ""; // 멀티 준비 완료 텍스트 비워줌
