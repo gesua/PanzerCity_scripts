@@ -164,6 +164,9 @@ public class TitleScene : MonoBehaviour
     /// </summary>
     public void OnClickMultiplayer()
     {
+        // Lobby 씬의 오브젝트들이 Awake를 마친 직후(=Lobby 리스너가 켜진 직후) 호출됨
+        SceneManager.sceneLoaded += OnLobbySceneLoaded;
+
         StartCoroutine(LoadLobbyRoutine());
     }
 
@@ -177,8 +180,11 @@ public class TitleScene : MonoBehaviour
 
         loadingUI.Show();
 
+        // Game 씬의 오브젝트들이 Awake를 마친 직후(=메인카메라 리스너가 켜진 직후) 호출됨
+        // 프레임 대기 없이 그 시점에 곧바로 Title 리스너를 꺼서 0개/2개 상태가 노출되지 않도록 함
+        SceneManager.sceneLoaded += OnGameSceneLoaded;
+
         // 스테이지 로드
-        _audioListener.enabled = false;
         _eventSystem.gameObject.SetActive(false);
 
         _gameSceneLoad = SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
@@ -192,7 +198,6 @@ public class TitleScene : MonoBehaviour
         yield return new WaitUntil(() => stageLoad.progress >= 0.9f); // 실제로 기다리는 거
 
         // 씬 전환될 때 그대로 두면 2개라고 에러 뜸
-        _audioListener.enabled = false;
         _eventSystem.gameObject.SetActive(false);
 
         // 동시에 활성화
@@ -205,9 +210,32 @@ public class TitleScene : MonoBehaviour
         SceneManager.UnloadSceneAsync("Title");
     }
 
+    /// <summary>
+    /// Game 씬 로드 완료 콜백 — 메인카메라 리스너가 켜진 직후 Title 리스너를 꺼서
+    /// 리스너 0개/2개 상태가 어떤 프레임에도 노출되지 않도록 함. 1회성이라 즉시 구독 해제
+    /// </summary>
+    void OnGameSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name != "Game") return;
+
+        _audioListener.enabled = false;
+        SceneManager.sceneLoaded -= OnGameSceneLoaded;
+    }
+
+    /// <summary>
+    /// Lobby 씬 로드 완료 콜백 — Lobby 리스너가 켜진 직후 Title 리스너를 꺼서
+    /// 리스너 0개/2개 상태가 어떤 프레임에도 노출되지 않도록 함. 1회성이라 즉시 구독 해제
+    /// </summary>
+    void OnLobbySceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name != "Lobby") return;
+
+        _audioListener.enabled = false;
+        SceneManager.sceneLoaded -= OnLobbySceneLoaded;
+    }
+
     IEnumerator LoadLobbyRoutine()
     {
-        _audioListener.enabled = false;
         _eventSystem.gameObject.SetActive(false);
 
         yield return SceneManager.LoadSceneAsync("Lobby");
@@ -255,6 +283,8 @@ public class TitleScene : MonoBehaviour
     void OnDestroy()
     {
         _saveSlotUI.OnSlotSelected -= HandleSlotSelected;
+        SceneManager.sceneLoaded -= OnGameSceneLoaded;  // 콜백 실행 전 파괴되는 경우를 대비한 안전장치
+        SceneManager.sceneLoaded -= OnLobbySceneLoaded; // 콜백 실행 전 파괴되는 경우를 대비한 안전장치
         GameManager.Instance.LoadingUI.Hide();
     }
 }

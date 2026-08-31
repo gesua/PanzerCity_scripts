@@ -71,6 +71,8 @@ public class LobbyScene : MonoBehaviour
 
     void OnDestroy()
     {
+        SceneManager.sceneLoaded -= OnGameMultiSceneLoaded; // 콜백 실행 전 파괴되는 경우를 대비한 안전장치
+
         if (LobbyManager.Instance == null) return;
 
         LobbyManager.Instance.OnLobbyListUpdated -= RefreshLobbyListUI;
@@ -492,7 +494,10 @@ public class LobbyScene : MonoBehaviour
         GameManager.Instance.PoolManager.GetPool("DroppedItem_Multi");
         GameManager.Instance.PoolManager.GetPool("Shell_Multi");
 
-        if (_audioListener != null) _audioListener.enabled = false;
+        // Game_Multi 씬의 오브젝트들이 Awake를 마친 직후(=메인카메라 리스너가 켜진 직후) 호출됨
+        // 프레임 대기 없이 그 시점에 곧바로 Lobby 리스너를 꺼서 0개/2개 상태가 노출되지 않도록 함
+        SceneManager.sceneLoaded += OnGameMultiSceneLoaded;
+
         if (_eventSystem != null) _eventSystem.gameObject.SetActive(false);
 
         LoadingUI loadingUI = GameManager.Instance.LoadingUI;
@@ -514,6 +519,18 @@ public class LobbyScene : MonoBehaviour
 
         loadingUI.Hide();
         SceneManager.UnloadSceneAsync("Lobby");
+    }
+
+    /// <summary>
+    /// Game_Multi 씬 로드 완료 콜백 — 메인카메라 리스너가 켜진 직후 Lobby 리스너를 꺼서
+    /// 리스너 0개/2개 상태가 어떤 프레임에도 노출되지 않도록 함. 1회성이라 즉시 구독 해제
+    /// </summary>
+    void OnGameMultiSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name != "Game_Multi") return;
+
+        if (_audioListener != null) _audioListener.enabled = false;
+        SceneManager.sceneLoaded -= OnGameMultiSceneLoaded;
     }
 
     /// <summary>
