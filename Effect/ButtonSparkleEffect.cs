@@ -39,4 +39,14 @@ public class ButtonSparkleEffect : MonoBehaviour, IPointerEnterHandler
 
         _sparkleParticle.Stop(true, ParticleSystemStopBehavior.StopEmitting);
     }
+
+    /// <summary>
+    /// 세이브 슬롯 UI 등 다른 패널이 열려 즉시 정지가 필요할 때 호출 — 이미 떠있는 파티클까지 즉시 제거
+    /// </summary>
+    public void StopImmediate()
+    {
+        if (_sparkleParticle == null) return;
+
+        _sparkleParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+    }
 }

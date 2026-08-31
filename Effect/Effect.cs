@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// VFX(비주얼 이펙트)를 담당
@@ -22,6 +23,11 @@ public class Effect : MonoBehaviour
     public void Stop()
     {
         _ps.Stop();
+    }
+
+    public void StopImmediate()
+    {
+        _ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 
     private void OnParticleSystemStopped()

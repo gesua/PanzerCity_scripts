@@ -33,8 +33,7 @@ public class TitleButtonSparkleManager : MonoBehaviour
 
         if (hoveredButton == _currentActiveButton) return; // 이미 활성 상태인 버튼이면 무시
 
-        if (_currentActiveButton != null) _currentActiveButton.Stop();
-
+        _currentActiveButton.Stop();
         _currentActiveButton = hoveredButton;
         _currentActiveButton.Play();
     }
@@ -46,8 +45,8 @@ public class TitleButtonSparkleManager : MonoBehaviour
     {
         _isPaused = true;
 
-        if (_currentActiveButton != null) _currentActiveButton.Stop();
-        _logoSparkle.Stop();
+        _currentActiveButton.StopImmediate();
+        _logoSparkle.StopImmediate();
     }
 
     /// <summary>
@@ -57,7 +56,7 @@ public class TitleButtonSparkleManager : MonoBehaviour
     {
         _isPaused = false;
 
-        if (_currentActiveButton != null) _currentActiveButton.Play();
+        _currentActiveButton.Play();
         _logoSparkle.Play();
     }
 }
