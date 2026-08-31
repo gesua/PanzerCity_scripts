@@ -44,6 +44,7 @@ public class ShopUI : MonoBehaviour
 
     const int EquipDropGroupID = 8301; // 장비 확률
     const int MaxPlayerCount = 4; // 멀티플레이 최대 인원(커서 색상 슬롯 수와 동일)
+    const float ExitWaitDuration = 3f; // 나가기 대사 대기 시간
 
     public Transform RightPanelTr => _rightPanelTr;
 
@@ -487,9 +488,27 @@ public class ShopUI : MonoBehaviour
         StartCoroutine(ExitRoutine());
     }
 
+    /// <summary>
+    /// 나가기 대사 종료와 동시에 상점 UI가 사라지도록, 대기 시간 중 마지막 구간에
+    /// 슬라이드아웃(SlideDuration)이 걸쳐서 끝나게 함. 대사 대기 시간은 그대로 유지함
+    /// </summary>
+
     IEnumerator ExitRoutine()
     {
-        yield return new WaitForSeconds(3f);
+        if (_slideInDirector != null)
+        {
+            float waitBeforeSlideOut = ExitWaitDuration - _slideInDirector.SlideDuration;
+            yield return new WaitForSeconds(waitBeforeSlideOut);
+
+            _slideInDirector.PlayOutro();
+
+            yield return new WaitForSeconds(_slideInDirector.SlideDuration);
+        }
+        else
+        {
+            yield return new WaitForSeconds(ExitWaitDuration); // 연출 컴포넌트가 없으면(미할당 등) 기존처럼 대기
+        }
+
         SetShopActive(false); // 상점 정리 로직(커서 송신 중단/Cursor.visible 복원/원격 탱크 렌더러 복원 신호)이 전부 여기를 거쳐야 하므로 gameObject.SetActive 직접 호출 대신 이 메서드를 통해 닫음
         OnExitClicked?.Invoke();
     }

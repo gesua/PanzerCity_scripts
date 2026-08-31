@@ -34,8 +34,8 @@ public class SlideInDirector : MonoBehaviour
     [SerializeField] SlideEntry[] _entries;
 
     Vector2[] _shownPositions; // 각 엔트리의 원래(보여지는) 위치 캐시. 최초 1회만 캐싱됨(아래 PrepareOffscreen 참고)
-    Vector2[] _startPositions; // 각 엔트리의 화면 밖 시작 위치. PrepareOffscreen에서 채워지고 PlayIntro에서 사용됨
-    Coroutine _introRoutine;
+    Vector2[] _startPositions; // 각 엔트리의 화면 밖 시작 위치. PrepareOffscreen에서 채워지고 PlayIntro/PlayOutro에서 사용됨
+    Coroutine _slideRoutine; // 인트로/아웃트로 공용(동시에 둘 다 재생될 일이 없으므로 하나로 관리)
 
     /// <summary>
     /// 슬라이드인 1회 소요 시간. 외부에서 "슬라이드인이 끝나는 시점"을 기준으로
@@ -90,8 +90,8 @@ public class SlideInDirector : MonoBehaviour
         if (_entries == null || _entries.Length == 0) return;
         if (_startPositions == null) return; // PrepareOffscreen 미호출 상태에선 재생 안 함
 
-        if (_introRoutine != null) StopCoroutine(_introRoutine);
-        _introRoutine = StartCoroutine(IntroRoutine());
+        if (_slideRoutine != null) StopCoroutine(_slideRoutine);
+        _slideRoutine = StartCoroutine(IntroRoutine());
     }
 
     IEnumerator IntroRoutine()
@@ -122,6 +122,52 @@ public class SlideInDirector : MonoBehaviour
             if (target == null) continue;
 
             target.anchoredPosition = _shownPositions[i];
+        }
+    }
+
+    /// <summary>
+    /// 화면에 보이는 중인 엔트리들을 화면 밖(PrepareOffscreen이 계산해둔 _startPositions)으로 슬라이드아웃시킴
+    /// PrepareOffscreen이 먼저 호출되어 _startPositions가 계산되어 있어야 함(PlayIntro 전/후 어느 시점이든 무방,
+    /// 방향은 PrepareOffscreen 호출 시점의 SlideEntry 설정을 그대로 따름)
+    /// 이미 재생 중이면 중단하고 새로 시작(PlayIntro와 동일한 가드 패턴)
+    /// </summary>
+    public void PlayOutro()
+    {
+        if (_entries == null || _entries.Length == 0) return;
+        if (_startPositions == null) return; // PrepareOffscreen 미호출 상태에선 재생 안 함
+
+        if (_slideRoutine != null) StopCoroutine(_slideRoutine);
+        _slideRoutine = StartCoroutine(OutroRoutine());
+    }
+
+    IEnumerator OutroRoutine()
+    {
+        // 전체 엔트리 동시 슬라이드아웃(공유 타이머). IntroRoutine과 진행 방향만 반대
+        float elapsed = 0f;
+        while (elapsed < _slideDuration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = elapsed / _slideDuration;
+            progress = Mathf.SmoothStep(0f, 1f, progress);
+
+            for (int i = 0; i < _entries.Length; i++)
+            {
+                RectTransform target = _entries[i].Target;
+                if (target == null) continue;
+
+                target.anchoredPosition = Vector2.Lerp(_shownPositions[i], _startPositions[i], progress);
+            }
+
+            yield return null;
+        }
+
+        // 최종 위치 보정(프레임 오차 방지)
+        for (int i = 0; i < _entries.Length; i++)
+        {
+            RectTransform target = _entries[i].Target;
+            if (target == null) continue;
+
+            target.anchoredPosition = _startPositions[i];
         }
     }
 
