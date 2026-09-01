@@ -14,6 +14,7 @@ public class SaveSlotUI : MonoBehaviour
     public event Action<int> OnSlotSelected; // 슬롯 선택됨(새 게임/이어하기 판단은 TitleScene에서)
 
     Coroutine _transitionRoutine; // 진행 중인 등장/퇴장 연출(중복 실행 방지용)
+    bool _isShowing; // 현재 진행 중인 연출의 방향(true: 등장 중, false: 퇴장 중) — _transitionRoutine이 null이 아닐 때만 유효
 
     void Awake()
     {
@@ -29,22 +30,30 @@ public class SaveSlotUI : MonoBehaviour
 
     /// <summary>
     /// 슬롯 선택 화면 표시 — 슬롯이 하나씩 순차적으로 통통 튀며 나타남
+    /// 이미 등장 연출이 진행 중이면 무시(연타 방지)
     /// </summary>
     public void Show()
     {
+        if (_transitionRoutine != null && _isShowing) return; // 이미 열리는 중이면 무시
+
         gameObject.SetActive(true);
         RefreshAll();
 
         if (_transitionRoutine != null) StopCoroutine(_transitionRoutine);
+        _isShowing = true;
         _transitionRoutine = StartCoroutine(ShowRoutine());
     }
 
     /// <summary>
     /// 슬롯 선택 화면 숨김 — 슬롯이 하나씩 순차적으로 오그라들며 사라진 뒤 비활성화
+    /// 이미 퇴장 연출이 진행 중이면 무시(연타 방지), 등장 연출 도중이면 그 자리에서 바로 퇴장으로 전환
     /// </summary>
     public void Hide()
     {
+        if (_transitionRoutine != null && _isShowing == false) return; // 이미 닫히는 중이면 무시
+
         if (_transitionRoutine != null) StopCoroutine(_transitionRoutine);
+        _isShowing = false;
         _transitionRoutine = StartCoroutine(HideRoutine());
     }
 
