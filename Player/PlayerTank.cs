@@ -391,6 +391,38 @@ public class PlayerTank : TankBase
     }
 
     /// <summary>
+    /// 멀티플레이:원격 관찰자 전용 — 목숨을 모두 소진(탈락)한 상태로 상점을 통과해 부활(PlayerNetworkOwner.ReviveFromEliminationAtShop)했을 때 호출
+    /// 부활 자체는 네트워크 값(_life)만 바꾸는 순수 데이터 처리라 시각적으로는 아무 것도 바뀌지 않으므로,
+    /// 탈락 당시 켜졌던 파괴 모델이 다음 정상 사망까지 다른 클라이언트 화면에 그대로 남아있는 문제를 여기서 직접 바로잡음
+    /// 아직 텔레포트할 시점이 아님(오너의 실제 위치는 NetworkTransform이 계속 동기화 중)이라 RespawnRoutine의 위치 이동/카메라 연출은 쓰지 않고 시각 상태만 되돌림
+    /// </summary>
+    public void RestoreAliveVisual()
+    {
+        // 진행 중이던 사망 타이머가 있다면 정리(방치 시 타이머 만료로 OnPlayerRespawn이 뒤늦게 발생해 중복 리스폰을 유발함)
+        if (_deadRoutine != null)
+        {
+            StopCoroutine(_deadRoutine);
+            _deadRoutine = null;
+        }
+
+        _isDead = false;
+
+        // 전차장 원상복구(HandleDead에서 바뀐 부모/시선/표정을 RespawnRoutine과 동일한 방식으로 되돌림)
+        _commander.CommanderRoot.SetParent(TurretTr);
+        _commander.transform.localRotation = Quaternion.identity;
+        _commander.Reset();
+        _commander.SetVisible(true);
+
+        // 포탑 원상복구(HandleDead에서 꺼졌던 것을 되돌림)
+        _turret.enabled = true;
+        _turret.SetCrosshairVisible(true);
+
+        // 파괴된 모델 -> 정상 모델로 교체
+        SetNormalVisualVisible(true);
+        _destroyedVisual.SetActive(false);
+    }
+
+    /// <summary>
     /// 멀티플레이:상점 UI에서 다른 플레이어에게 겹쳐 보이지 않도록 로컬에서만 시각적으로 숨김(네트워크 동기화 없이 각자 로컬 판단, PlayerNetworkOwner가 호출)
     /// 사망/리스폰 흐름과 독립적인 레이어로 관리 — 상점이 열려있는 동안 리스폰이 완료돼도 계속 숨겨진 채 유지되고,
     /// 상점이 닫힐 때 그 시점의 실제 생존 상태를 반영해 다시 보여줌(사망 중이면 계속 숨김)

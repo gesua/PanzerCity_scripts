@@ -169,7 +169,6 @@ public class PlayerNetworkOwner : NetworkBehaviour
         }
 
         HandlePlayerIndexValueChanged(-1, _playerIndex.Value);
-        HandleLifeValueChanged(0, _life.Value);
         HandleHpValueChanged(0, _hp.Value);
     }
 
@@ -179,7 +178,17 @@ public class PlayerNetworkOwner : NetworkBehaviour
     /// </summary>
     void HandleLifeValueChanged(int previousValue, int currentValue)
     {
+        if (PlayerIndex < 0) return; // playerIndex 미도착:도착하는 순간 HandlePlayerIndexValueChanged가 재캐치업함
+
         NetworkGameManager.Instance.NotifyLifeChanged(OwnerClientId, PlayerIndex, currentValue);
+
+        // 탈락(EliminatedLife) 상태에서 정상값으로 복귀 = 상점에서 부활 처리된 시점(ReviveFromEliminationAtShop)
+        // 부활 자체는 네트워크 값만 바꾸는 처리라 시각적으로는 아무 것도 안 바뀌므로, 원격 관찰자만 파괴 모델을 직접 되돌려줌
+        // (오너 자신은 GameScene의 정상 스테이지 전환/리스폰 흐름을 그대로 타므로 제외)
+        if (IsOwner) return;
+        if (previousValue != EliminatedLife) return;
+
+        _playerTank.RestoreAliveVisual();
     }
 
     /// <summary>
@@ -228,6 +237,12 @@ public class PlayerNetworkOwner : NetworkBehaviour
     {
         _playerTank.SetTankColorByIndex(currentValue);
         _playerTank.SetCommanderByIndex(currentValue);
+
+        // playerIndex가 이번에 처음 도착한 경우, 그 사이 위 가드로 보류됐을 수 있는 목숨 UI 캐치업을 여기서 재실행
+        if (previousValue < 0)
+        {
+            HandleLifeValueChanged(0, _life.Value);
+        }
     }
 
     /// <summary>
