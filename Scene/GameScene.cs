@@ -925,6 +925,9 @@ public class GameScene : MonoBehaviour
     void HandleStageClear()
     {
         _stageClearUI.Hide();
+        
+        // 미니맵 원래 크기로 복구
+        _miniMapUI.ResetSize();
 
         // 마지막 스테이지면 상점 없이 게임 클리어 UI 표시
         // HACK:게임 클리어에서 이어하기 하면 상점 나오게 할거임

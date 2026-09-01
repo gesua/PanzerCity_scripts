@@ -83,4 +83,17 @@ public class MiniMapUI : MonoBehaviour
         _miniMap.sizeDelta = targetSize;
         _miniMap.anchoredPosition = targetPos;
     }
+
+    /// <summary>
+    /// 미니맵 원래 크기로 복구
+    /// </summary>
+    public void ResetSize()
+    {
+        if (_isExpanded)
+        {
+            _isExpanded = false;
+            if (_expandRoutine != null) StopCoroutine(_expandRoutine);
+            _expandRoutine = StartCoroutine(ExpandRoutine(false)); // 원래 크기로 축소
+        }
+    }
 }
