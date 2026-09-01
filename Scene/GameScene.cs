@@ -925,9 +925,9 @@ public class GameScene : MonoBehaviour
     void HandleStageClear()
     {
         _stageClearUI.Hide();
-        
-        // 미니맵 원래 크기로 복구
-        _miniMapUI.ResetSize();
+
+        _miniMapUI.ResetSize(); // 미니맵 원래 크기로 복구
+        _player.Move(Vector3.zero); // 이동 및 이동 사운드 강제 정지
 
         // 마지막 스테이지면 상점 없이 게임 클리어 UI 표시
         // HACK:게임 클리어에서 이어하기 하면 상점 나오게 할거임
@@ -935,6 +935,7 @@ public class GameScene : MonoBehaviour
         {
             _OnCursor = true;
             _inputSystemHandler.SetInputDisabled(true);
+
             _player.SetPlayerGravity(false); // 씬 언로드 중 자유낙하 방지
 
             // 통계 띄우기
