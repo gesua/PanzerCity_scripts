@@ -407,6 +407,9 @@ public class PlayerTank : TankBase
 
         _isDead = false;
 
+        // 미니맵 색 복구
+        _miniMapTankIcon.SetAliveColor();
+
         // 전차장 원상복구(HandleDead에서 바뀐 부모/시선/표정을 RespawnRoutine과 동일한 방식으로 되돌림)
         _commander.CommanderRoot.SetParent(TurretTr);
         _commander.transform.localRotation = Quaternion.identity;
@@ -460,6 +463,9 @@ public class PlayerTank : TankBase
     void HandleDead(HitData hitData)
     {
         _isDead = true; // 죽었음
+
+        // 미니맵 아이콘 검은색
+        _miniMapTankIcon.SetDeadColor();
 
         // 사망 횟수 기록
         GameManager.Instance.GameStatistics.AddDeath();
@@ -549,6 +555,7 @@ public class PlayerTank : TankBase
         SetNormalVisualVisible(true); // 모델 활성화
         _commander.SetVisible(true); // 전차장 활성화
         _miniMapTankIcon.Show(); // 미니맵 아이콘 보이기
+        _miniMapTankIcon.SetAliveColor(); // 미니맵 아이콘 색 복구
         _model.Initialize(); // HP 초기화
         // _reloadIndicator는 SetSceneReferences로 로컬 플레이어에게만 주입됨 — 원격 플레이어를 관찰하는 클라이언트에선 null
         if (_reloadIndicator != null)

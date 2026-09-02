@@ -55,4 +55,22 @@ public class MiniMapTankIcon : MonoBehaviour
         float relativeTurretY = _player.TurretTr.eulerAngles.y - transform.eulerAngles.y;
         _turretIcon.localEulerAngles = new Vector3(0f, 0f, relativeTurretY);
     }
+
+    /// <summary>
+    /// 죽었을 때 아이콘을 검은색으로 변경
+    /// </summary>
+    public void SetDeadColor()
+    {
+        _hullIconRenderer.color = Color.black;
+        _turretIconRenderer.color = Color.black;
+    }
+
+    /// <summary>
+    /// 리스폰시 아이콘을 원래 색으로 변경
+    /// </summary>
+    public void SetAliveColor()
+    {
+        _hullIconRenderer.color = Color.white;
+        _turretIconRenderer.color = Color.white;
+    }
 }
