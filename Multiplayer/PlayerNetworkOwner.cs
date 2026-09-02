@@ -104,15 +104,21 @@ public class PlayerNetworkOwner : NetworkBehaviour
     }
 
     /// <summary>
-    /// 네트워크 디스폰 시 정리 — OnNetworkSpawn에서 구독한 외부(NetworkGameManager) 이벤트 해제
+    /// 네트워크 디스폰 시 정리 — OnNetworkSpawn에서 구독한 외부 싱글톤 이벤트 해제
     /// _playerTank/NetworkVariable 등 같은 오브젝트 안의 구독은 이 오브젝트와 함께 파괴되므로 별도 해제가 필요 없지만,
-    /// NetworkGameManager.OnShopActiveChanged는 외부 싱글톤 이벤트라 해제하지 않으면 디스폰 후에도 파괴된 오브젝트를 향해 계속 호출됨
+    /// NetworkGameManager/GameManager는 DontDestroyOnLoad 외부 싱글톤이라 해제하지 않으면 디스폰(파괴)된 이 오브젝트를
+    /// 향한 호출이 이벤트 목록에 계속 남아, 재접속 후 새로 스폰된 인스턴스와 함께 중복 호출되는 문제가 있었음(실제 발생 확인됨)
     /// </summary>
     public override void OnNetworkDespawn()
     {
         if (NetworkGameManager.Instance != null)
         {
             NetworkGameManager.Instance.OnShopActiveChanged -= HandleShopActiveChanged;
+        }
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.PlayerData.OnLifeChanged -= SetLifeValue;
         }
     }
 
@@ -153,9 +159,9 @@ public class PlayerNetworkOwner : NetworkBehaviour
     }
 
     /// <summary>
-    /// 원격 관찰자 전용:소유자의 초기 playerIndex/life 값이 네트워크로 도착할 때까지 기다렸다가 한 번 동기화
-    /// playerIndex(-1이 "미도착" sentinel)가 정상 값으로 바뀌는 시점을 기준으로 삼음 — life는 0이 정상값일 수도 있어
-    /// 그 자체론 미도착 여부를 못 가리므로, 소유자 쪽에서 거의 동시에 세팅되는 playerIndex에 편승해서 판단함
+    /// 원격 관찰자 전용:소유자의 초기 playerIndex/hp 값이 네트워크로 도착할 때까지 기다렸다가 한 번 동기화
+    /// life는 여기서 직접 캐치업하지 않음 — life 자체는 0이 정상값일 수도 있어 값만으로는 미도착 여부를 못 가리므로,
+    /// playerIndex(-1이 "미도착" sentinel)가 도착하는 시점에 HandlePlayerIndexValueChanged가 함께 캐치업하도록 위임함
     /// </summary>
     IEnumerator SyncInitialStateWhenReady()
     {

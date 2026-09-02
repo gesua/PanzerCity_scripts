@@ -31,7 +31,9 @@ public enum StatType
     Reload,
     TurretRotSpeed,
     ForwardSpeed,
-    RotSpeed
+    BackwardSpeed,
+    Acceleration,
+    RotSpeed,
 }
 
 /// <summary>

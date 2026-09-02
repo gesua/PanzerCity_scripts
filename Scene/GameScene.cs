@@ -124,6 +124,14 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 내 목숨 변경 수신(PlayerData.OnLifeChanged) — 로컬 스폰 인덱스 슬롯에 반영
+    /// </summary>
+    void HandleLocalLifeChanged(int life)
+    {
+        _gameInfoUI.UpdateLife(_localSpawnIndex, life);
+    }
+
+    /// <summary>
     /// 멀티플레이:다른 플레이어의 연결 종료 수신(NetworkGameManager가 호출) — 해당 목숨 슬롯 비활성화
     /// 나간 클라이언트 본인은 이미 연결이 끊겨 이 신호를 받을 수 없으므로 별도 필터링 불필요
     /// </summary>
@@ -180,8 +188,8 @@ public class GameScene : MonoBehaviour
             }
 
             // 퀵슬롯 UI:기지 무적/EMP는 공유 상태라 누가 발동했든 전원 링을 공유해야 함
-            NetworkGameManager.Instance.OnBaseShieldActivated += duration => _quickSlotUI.PlayEffectFeedback(1002, duration);
-            NetworkGameManager.Instance.OnEMPFieldActivated += duration => _quickSlotUI.PlayEffectFeedback(1004, duration);
+            NetworkGameManager.Instance.OnBaseShieldActivated += HandleBaseShieldActivated;
+            NetworkGameManager.Instance.OnEMPFieldActivated += HandleEMPFieldActivated;
 
             // 멀티플레이: 모든 클라이언트 로딩 완료(게임 실제 시작 시점) 수신
             NetworkGameManager.Instance.OnAllClientsReady += HandleAllClientsReady;
@@ -222,7 +230,7 @@ public class GameScene : MonoBehaviour
         _inputSystemHandler.OnQuickSlotInput += HandleQuickSlotInput;
 
         GameManager.Instance.PlayerData.OnGoldChanged += _gameInfoUI.UpdateGold;
-        GameManager.Instance.PlayerData.OnLifeChanged += life => _gameInfoUI.UpdateLife(_localSpawnIndex, life);
+        GameManager.Instance.PlayerData.OnLifeChanged += HandleLocalLifeChanged;
 
         _rightPanelUI.OnPauseClicked += HandlePauseInput;
         _pauseUI.OnResumeClicked += HandlePauseInput;
@@ -351,11 +359,21 @@ public class GameScene : MonoBehaviour
             NetworkGameManager.Instance.OnAllClientsReady -= HandleAllClientsReady;
             NetworkGameManager.Instance.OnRestartRequested -= _gameOverUI.OnClickRestart;
             NetworkGameManager.Instance.OnAllPlayersDead -= HandleAllPlayersDead;
+            NetworkGameManager.Instance.OnPlayerLifeChanged -= HandleOtherPlayerLifeChanged;
+            NetworkGameManager.Instance.OnPlayerLeft -= HandleOtherPlayerLeft;
+            NetworkGameManager.Instance.OnBaseShieldActivated -= HandleBaseShieldActivated;
+            NetworkGameManager.Instance.OnEMPFieldActivated -= HandleEMPFieldActivated;
         }
 
         if (LobbyManager.Instance != null)
         {
             LobbyManager.Instance.OnHostLeft -= HandleHostLeft;
+        }
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.PlayerData.OnGoldChanged -= _gameInfoUI.UpdateGold;
+            GameManager.Instance.PlayerData.OnLifeChanged -= HandleLocalLifeChanged;
         }
 
         _inputSystemHandler.OnSpectatePrevInput -= HandleSpectatePrevInput;
@@ -651,6 +669,22 @@ public class GameScene : MonoBehaviour
         if (_OnCursor) return;
         if (_player.IsDead) return;
         _quickSlotUI.UseSlot(slotIndex);
+    }
+
+    /// <summary>
+    /// 멀티플레이:기지 무적 발동 수신(누가 발동했든 전원 링을 공유)
+    /// </summary>
+    void HandleBaseShieldActivated(float duration)
+    {
+        _quickSlotUI.PlayEffectFeedback(1002, duration);
+    }
+
+    /// <summary>
+    /// 멀티플레이:EMP 발동 수신(누가 발동했든 전원 링을 공유)
+    /// </summary>
+    void HandleEMPFieldActivated(float duration)
+    {
+        _quickSlotUI.PlayEffectFeedback(1004, duration);
     }
 
     /// <summary>

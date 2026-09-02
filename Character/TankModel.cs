@@ -156,6 +156,8 @@ public class TankModel : MonoBehaviour
                 case StatType.Reload: _minAttackTime += bonus.Value * sign; break;
                 case StatType.TurretRotSpeed: _turretRotSpeed += bonus.Value * sign; break;
                 case StatType.ForwardSpeed: _forwardSpeed += bonus.Value * sign; break;
+                case StatType.BackwardSpeed: _backwardSpeed += bonus.Value * sign; break;
+                case StatType.Acceleration: _acceleration += bonus.Value * sign; break;
                 case StatType.RotSpeed: _rotSpeed += bonus.Value * sign; break;
             }
         }
