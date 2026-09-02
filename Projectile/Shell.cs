@@ -201,6 +201,9 @@ public class Shell : MonoBehaviour, IPoolReturnHandler
             _rigid.angularVelocity = Vector3.zero;
         }
 
+        // 레이어 초기화
+        gameObject.layer = LayerMask.NameToLayer("Default");
+
         // 멀티플레이:서버만 네트워크 디스폰(destroy: false → GameObject는 유지해서 Pool 재사용)
         _networkOwner?.RequestDespawn();
     }
