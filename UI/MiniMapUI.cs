@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -93,7 +94,10 @@ public class MiniMapUI : MonoBehaviour
         {
             _isExpanded = false;
             if (_expandRoutine != null) StopCoroutine(_expandRoutine);
-            _expandRoutine = StartCoroutine(ExpandRoutine(false)); // 원래 크기로 축소
+
+            // 코루틴 없이 즉시 원래 크기와 위치로 되돌림
+            _miniMap.sizeDelta = _smallSize;
+            _miniMap.anchoredPosition = _smallPos;
         }
     }
 }

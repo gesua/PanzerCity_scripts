@@ -926,7 +926,7 @@ public class GameScene : MonoBehaviour
     {
         _stageClearUI.Hide();
 
-        _miniMapUI.ResetSize(); // 미니맵 원래 크기로 복구
+        //_miniMapUI.ResetSize(); // 미니맵 원래 크기로 복구
         _player.Move(Vector3.zero); // 이동 및 이동 사운드 강제 정지
 
         // 마지막 스테이지면 상점 없이 게임 클리어 UI 표시
@@ -1074,6 +1074,8 @@ public class GameScene : MonoBehaviour
             _shopUI.SetShopActive(false);
             _inventoryUI.ExitStore(); // UI 위치 복귀
         }
+
+        _miniMapUI.ResetSize(); // 미니맵 초기화
 
         // HUD 연출 초기화(로딩 화면이 뜨기 전에 미리 화면 밖으로 이동시켜, 유저에게 순간이동이 노출되지 않게 함)
         _hasPlayedHudIntro = false;
