@@ -51,12 +51,11 @@ public class GameManager : Singleton<GameManager>
         _playerData.Initialize(0, 3);
         _saveManager.Initialize();
 
-        //* 오디오 매니저 프리팹 생성
+        // 오디오 매니저 프리팹 생성
         GameObject audioManagerPrefab = Resources.Load<GameObject>("Audio/AudioManager");
         GameObject audioManagerGo = Instantiate(audioManagerPrefab);
         DontDestroyOnLoad(audioManagerGo);
         _audioManager = audioManagerGo.GetComponent<AudioManager>();
-        //*/
 
         // 로딩 UI 프리팹 생성
         GameObject loadingUIPrefab = Resources.Load<GameObject>("UI/LoadingUI");

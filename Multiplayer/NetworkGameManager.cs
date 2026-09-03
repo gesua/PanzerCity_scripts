@@ -38,6 +38,7 @@ public class NetworkGameManager : NetworkBehaviour
     public event Action<ulong, string> OnChatMessageReceived; // 채팅 메시지 수신(senderClientId, message) — 전원(호스트 포함) 동일하게 수신
     public event Action<float> OnBaseShieldActivated; // 기지 무적 발동(퀵슬롯 UI 등 로컬 연출용)
     public event Action<float> OnEMPFieldActivated;   // EMP 신규 발동(퀵슬롯 UI 등 로컬 연출용)
+    public event Action OnAirSupportActivated; // 폭탄 발동(대상 유무와 무관하게 사용 시점마다 정확히 한 번씩 발행, 사용음 재생용)
 
     void Awake()
     {
@@ -140,7 +141,10 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     void HandleClientDisconnect(ulong clientId)
     {
+        Debug.Log($"[HandleClientDisconnect] clientId={clientId}, ShutdownInProgress={NetworkManager.Singleton.ShutdownInProgress}, IsListening={NetworkManager.Singleton.IsListening}, ConnectedClients={NetworkManager.Singleton.ConnectedClients.Count}");
+
         if (IsServer == false) return; // 서버만 처리
+        if (NetworkManager.Singleton.ShutdownInProgress) return; // 호스트 자체 종료 중엔 무의미한 처리 — RPC 실패 방지
 
         _playerLives.Remove(clientId); // 전원 사망 판정 캐시 정리
 
@@ -524,6 +528,8 @@ public class NetworkGameManager : NetworkBehaviour
     {
         if (_stageScene == null) return;
 
+        OnAirSupportActivated?.Invoke(); // 호스트 자신의 로컬 처리(사용음 재생용)
+
         _stageScene.EnemySpawner.DestroyAllEnemies(); // 서버 권위 처리 + 호스트 자신의 로컬 연출(내부에서 대상 브로드캐스트까지 호출함)
     }
 
@@ -542,6 +548,8 @@ public class NetworkGameManager : NetworkBehaviour
     {
         // 호스트 자신은 서버 로컬에서 이미 직접 처리했으므로 중복 방지
         if (IsServer) return;
+
+        OnAirSupportActivated?.Invoke(); // 비호스트 클라이언트의 로컬 처리(사용음 재생용)
 
         // 호스트 쪽과 동일하게 일괄 처치 마스크 적용(개별 3D 파괴음/드랍음이 겹쳐 커지는 것 방지)
         GameManager.Instance.AudioManager.StartMassKillMode();

@@ -87,6 +87,11 @@ public class GameScene : MonoBehaviour
         // 멀티플레이:로컬 플레이어 스폰 신호를 기다림
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
+            // 새 매치 시작 — 이전 매치에서 남아있을 수 있는 목숨/골드를 초기값으로 리셋
+            // (싱글플레이는 세이브 생성 후 불러오는 과정에서 자연히 리셋되지만, 멀티플레이는 그 경로를 안 타서 여기서 직접 리셋함)
+            // SaveSnapshot()이 실행되는 스테이지 로드보다 반드시 먼저 실행돼야 해서 Start()에 둠
+            GameManager.Instance.PlayerData.Initialize(0, 3);
+
             // 목숨 UI:다른 플레이어의 목숨 변경/이탈 수신은 로컬 플레이어 스폰(Initialize)을 기다리지 않고 여기서 바로 구독
             // — 다른 플레이어가 나보다 먼저 스폰되면서 늦게 도착한 값을 수동 동기화하는 신호(PlayerNetworkOwner.OnNetworkSpawn 참고)가
             // 내가 구독하기 전에 지나가버려서 목숨 UI가 기본값으로 남는 문제 방지
@@ -191,6 +196,9 @@ public class GameScene : MonoBehaviour
             NetworkGameManager.Instance.OnBaseShieldActivated += HandleBaseShieldActivated;
             NetworkGameManager.Instance.OnEMPFieldActivated += HandleEMPFieldActivated;
 
+            // 아이템 사용음:폭탄은 전원에게 들려야 하므로 네트워크 신호에 맞춰 재생(사용자 본인도 이 경로로만 들음)
+            NetworkGameManager.Instance.OnAirSupportActivated += HandleAirSupportActivated;
+
             // 멀티플레이: 모든 클라이언트 로딩 완료(게임 실제 시작 시점) 수신
             NetworkGameManager.Instance.OnAllClientsReady += HandleAllClientsReady;
 
@@ -271,6 +279,7 @@ public class GameScene : MonoBehaviour
         {
             GameManager.Instance.PlayerData.AddLife(1);
             GameManager.Instance.AudioManager.PlaySfx(SfxType.LifeUp);
+            GameManager.Instance.AudioManager.PlaySfx(SfxType.ItemUse);
         };
         // 기지 무적
         _itemEffectHandler.OnBaseShield += duration =>
@@ -278,10 +287,12 @@ public class GameScene : MonoBehaviour
             if (isMultiplayer)
             {
                 NetworkGameManager.Instance.RequestBaseShieldServerRpc(duration);
+                // 사용음은 HandleBaseShieldActivated(멀티 전용 설정부)에서 전원에게 동일하게 재생됨
             }
             else
             {
                 _currentStage.BaseWall.ActivateShield(duration);
+                GameManager.Instance.AudioManager.PlaySfx(SfxType.ItemUse);
             }
         };
         // 나 무적 — 로컬 개인 상태라 싱글/멀티 구분 없이 그대로 로컬 처리
@@ -289,6 +300,7 @@ public class GameScene : MonoBehaviour
         {
             if (_hyperShieldRoutine != null) StopCoroutine(_hyperShieldRoutine);
             _hyperShieldRoutine = StartCoroutine(HyperShieldRoutine(duration));
+            GameManager.Instance.AudioManager.PlaySfx(SfxType.ItemUse);
         };
         // 적 멈춤
         _itemEffectHandler.OnEMPField += duration =>
@@ -296,10 +308,12 @@ public class GameScene : MonoBehaviour
             if (isMultiplayer)
             {
                 NetworkGameManager.Instance.RequestEMPFieldServerRpc(duration);
+                // 사용음은 HandleEMPFieldActivated(멀티 전용 설정부)에서 전원에게 동일하게 재생됨
             }
             else
             {
                 _currentStage.EnemySpawner.StartEMPField(duration);
+                GameManager.Instance.AudioManager.PlaySfx(SfxType.ItemUse);
             }
         };
         // 폭탄
@@ -308,10 +322,12 @@ public class GameScene : MonoBehaviour
             if (isMultiplayer)
             {
                 NetworkGameManager.Instance.RequestAirSupportServerRpc();
+                // 사용음은 HandleAirSupportActivated(멀티 전용 설정부)에서 전원에게 동일하게 재생됨
             }
             else
             {
                 _currentStage.EnemySpawner.DestroyAllEnemies();
+                GameManager.Instance.AudioManager.PlaySfx(SfxType.ItemUse);
             }
         };
 
@@ -363,6 +379,7 @@ public class GameScene : MonoBehaviour
             NetworkGameManager.Instance.OnPlayerLeft -= HandleOtherPlayerLeft;
             NetworkGameManager.Instance.OnBaseShieldActivated -= HandleBaseShieldActivated;
             NetworkGameManager.Instance.OnEMPFieldActivated -= HandleEMPFieldActivated;
+            NetworkGameManager.Instance.OnAirSupportActivated -= HandleAirSupportActivated;
         }
 
         if (LobbyManager.Instance != null)
@@ -677,6 +694,7 @@ public class GameScene : MonoBehaviour
     void HandleBaseShieldActivated(float duration)
     {
         _quickSlotUI.PlayEffectFeedback(1002, duration);
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.ItemUse);
     }
 
     /// <summary>
@@ -685,6 +703,15 @@ public class GameScene : MonoBehaviour
     void HandleEMPFieldActivated(float duration)
     {
         _quickSlotUI.PlayEffectFeedback(1004, duration);
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.ItemUse);
+    }
+
+    /// <summary>
+    /// 멀티플레이:폭탄 발동 수신(누가 발동했든 전원에게 사용음 재생)
+    /// </summary>
+    void HandleAirSupportActivated()
+    {
+        GameManager.Instance.AudioManager.PlaySfx(SfxType.ItemUse);
     }
 
     /// <summary>
