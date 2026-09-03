@@ -994,6 +994,8 @@ public class GameScene : MonoBehaviour
         // HACK:게임 클리어에서 이어하기 하면 상점 나오게 할거임
         if (_currentStage.StageID == GameManager.Instance.DataManager.LastStageID)
         {
+            GameManager.Instance.AudioManager.PlaySfx(SfxType.GameClear); // 게임 클리어 소리 재생
+
             _OnCursor = true;
             _inputSystemHandler.SetInputDisabled(true);
 
