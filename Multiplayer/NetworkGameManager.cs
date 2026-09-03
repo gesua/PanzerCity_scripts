@@ -39,6 +39,7 @@ public class NetworkGameManager : NetworkBehaviour
     public event Action<float> OnBaseShieldActivated; // 기지 무적 발동(퀵슬롯 UI 등 로컬 연출용)
     public event Action<float> OnEMPFieldActivated;   // EMP 신규 발동(퀵슬롯 UI 등 로컬 연출용)
     public event Action OnAirSupportActivated; // 폭탄 발동(대상 유무와 무관하게 사용 시점마다 정확히 한 번씩 발행, 사용음 재생용)
+    public event Action<float> OnHostPlayTimeReceived; // 게임 클리어 시 호스트 플레이타임 동기화(호스트/클라 시작 시각이 달라 호스트 값으로 통일)
 
     void Awake()
     {
@@ -141,10 +142,8 @@ public class NetworkGameManager : NetworkBehaviour
     /// </summary>
     void HandleClientDisconnect(ulong clientId)
     {
-        Debug.Log($"[HandleClientDisconnect] clientId={clientId}, ShutdownInProgress={NetworkManager.Singleton.ShutdownInProgress}, IsListening={NetworkManager.Singleton.IsListening}, ConnectedClients={NetworkManager.Singleton.ConnectedClients.Count}");
-
         if (IsServer == false) return; // 서버만 처리
-        if (NetworkManager.Singleton.ShutdownInProgress) return; // 호스트 자체 종료 중엔 무의미한 처리 — RPC 실패 방지
+        if (NetworkManager.Singleton.IsListening == false) return; // 호스트 자체 종료 중엔 무의미한 처리 — RPC 실패 방지(ShutdownInProgress는 ShutdownInternal() 초반에 이미 false로 리셋되어 이 시점엔 신뢰 불가)
 
         _playerLives.Remove(clientId); // 전원 사망 판정 캐시 정리
 
@@ -691,5 +690,36 @@ public class NetworkGameManager : NetworkBehaviour
     void NotifyChatMessageClientRpc(ulong senderClientId, string message)
     {
         OnChatMessageReceived?.Invoke(senderClientId, message);
+    }
+
+    /// <summary>
+    /// 게임 클리어 플레이타임 요청 — 클라이언트가 통계 화면 진입 시 호출(GameScene이 호출)
+    /// 호스트가 능동적으로 먼저 보내면, 클라이언트가 아직 수신 준비(구독)를 마치기 전에 도착해 이벤트를 놓치는
+    /// 레이스 컨디션이 있었음 — 클라이언트가 "구독 후 요청"하는 구조로 바꿔 순서를 보장함
+    /// </summary>
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestHostPlayTimeServerRpc()
+    {
+        float hostPlayTime = GameManager.Instance.GameStatistics.GetPlayTime();
+        NotifyHostPlayTime(hostPlayTime);
+    }
+
+    /// <summary>
+    /// 게임 클리어 플레이타임 동기화 — 위 요청을 받은 호스트가 응답으로 호출
+    /// 호스트/클라이언트는 각자 GameStatistics.MarkGameStart() 시각이 달라 플레이타임이 서로 다르므로,
+    /// 클리어 통계 화면에는 호스트 값 하나로 통일해서 표시함(골드/아이템/격파/사망은 개인 통계라 각자 로컬 값 그대로 사용)
+    /// </summary>
+    public void NotifyHostPlayTime(float playTime)
+    {
+        NotifyHostPlayTimeClientRpc(playTime);
+    }
+
+    [ClientRpc]
+    void NotifyHostPlayTimeClientRpc(float playTime)
+    {
+        // 호스트 자신은 호출 시점에 이미 로컬 값을 알고 있으므로 중복 방지
+        if (IsServer) return;
+
+        OnHostPlayTimeReceived?.Invoke(playTime);
     }
 }

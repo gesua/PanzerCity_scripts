@@ -380,6 +380,7 @@ public class GameScene : MonoBehaviour
             NetworkGameManager.Instance.OnBaseShieldActivated -= HandleBaseShieldActivated;
             NetworkGameManager.Instance.OnEMPFieldActivated -= HandleEMPFieldActivated;
             NetworkGameManager.Instance.OnAirSupportActivated -= HandleAirSupportActivated;
+            NetworkGameManager.Instance.OnHostPlayTimeReceived -= HandleHostPlayTimeReceived;
         }
 
         if (LobbyManager.Instance != null)
@@ -1001,16 +1002,23 @@ public class GameScene : MonoBehaviour
 
             _player.SetPlayerGravity(false); // 씬 언로드 중 자유낙하 방지
 
-            // 통계 띄우기
-            GameStatistics stats = GameManager.Instance.GameStatistics;
-            _gameClearUI.Show(
-                stats.TotalGoldEarned,
-                stats.ItemsUsed,
-                stats.ShellKills,
-                stats.DeathCount,
-                _currentStage.StageID - 7100,
-                stats.GetPlayTime()
-            );
+            // 통계 띄우기 — 골드/아이템/격파/사망은 개인 통계라 로컬 값 그대로 사용, 플레이타임만 호스트 기준으로 통일
+            // (호스트/클라이언트가 각자 GameStatistics.MarkGameStart() 시각이 달라 로컬 플레이타임이 서로 다름)
+            bool isMultiplayerClear = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+
+            if (isMultiplayerClear == false) // 싱글플레이:기존과 동일하게 즉시 표시
+            {
+                ShowGameClearStatistics(GameManager.Instance.GameStatistics.GetPlayTime());
+            }
+            else if (NetworkManager.Singleton.IsServer) // 멀티플레이 호스트:자기 플레이타임으로 즉시 표시(클라이언트는 각자 요청 시 응답받음)
+            {
+                ShowGameClearStatistics(GameManager.Instance.GameStatistics.GetPlayTime());
+            }
+            else // 멀티플레이 클라이언트:구독을 먼저 걸어둔 뒤 요청 — 순서가 반대면 호스트 응답이 구독 전에 도착해 놓칠 수 있음
+            {
+                NetworkGameManager.Instance.OnHostPlayTimeReceived += HandleHostPlayTimeReceived;
+                NetworkGameManager.Instance.RequestHostPlayTimeServerRpc();
+            }
             return;
         }
 
@@ -1045,6 +1053,32 @@ public class GameScene : MonoBehaviour
 
         _player.EquipViewMod(true); // 장착 모드 활성화
         _player.SetPlayerGravity(false); // 중력 설정(씬 전환시 자유낙하 방지)
+    }
+
+    /// <summary>
+    /// 게임 클리어 통계 UI 표시 — 골드/아이템/격파/사망은 개인 통계라 로컬 GameStatistics 값을 그대로 사용하고,
+    /// 플레이타임만 호출부(싱글/호스트/클라이언트)에서 이미 결정된 값을 인자로 받음
+    /// </summary>
+    void ShowGameClearStatistics(float playTime)
+    {
+        GameStatistics stats = GameManager.Instance.GameStatistics;
+        _gameClearUI.Show(
+            stats.TotalGoldEarned,
+            stats.ItemsUsed,
+            stats.ShellKills,
+            stats.DeathCount,
+            _currentStage.StageID - 7100,
+            playTime
+        );
+    }
+
+    /// <summary>
+    /// 멀티플레이 클라이언트 전용 — 호스트 플레이타임 수신 시 통계 UI 표시(1회성 구독이라 수신 즉시 해제)
+    /// </summary>
+    void HandleHostPlayTimeReceived(float hostPlayTime)
+    {
+        NetworkGameManager.Instance.OnHostPlayTimeReceived -= HandleHostPlayTimeReceived;
+        ShowGameClearStatistics(hostPlayTime);
     }
 
     /// <summary>
