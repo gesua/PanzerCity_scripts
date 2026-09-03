@@ -16,20 +16,33 @@ public class TitleScene : MonoBehaviour
     [SerializeField] SaveSlotUI _saveSlotUI;
     [SerializeField] TitleButtonSparkleManager _sparkleManager; // 세이브 슬롯 UI 표시 중 타이틀 버튼 반짝임을 제어하기 위한 참조
 
-    [Header("----- 방장 이탈 알림 팝업 -----")]
-    [SerializeField] GameObject _hostLeftPopup;          // 패널 전체 켜고 끄기용(평소엔 비활성)
-    [SerializeField] TextMeshProUGUI _hostLeftPopupText; // 메시지 표시
+    [Header("----- 로고 애니메이션 -----")]
+    [SerializeField] RectTransform _titleLogo;
+    [SerializeField] float _logoAnimationDuration = 0.4f; // 로고가 내려오는 시간
+    [SerializeField] float _logoStartYOffset = 340f;      // 시작 시 위로 올라가 있을 위치
+    [SerializeField] float _logoMoveAmount = 8f;          // 대기 중 좌우 이동량
+    [SerializeField] float _logoMoveSpeed = 0.8f;         // 대기 중 좌우 이동 속도
 
     [Header("----- 버튼 애니메이션 -----")]
     [SerializeField] CanvasGroup _titleButtonGroup;
     [SerializeField] float _animationDuration = 0.8f; // 올라오는데 걸리는 시간
     [SerializeField] float _startYOffset = -50f;      // 시작 시 아래로 내려가 있을 위치 값
 
+    [Header("----- 방장 이탈 알림 팝업 -----")]
+    [SerializeField] GameObject _hostLeftPopup;          // 패널 전체 켜고 끄기용(평소엔 비활성)
+    [SerializeField] TextMeshProUGUI _hostLeftPopupText; // 메시지 표시
+
+    Vector2 _logoOriginalPosition;
+    Vector3 _logoOriginalScale;
+
     AsyncOperation _gameSceneLoad; // Game씬 동기화용
 
     IEnumerator Start()
     {
         _saveSlotUI.OnSlotSelected += HandleSlotSelected;
+
+        // 로고 초기 상태 세팅
+        InitializeLogoState();
 
         // 로컬라이징 대기 전에 버튼을 투명하게 하고 아래로 내림
         InitializeButtonState();
@@ -45,6 +58,9 @@ public class TitleScene : MonoBehaviour
         {
             ShowHostLeftPopup();
         }
+
+        // 초기화가 끝나면 로고 등장 애니메이션 실행
+        StartCoroutine(ShowLogoRoutine());
 
         // 초기화가 끝나면 버튼이 위로 올라오면서 나타나는 애니메이션 실행
         StartCoroutine(ShowButtonRoutine());
@@ -65,6 +81,128 @@ public class TitleScene : MonoBehaviour
     public void OnClickCloseHostLeftPopup()
     {
         _hostLeftPopup.SetActive(false);
+    }
+
+    /// <summary>
+    /// 로고 초기 상태 세팅
+    /// </summary>
+    void InitializeLogoState()
+    {
+        if (_titleLogo == null) return;
+
+        _logoOriginalPosition = _titleLogo.anchoredPosition;
+        _logoOriginalScale = _titleLogo.localScale;
+
+        // 로고를 원래 위치보다 위에 배치
+        _titleLogo.anchoredPosition = _logoOriginalPosition + new Vector2(0, _logoStartYOffset);
+    }
+
+    /// <summary>
+    /// 로고가 화면 위에서 내려오며 바닥에 강하게 충돌한 후 튕기는 연출
+    /// </summary>
+    IEnumerator ShowLogoRoutine()
+    {
+        if (_titleLogo == null) yield break;
+
+        float elapsedTime = 0f;
+        Vector2 startPosition = _titleLogo.anchoredPosition;
+        Vector2 targetPosition = _logoOriginalPosition;
+
+        while (elapsedTime < _logoAnimationDuration)
+        {
+            elapsedTime += Time.deltaTime;
+
+            float t = Mathf.Clamp01(elapsedTime / _logoAnimationDuration);
+
+            // 감속 없이 일정한 속도로 내려오도록 Linear 적용
+            _titleLogo.anchoredPosition = Vector2.Lerp(
+                startPosition,
+                targetPosition,
+                t
+            );
+
+            yield return null;
+        }
+
+        // 정확히 목표 위치에 도착
+        _titleLogo.anchoredPosition = targetPosition;
+
+        // 바닥에 부딪힌 후 강하게 튕기는 연출
+        yield return StartCoroutine(LogoBounceRoutine());
+
+        // 착지 후 잠시 정지
+        yield return new WaitForSeconds(0.4f);
+
+        // 등장 애니메이션이 끝나면 대기 연출 시작
+        StartCoroutine(LogoIdleRoutine());
+    }
+
+    /// <summary>
+    /// 로고가 착지한 후 위아래로 튕기는 연출
+    /// </summary>
+    IEnumerator LogoBounceRoutine()
+    {
+        if (_titleLogo == null) yield break;
+
+        Vector2 targetPosition = _logoOriginalPosition;
+
+        // 첫 번째 강한 튕김
+        yield return MoveLogoBounce(targetPosition, 25f, 0.12f);
+
+        // 두 번째 작은 튕김
+        yield return MoveLogoBounce(targetPosition, 7f, 0.09f);
+
+        // 최종 위치 보정
+        _titleLogo.anchoredPosition = targetPosition;
+    }
+
+    /// <summary>
+    /// 로고를 위로 튕겼다가 원래 위치로 돌아오게 함
+    /// </summary>
+    IEnumerator MoveLogoBounce(Vector2 targetPosition, float amount, float duration)
+    {
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+
+            float t = Mathf.Clamp01(elapsedTime / duration);
+
+            // 빠르게 올라갔다가 부드럽게 내려옴
+            float curve = Mathf.Sin(t * Mathf.PI);
+
+            _titleLogo.anchoredPosition =
+                targetPosition + Vector2.up * amount * curve;
+
+            yield return null;
+        }
+
+        _titleLogo.anchoredPosition = targetPosition;
+    }
+
+    /// <summary>
+    /// 로고 대기 중 미세한 좌우 움직임
+    /// </summary>
+    IEnumerator LogoIdleRoutine()
+    {
+        if (_titleLogo == null) yield break;
+
+        float startTime = Time.time;
+
+        while (true)
+        {
+            // 대기 연출 시작 시점을 기준으로 0부터 시작
+            float time = Time.time - startTime;
+
+            // 중앙에서 시작해서 좌우로 천천히 움직임
+            float moveX = Mathf.Sin(time * _logoMoveSpeed) * _logoMoveAmount;
+
+            _titleLogo.anchoredPosition =
+                _logoOriginalPosition + new Vector2(moveX, 0f);
+
+            yield return null;
+        }
     }
 
     /// <summary>
