@@ -23,6 +23,11 @@ public class ShopUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI _readyCountText; // 다음 스테이지 준비 인원 표시(멀티 전용)
     [SerializeField] Image _exitButtonImage; // 출격 버튼 - 클릭 시 색 변경으로 "내가 눌렀는지" 표시(멀티 대기 중 구분용)
 
+    [Header("----- 동전 날아가는 연출 -----")]
+    [SerializeField] CoinFlyManager _coinFlyManager; // 동전 연출 매니저
+    [SerializeField] RectTransform _coinStartTr; // 인벤토리 쪽 내 골드 UI 위치 (출발지)
+    [SerializeField] RectTransform _coinEndTr;   // 상점 주인 초상화 쪽 위치 (도착지)
+
     [Header("----- 멀티플레이 원격 커서 -----")]
     [SerializeField] RectTransform _cursorLayerRoot; // 커서 이미지들이 배치될 부모
     [SerializeField] Image[] _remoteCursorImages; // 색상별 커서 이미지(인덱스 0~3 = 1P~4P)
@@ -386,6 +391,17 @@ public class ShopUI : MonoBehaviour
     }
 
     /// <summary>
+    /// 동전 날아가는 연출 실행 헬퍼 함수
+    /// </summary>
+    void PlayCoinFlyEffect(int price)
+    {
+        if (_coinFlyManager != null && _coinStartTr != null && _coinEndTr != null)
+        {
+            _coinFlyManager.PlayEffect(_coinStartTr.position, _coinEndTr.position, price);
+        }
+    }
+
+    /// <summary>
     /// 소모품 구매
     /// </summary>
     void HandleItemClicked(ItemConfig itemConfig)
@@ -404,6 +420,7 @@ public class ShopUI : MonoBehaviour
             GameManager.Instance.PlayerData.AddLife(1);
             GameManager.Instance.AudioManager.PlaySfx(SfxType.LifeUp);
             _shopOwnerUI.ShowBuySuccess();
+            PlayCoinFlyEffect(itemConfig.BuyPrice); // 동전 연출
             return;
         }
 
@@ -418,6 +435,7 @@ public class ShopUI : MonoBehaviour
         }
 
         _shopOwnerUI.ShowBuySuccess(); // 구입 성공 대사
+        PlayCoinFlyEffect(itemConfig.BuyPrice); // 동전 연출
     }
 
     /// <summary>
@@ -440,6 +458,8 @@ public class ShopUI : MonoBehaviour
         }
 
         _shopOwnerUI.ShowBuySuccess();
+        PlayCoinFlyEffect(itemConfig.BuyPrice); // 동전 연출
+
         _equipmentSlot.SetSoldOut(true); // 구매 후 매진
         if (_itemTooltipUI != null) _itemTooltipUI.Hide(); // 툴팁 가림
     }
