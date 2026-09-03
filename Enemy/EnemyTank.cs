@@ -766,7 +766,18 @@ public class EnemyTank : TankBase, IPoolReturnHandler
 
         // 격파 통계(아이템으로 죽었으면 AtkTank가 null)
         bool isItemKill = (hitData.AtkTank == null);
-        GameManager.Instance.GameStatistics.AddKill(isItemKill);
+
+        if (_networkOwner == null)
+        {
+            // 싱글플레이
+            GameManager.Instance.GameStatistics.AddKill(isItemKill);
+        }
+        else if (isItemKill == false && hitData.AtkTank is PlayerTank killerPlayerTank)
+        {
+            // 멀티플레이:실제로 처치한 플레이어에게만 타겟 RPC로 반영(골드와 동일한 경로)
+            // 멀티플레이에서 폭탄 격파(isItemKill)는 특정 플레이어로 귀속되지 않아 통계에서 계속 제외
+            killerPlayerTank.NetworkOwner?.NotifyKillEarned();
+        }
 
         // 아이템 드랍
         _itemDropper.TryDrop(_tankData.DropChance, _tankData.DropGroupID);

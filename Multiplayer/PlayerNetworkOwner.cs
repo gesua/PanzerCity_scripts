@@ -425,4 +425,28 @@ public class PlayerNetworkOwner : NetworkBehaviour
         GameManager.Instance.PlayerData.AddGold(amount);
         GameManager.Instance.GameStatistics.AddGoldEarned(amount);
     }
+
+    /// <summary>
+    /// 이 플레이어에게만 격파 통계 반영을 알림(서버 전용, EnemyTank가 처치 판정 후 호출)
+    /// 폭탄 등 아이템 격파는 대상이 특정 플레이어로 귀속되지 않아 호출 자체가 없음(EnemyTank에서 필터링)
+    /// </summary>
+    public void NotifyKillEarned()
+    {
+        if (IsServer == false) return; // 방어적 가드
+
+        ClientRpcParams targetParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams { TargetClientIds = new ulong[] { OwnerClientId } }
+        };
+        NotifyKillEarnedClientRpc(targetParams);
+    }
+
+    /// <summary>
+    /// 격파 통계 반영 — 소유 클라이언트(자기 자신)에게만 전달됨
+    /// </summary>
+    [ClientRpc]
+    void NotifyKillEarnedClientRpc(ClientRpcParams rpcParams = default)
+    {
+        GameManager.Instance.GameStatistics.AddKill(false); // 여기 도달하는 시점엔 이미 아이템 격파가 아님이 확정된 상태
+    }
 }

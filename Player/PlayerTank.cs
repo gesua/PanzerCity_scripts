@@ -467,8 +467,13 @@ public class PlayerTank : TankBase
         // 미니맵 아이콘 검은색
         _miniMapTankIcon.SetDeadColor();
 
-        // 사망 횟수 기록
-        GameManager.Instance.GameStatistics.AddDeath();
+        // 사망 횟수 기록 — 멀티플레이에서 서버가 보는 원격 소유 탱크의 서버측 인스턴스는 TakeHit이 아닌
+        // ApplySyncedHp 경로(TankModel.cs)로 사망에 도달해 여기까지 그대로 실행되므로, 실제 로컬 소유자
+        // 관점(_isNetworkOwner, 싱글플레이는 항상 true)에서만 기록해 중복 집계를 막음
+        if (_isNetworkOwner)
+        {
+            GameManager.Instance.GameStatistics.AddDeath();
+        }
 
         // 엔진 연기 끄기
         SetEngineEffect(false);
