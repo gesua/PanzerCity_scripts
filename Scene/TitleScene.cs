@@ -33,7 +33,6 @@ public class TitleScene : MonoBehaviour
     [SerializeField] TextMeshProUGUI _hostLeftPopupText; // 메시지 표시
 
     Vector2 _logoOriginalPosition;
-    Vector3 _logoOriginalScale;
 
     AsyncOperation _gameSceneLoad; // Game씬 동기화용
 
@@ -51,6 +50,7 @@ public class TitleScene : MonoBehaviour
         yield return LocalizationSettings.InitializationOperation;
 
         GameManager manager = GameManager.Instance;
+        manager.GameStatistics.ResetAll(); // 통계 초기화
         manager.AudioManager.PlayBgm(BgmType.Title);
 
         // 멀티플레이 중 방장이 나가서 여기로 왔다면 팝업으로 안내(로컬라이징 초기화 이후라 GetLocalizedString 사용 가능)
@@ -91,7 +91,6 @@ public class TitleScene : MonoBehaviour
         if (_titleLogo == null) return;
 
         _logoOriginalPosition = _titleLogo.anchoredPosition;
-        _logoOriginalScale = _titleLogo.localScale;
 
         // 로고를 원래 위치보다 위에 배치
         _titleLogo.anchoredPosition = _logoOriginalPosition + new Vector2(0, _logoStartYOffset);
