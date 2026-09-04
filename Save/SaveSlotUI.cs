@@ -9,7 +9,7 @@ using UnityEngine;
 public class SaveSlotUI : MonoBehaviour
 {
     [SerializeField] SaveSlotPanel[] _slots; // SaveManager의 슬롯 개수와 동일하게 인스펙터에서 설정
-    [SerializeField] float _staggerDelay = 0.08f; // 슬롯이 하나씩 순차적으로 팝업되는 간격
+    [SerializeField] float _staggerDelay = 0.08f; // 슬롯이 하나씩 순차적으로 팝업되는 간격(등장 시에만 사용, 퇴장은 전체 동시)
 
     public event Action<int> OnSlotSelected; // 슬롯 선택됨(새 게임/이어하기 판단은 TitleScene에서)
 
@@ -91,7 +91,7 @@ public class SaveSlotUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 슬롯을 순서대로 하나씩 오그라들며 사라지게 한 뒤 화면 비활성화
+    /// 슬롯 전체를 동시에 오그라들며 사라지게 한 뒤 화면 비활성화
     /// </summary>
     IEnumerator HideRoutine()
     {
@@ -100,10 +100,9 @@ public class SaveSlotUI : MonoBehaviour
         for (int i = 0; i < _slots.Length; i++)
         {
             lastPopOut = _slots[i].PopOut();
-            yield return new WaitForSecondsRealtime(_staggerDelay);
         }
 
-        // 마지막 슬롯의 애니메이션이 끝날 때까지 대기 후 비활성화
+        // 슬롯들의 _popOutDuration이 모두 동일하므로 마지막 하나만 기다려도 전체 종료 시점과 같음
         if (lastPopOut != null) yield return lastPopOut;
 
         gameObject.SetActive(false);
