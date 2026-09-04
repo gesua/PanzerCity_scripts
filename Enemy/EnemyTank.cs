@@ -55,6 +55,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     [SerializeField] Transform _turret; // 포탑
     [Header("----- 이동 관련 -----")]
     [SerializeField] float _movementCheckDistance = 0.2f; // 장애물 체크 거리
+    [SerializeField] float _destinationUpdateThreshold = 0.5f; // 목적지 재탐색 최소 거리(이 이하로 바뀌면 SetDestination 생략)
     [SerializeField] Vector3 _raycastOffset = new Vector3(0f, 0f, 1.2f); // 본인 콜라이더보다 앞쪽에서 Ray쏘기
     [SerializeField] float _raycastSideOffset; // 좌우 사이드 한번 더 체크(0.6, 0.75)
     [SerializeField] LayerMask _movementObstacleLayer = 1 << 4 | 1 << 6 | 1 << 7 | 1 << 8 | 1 << 9;  // 이동 차단 레이어(물, 맵, 외곽벽, 플레이어, 적)
@@ -527,12 +528,25 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     }
 
     /// <summary>
+    /// 이전 목적지에서 충분히 벗어났을 때만 재탐색하도록 체크
+    /// 목적지가 조금만 바뀌어도 매번 리패스되면 steeringTarget이 흔들리므로, 변화가 미미하면 SetDestination을 생략한다.
+    /// </summary>
+    bool ShouldUpdateDestination(Vector3 newDestination)
+    {
+        if (_agent.hasPath == false) return true; // 아직 경로가 없으면 무조건 설정
+
+        return Vector3.Distance(_agent.destination, newDestination) >= _destinationUpdateThreshold;
+    }
+
+    /// <summary>
     /// 타겟에게 다가감
     /// </summary>
     public void MoveToTarget()
     {
         if (_target == null) return;
         _agent.nextPosition = transform.position; // 네브메시 위치 동기화
+
+        if (ShouldUpdateDestination(_target.position) == false) return;
         _agent.SetDestination(_target.position);
     }
 
@@ -586,6 +600,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
             }
         }
 
+        if (ShouldUpdateDestination(bestPoint) == false) return; // 기존 목적지와 거의 같으면 재탐색 생략
         _agent.SetDestination(bestPoint);
     }
 
@@ -594,6 +609,10 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     /// </summary>
     public virtual void AgentMove()
     {
+        // updatePosition이 꺼져 있어 Agent가 스스로 위치를 추적하지 못하므로 매 프레임 실제 위치로 동기화
+        // (여기서 매 프레임 갱신하지 않으면 목적지 재탐색 시점에 위치가 한꺼번에 튀면서 steeringTarget이 순간적으로 어긋남)
+        _agent.nextPosition = transform.position;
+
         if (TryGetAgentSteeringDirection(out Vector3 dir) == false) return;
 
         // 목표 방향으로 회전
