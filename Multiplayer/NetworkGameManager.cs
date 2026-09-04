@@ -18,6 +18,7 @@ public class NetworkGameManager : NetworkBehaviour
 
     HashSet<ulong> _readyForNextStageClientIds = new(); // 상점에서 다음 스테이지 준비 완료한 클라이언트 목록
     HashSet<ulong> _stageLoadedClientIds = new(); // 스테이지 전환 시 씬 로드 완료 보고한 클라이언트 목록
+    HashSet<ulong> _readyForGameClientIds = new(); // 최초 진입 시 GameScene.Initialize() 완료 보고한 클라이언트 목록(동시 시작 판정용)
     Dictionary<ulong, int> _playerLives = new(); // 전원 사망 판정용:각 클라이언트의 최신 목숨 캐시(호스트만 판정에 사용, NotifyLifeChanged가 호출될 때마다 갱신)
     bool _allPlayersDeadNotified; // 전원 사망 중복 알림 방지(호스트 전용, 재도전 시 리셋됨)
 
@@ -130,10 +131,9 @@ public class NetworkGameManager : NetworkBehaviour
 
         _waitForSceneLoaded = false;
 
+        // 여기서는 플레이어 오브젝트만 스폰함 — 씬 로드 완료 시점은 각 클라이언트의 게임플레이 초기화(GameScene.Initialize())
+        // 완료 시점과 다르므로, 로딩창 종료/적 스폰 동시 시작 신호는 RequestReadyForGameServerRpc로 전원 보고가 모인 뒤에 보냄
         SpawnAllPlayers();
-
-        // 전원 씬 로드 완료 시점 — 로딩창 종료 및 적 스폰을 동시에 시작하라는 신호
-        NotifyAllClientsReadyClientRpc();
     }
 
     /// <summary>
@@ -149,6 +149,7 @@ public class NetworkGameManager : NetworkBehaviour
 
         RemoveFromNextStageReady(clientId);
         RemoveFromStageLoaded(clientId);
+        RemoveFromReadyForGame(clientId);
 
         // 나간 클라이언트의 탱크 정리 — 콜백이 불리는 시점에 따라 프레임워크가 이미 정리했을 수도 있어 방어적으로 체크
         // (소유자 연결 종료 시 자동 파괴되는 게 기본 동작이지만, 정리가 누락되는 경우가 보고돼 있어 명시적으로 처리)
@@ -204,6 +205,24 @@ public class NetworkGameManager : NetworkBehaviour
         if (totalCount > 0 && loadedCount >= totalCount)
         {
             _stageLoadedClientIds.Clear(); // 다음 전환을 위해 초기화
+            NotifyAllClientsReadyClientRpc();
+        }
+    }
+
+    /// <summary>
+    /// 최초 진입 게임플레이 초기화 완료 목록에서 나간 클라이언트 정리 — 위와 동일한 이유로 카운트를 바로잡음
+    /// (로딩 도중 누군가 나가도 남은 인원 기준으로 즉시 게임이 시작되도록 함)
+    /// </summary>
+    void RemoveFromReadyForGame(ulong clientId)
+    {
+        _readyForGameClientIds.Remove(clientId);
+
+        int readyCount = _readyForGameClientIds.Count;
+        int totalCount = GetConnectedCountExcluding(clientId);
+
+        if (totalCount > 0 && readyCount >= totalCount)
+        {
+            _readyForGameClientIds.Clear(); // 최초 진입 1회성이지만 다른 카운트 집합과 동일하게 초기화
             NotifyAllClientsReadyClientRpc();
         }
     }
@@ -651,6 +670,24 @@ public class NetworkGameManager : NetworkBehaviour
     public void NotifyLocalPlayerSpawned(PlayerTank player)
     {
         OnLocalPlayerSpawned?.Invoke(player);
+    }
+
+    /// <summary>
+    /// 최초 진입 게임플레이 초기화 완료 보고 — 각 클라이언트가 자기 쪽 GameScene.Initialize()를 마치면 호출(GameScene이 호출)
+    /// 씬 로드 완료(OnLoadEventCompleted)만으로는 다른 플레이어의 색상/목숨 UI 값이 아직 도착 전일 수 있어서,
+    /// 실제 게임플레이 준비가 끝난 시점을 별도로 보고받아 그 기준으로 로딩창 종료/적 스폰 동시 시작 신호를 보냄
+    /// </summary>
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestReadyForGameServerRpc(RpcParams rpcParams = default)
+    {
+        ulong senderId = rpcParams.Receive.SenderClientId;
+        _readyForGameClientIds.Add(senderId);
+
+        if (_readyForGameClientIds.Count >= NetworkManager.Singleton.ConnectedClientsIds.Count)
+        {
+            _readyForGameClientIds.Clear(); // 재사용 여지 없이 최초 진입 1회성이지만, 다른 카운트 집합과 동일하게 초기화
+            NotifyAllClientsReadyClientRpc();
+        }
     }
 
     /// <summary>

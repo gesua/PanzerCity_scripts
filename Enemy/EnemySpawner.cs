@@ -122,13 +122,6 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     IEnumerator SpawnEnemyRoutine()
     {
-        // 멀티플레이:클라이언트가 씬 전환 직후 스폰 메시지를 받을 준비를 마칠 시간을 위해 약간의 유예
-        // (전원 로드 완료 신호 직후 곧바로 스폰하면 첫 번째 적이 일부 클라이언트에 누락되는 경우가 있어서 추가)
-        if (_isMultiplayer)
-        {
-            yield return new WaitForSeconds(1f);
-        }
-
         while (true)
         {
             SpawnEnemy();
