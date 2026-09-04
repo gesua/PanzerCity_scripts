@@ -136,6 +136,17 @@ public class Pool
             {
                 spawnedNetworkObject.Despawn(false);
             }
+            else
+            {
+                // 클라이언트(비authority)는 Despawn 권한이 없어 스폰 상태를 직접 지울 수 없음
+                // 여기서 강제로 비활성화/반환하면 IsSpawned가 true인 채로 풀에 들어가
+                // 다음 재사용 시 "already spawned" 충돌이 발생함
+                // → 반환을 보류하고 그대로 둠(_activeObjects도 원복). 곧 호출될 NetworkManager.Shutdown()의
+                // 자체 정리(DespawnAndDestroyNetworkObjects)가 아직 활성 상태인 이 오브젝트를 찾아
+                // 정상적으로 스폰 해제까지 처리한 뒤 이 Push()를 다시 호출해줌
+                _activeObjects.Add(go);
+                return;
+            }
         }
 
         // NetworkObject는 Despawn 이후 다시 재부모화가 금지되므로 부모를 건드리지 않음(DontDestroyOnLoad는 CreatePoolObj에서 이미 걸려있음)
