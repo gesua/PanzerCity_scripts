@@ -57,6 +57,8 @@ public class EnemySpawner : MonoBehaviour
 
     public void Initialize(int stageID)
     {
+        if (stageID == 7100) return; // 튜토리얼 스테이지
+
         _spawnList = GameManager.Instance.DataManager.GetSpawnList(stageID);
         _stageSpawnCount = _spawnList.Count;
 
