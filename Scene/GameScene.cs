@@ -58,6 +58,7 @@ public class GameScene : MonoBehaviour
     bool _hasCompletedFirstStageLoad; // 멀티플레이:스테이지 전환(2번째 이후) 판별용
 
     StageScene _currentStage; // 현재 스테이지
+    TutorialManager _tutorialManager; // 튜토리얼 진행 참조(튜토리얼 스테이지에서만 유효)
 
     bool _isGameOver;
     bool _isSpectating; // 멀티플레이:본인은 목숨이 다 떨어졌지만 다른 아군이 살아있어 관전 중인 상태
@@ -420,11 +421,8 @@ public class GameScene : MonoBehaviour
             {
                 _pauseUI.RetryBtn.SetActive(false); // 재도전 버튼 막음
 
-                // 튜토리얼 시작시 소모품 아이템 지급 (퀵슬롯 1~4키 입력을 암시적으로 전달)
-                AddCheatItem(1002);
-                AddCheatItem(1003); AddCheatItem(1003);
-                AddCheatItem(1004); AddCheatItem(1004); AddCheatItem(1004);
-                AddCheatItem(1005); AddCheatItem(1005); AddCheatItem(1005); AddCheatItem(1005);
+                _tutorialManager = FindAnyObjectByType<TutorialManager>();
+                if (_tutorialManager != null) _tutorialManager.OnStepStarted += HandleTutorialStepStarted;
             }
         }
 
@@ -477,10 +475,33 @@ public class GameScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 튜토리얼 스텝 진행 알림 수신(7번째 스텝 시작 시 아이템 지급)
+    /// </summary>
+    void HandleTutorialStepStarted(int index)
+    {
+        if (index == 7) GiveTutorialStartItems();
+    }
+
+    // 튜토리얼 시작시 소모품 아이템 지급 (퀵슬롯 1~4키 입력을 암시적으로 전달)
+    void GiveTutorialStartItems()
+    {
+        AddCheatItem(1002);
+        AddCheatItem(1003); AddCheatItem(1003);
+        AddCheatItem(1004); AddCheatItem(1004); AddCheatItem(1004);
+        AddCheatItem(1005); AddCheatItem(1005); AddCheatItem(1005); AddCheatItem(1005);
+    }
+
+    /// <summary>
     /// 스테이지 이벤트 구독 해제
     /// </summary>
     void UnsubscribeStage()
     {
+        if (_tutorialManager != null)
+        {
+            _tutorialManager.OnStepStarted -= HandleTutorialStepStarted;
+            _tutorialManager = null;
+        }
+
         if (_currentStage == null) return;
 
         _currentStage.OnHQDestroyed -= HandleHQDestroyed;

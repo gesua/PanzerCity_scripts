@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -10,6 +11,8 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] TutorialHintUI _tipUI; // 덜 중요한 팁
 
     int _currentIndex = 0;
+
+    public event Action<int> OnStepStarted; // 스텝 시작 시 index 전달(외부 훅용)
 
     void Start()
     {
@@ -32,6 +35,8 @@ public class TutorialManager : MonoBehaviour
 
         //Debug.Log($"튜토리얼 스텝 {index + 1} 시작");
         _steps[index].Init(OnStepComplete, _mainHintUI, _tipUI);
+
+        OnStepStarted?.Invoke(index);
     }
 
     void OnStepComplete()
