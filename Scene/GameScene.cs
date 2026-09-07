@@ -224,6 +224,9 @@ public class GameScene : MonoBehaviour
         {
             // 목숨 UI:싱글플레이는 슬롯 1개만 쓰므로 여백 대비 글자가 작아 보이지 않도록 확대
             _gameInfoUI.SetSingleplayerScale();
+
+            // HP UI:싱글플레이도 명시적으로 바인딩(인스펙터 참조에만 의존하지 않도록)
+            _playerHPUI.SetPlayer(_player);
         }
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -482,7 +485,9 @@ public class GameScene : MonoBehaviour
         if (index == 7) GiveTutorialStartItems();
     }
 
-    // 튜토리얼 시작시 소모품 아이템 지급 (퀵슬롯 1~4키 입력을 암시적으로 전달)
+    /// <summary>
+    /// 튜토리얼 시작시 소모품 아이템 지급 (퀵슬롯 1~4키 입력을 암시적으로 전달)
+    /// </summary>
     void GiveTutorialStartItems()
     {
         AddCheatItem(1002);

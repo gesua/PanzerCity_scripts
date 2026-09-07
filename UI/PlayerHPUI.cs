@@ -8,13 +8,11 @@ public class PlayerHPUI : MonoBehaviour
     [SerializeField] HeartSlot[] _hpSlots;
     [SerializeField] PlayerTank _player;
 
-    void Awake()
-    {
-        if (_player != null) _player.Model.OnHpChanged += UpdateHP;
-    }
-
     public void SetPlayer(PlayerTank player)
     {
+        // 재호출(재도전 등) 시 이전 플레이어 구독이 남지 않도록 먼저 해제
+        if (_player != null) _player.Model.OnHpChanged -= UpdateHP;
+
         _player = player;
         _player.Model.OnHpChanged += UpdateHP;
     }
