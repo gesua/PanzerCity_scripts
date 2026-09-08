@@ -726,6 +726,10 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         dir = Vector3.zero;
         if (_agent == null || _agent.enabled == false) return false;
 
+        // 경로 재계산 중이거나 코너가 아직 안 갖춰졌으면 이번 프레임은 스킵(steeringTarget이 일시적으로 불안정해짐)
+        if (_agent.pathPending || _agent.hasPath == false) return false;
+        if (_agent.path.corners.Length < 2) return false;
+
         dir = GetFlatDirection(transform.position, _agent.steeringTarget);
         if (dir.sqrMagnitude < Util.Epsilon) return false;
 
