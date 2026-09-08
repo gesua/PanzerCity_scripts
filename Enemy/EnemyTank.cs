@@ -41,6 +41,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     [SerializeField] protected TankVisualController _destructionEffect; // 파괴 연출
     [SerializeField] protected BoxCollider _collider; // 파괴될 때 콜라이더 비활성화 용도
     [SerializeField] GameObject _silhouetteModel; // 조준시 보일 실루엣
+    [SerializeField] Transform _silhouetteTurret; // 실루엣 모델의 포탑(실제 포탑과 동일하게 회전시키기 위함)
     [SerializeField] GameObject[] _selectEnemyModel; // 조준시 레이어 바뀔 모델
     [SerializeField] ItemDropper _itemDropper; // 아이템 드랍
     [SerializeField] LoopEffect _empEffect; // 적 멈춤 아이템 사용시 이펙트
@@ -465,6 +466,12 @@ public class EnemyTank : TankBase, IPoolReturnHandler
             {
                 _turret.rotation = targetRotation;
             }
+        }
+
+        // 실루엣 포탑도 실제 포탑과 동일하게 회전 (조준 시 다르게 보이는 문제 방지)
+        if (_silhouetteTurret != null)
+        {
+            _silhouetteTurret.rotation = _turret.rotation;
         }
     }
 
