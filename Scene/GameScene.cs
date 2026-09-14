@@ -91,7 +91,7 @@ public class GameScene : MonoBehaviour
             // 새 매치 시작 — 이전 매치에서 남아있을 수 있는 목숨/골드를 초기값으로 리셋
             // (싱글플레이는 세이브 생성 후 불러오는 과정에서 자연히 리셋되지만, 멀티플레이는 그 경로를 안 타서 여기서 직접 리셋함)
             // SaveSnapshot()이 실행되는 스테이지 로드보다 반드시 먼저 실행돼야 해서 Start()에 둠
-            GameManager.Instance.PlayerData.Initialize(0, 3);
+            GameManager.Instance.PlayerData.Initialize(0, 2);
 
             // 목숨 UI:다른 플레이어의 목숨 변경/이탈 수신은 로컬 플레이어 스폰(Initialize)을 기다리지 않고 여기서 바로 구독
             // — 다른 플레이어가 나보다 먼저 스폰되면서 늦게 도착한 값을 수동 동기화하는 신호(PlayerNetworkOwner.OnNetworkSpawn 참고)가

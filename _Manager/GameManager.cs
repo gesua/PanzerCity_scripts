@@ -48,7 +48,7 @@ public class GameManager : Singleton<GameManager>
         _dataManager.Initialize();
         _effectManager.Initialize();
         _optionManager.Initialize();
-        _playerData.Initialize(0, 3);
+        _playerData.Initialize(0, 2);
         _saveManager.Initialize();
 
         // 오디오 매니저 프리팹 생성

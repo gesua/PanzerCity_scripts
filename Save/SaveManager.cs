@@ -60,7 +60,7 @@ public class SaveManager : MonoBehaviour
             LastPlayedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
             CurrentStageID = 7101,
             Gold = 0,
-            Life = 3,
+            Life = 2,
             TotalGoldEarned = 0,
             ItemsUsed = 0,
             ShellKills = 0,
