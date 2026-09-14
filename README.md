@@ -1,6 +1,6 @@
 # PanzerCity
 
-숄더뷰 3인칭 시점의 탑다운 아케이드 탱크 슈팅 게임입니다. 게임 프로그래밍 교육 과정 중 기획부터 구현까지 혼자 진행한 개인 프로젝트로, **Steam 무료 출시를 준비하고 있습니다.** 싱글플레이어와 최대 4인 협동 멀티플레이어를 모두 지원합니다.
+숄더뷰 3인칭 시점의 아케이드 탱크 슈팅 게임입니다. 게임 프로그래밍 교육 과정 중 기획부터 구현까지 혼자 진행한 개인 프로젝트로, **Steam 무료 출시를 준비하고 있습니다.** 싱글플레이어와 최대 4인 협동 멀티플레이어를 모두 지원합니다.
 
 > 이 저장소는 전체 Unity 프로젝트 중 스크립트(C#) 폴더만 발췌한 코드 샘플입니다. 유료 에셋 등 리소스 파일은 라이선스상 포함되어 있지 않습니다.
 
@@ -13,8 +13,11 @@
 ## 기술 스택
 
 - Unity 6000.3.7f1 (URP)
-- Netcode for GameObjects, Unity Lobby Service, Unity Relay
-- TextMeshPro, New Input System, Cinemachine
+- Netcode for GameObjects
+- Unity Lobby Service / Unity Relay
+- TextMeshPro
+- New Input System
+- Cinemachine
 - Unity Localization (한국어/영어 지원, 언어별 폰트·폰트 크기 분리 지정)
 
 ## 게임플레이 구조
@@ -49,10 +52,10 @@ flowchart TD
 
 | 타입 | 특징 |
 | --- | --- |
-| 경전차 | 이동속도·공격속도가 빠릅니다. 직격 데미지는 받지 않고, 폭발 범위에 휘말릴 때만 파괴됩니다 |
-| 중형전차 | 가장 많이 등장하는 기본형으로, 능력치가 전반적으로 평균입니다 |
-| 중전차 | 유일하게 HP 4를 가진 적입니다. 이동속도·공격속도는 느리지만, 피격 방향에 따라 데미지가 다릅니다(정면 1 · 측면 2 · 후면 3) — 측면을 2번 맞으면 격파됩니다 |
-| 구축전차 | 유일하게 포탑이 없어 차체 전체를 돌려 조준합니다. 포탄 속도가 다른 타입보다 빠릅니다 |
+| 경전차 | 이동속도·공격속도가 빠릅니다. 직격 데미지는 받지 않고, 폭발 범위에 휘말릴 때만 파괴됩니다. |
+| 중형전차 | 가장 많이 등장하는 기본형으로, 능력치가 전반적으로 평균입니다. |
+| 중전차 | 유일하게 HP 4를 가진 적입니다. 이동속도·공격속도는 느리지만, 피격 방향에 따라 데미지가 다릅니다(정면 1 · 측면 2 · 후면 3) — 측면을 2번 맞으면 격파됩니다. |
+| 구축전차 | 유일하게 포탑이 없어 차체 전체를 돌려 조준합니다. 포탄 속도가 다른 타입보다 빠릅니다. |
 
 ### 행동 패턴
 
@@ -71,10 +74,10 @@ flowchart TD
 
 ### 맵 장애물
 
-- **테두리 벽**: 맵 외곽을 감싸는 파괴 불가능한 벽. 카메라와 플레이어 사이를 가리면 반투명한 빨간 큐브로 표시되어 시야를 가리지 않습니다
-- **파괴 가능한 벽**: 큐브 4개가 쌓인 기둥 단위로 반응합니다. 포탄에 맞으면 그 기둥의 큐브들만 물리 힘으로 흩어지고 5초 뒤 사라집니다. 맵에 배치할 때는 4×4 정사각형으로 묶어서 놓는 편이 편해서 그렇게 배치했습니다
-- **흰색 벽**: HQ 주변을 감싸는 파괴 불가능한 벽입니다. 벽 자체는 별도 상호작용이 없는 정적 오브젝트지만, 기지무적 아이템을 사용하면 이 벽과 연동해 주변 탱크를 밀어내고 종료 시점이 다가오면 깜빡이는 경고로 알려줍니다
-- **수풀**: 탱크를 시각적으로만 숨겨주는 은신 지대입니다(포탄은 그대로 통과·명중). LoL의 부쉬처럼, 완전히 들어간 탱크는 바깥에서 보이지 않고 적도 인식하지 못합니다
+- **테두리 벽**: 맵 외곽을 감싸는 파괴 불가능한 벽. 카메라와 플레이어 사이를 가리면 반투명한 빨간 큐브로 표시되어 시야를 가리지 않습니다.
+- **파괴 가능한 벽**: 큐브 4개가 쌓인 기둥 단위로 반응합니다. 포탄에 맞으면 그 기둥의 큐브들만 물리 힘으로 흩어지고 5초 뒤 사라집니다. 맵에 배치할 때는 4×4 정사각형으로 묶어서 놓는 편이 편해서 그렇게 배치했습니다.
+- **흰색 벽**: HQ 주변을 감싸는 파괴 불가능한 벽입니다. 벽 자체는 별도 상호작용이 없는 정적 오브젝트지만, 기지무적 아이템을 사용하면 이 벽과 연동해 주변 탱크를 밀어내고 종료 시점이 다가오면 깜빡이는 경고로 알려줍니다.
+- **수풀**: 탱크를 시각적으로만 숨겨주는 은신 지대입니다(포탄은 그대로 통과·명중). LoL의 부쉬처럼, 완전히 들어간 탱크는 바깥에서 보이지 않고 적도 인식하지 못합니다.
 
 ### 아이템
 
@@ -91,6 +94,101 @@ flowchart TD
 본인에게만 영향을 주는 아이템(목숨 증가, 나 무적)은 로컬에서 바로 처리하고, 맵 전체나 다른 플레이어에게 영향을 주는 아이템(기지 무적, EMP, 폭탄)은 `NetworkGameManager`를 거쳐 모든 클라이언트에 전파합니다.
 
 장비는 주포·포탑·차체 3개 슬롯으로 나뉘며, 장착 시 탱크 스탯에 바로 반영되고 세이브 데이터에도 저장됩니다.
+
+### 카메라 시스템
+
+평상시 3인칭 카메라와 저격 모드를 분리하여 구성했습니다.
+
+-   `CameraTarget`이 3인칭/저격 카메라의 회전, 감도, 줌을 관리합니다.
+-   `SniperModeController`가 저격 모드 전환과 플레이어 탱크 모델 표시
+    상태를 관리합니다.
+-   저격 모드에서는 플레이어 탱크 모델과 전차장을 숨겨 1인칭 조준 시
+    시야를 확보합니다.
+-   카메라가 탱크에 가까워지는 경우에도 모델을 숨기며, 숨김/표시
+    임계값을 분리해 깜빡임을 방지합니다.
+-   저격 모드에서는 FOV 기반으로 마우스 감도를 보정하고 스크롤로 FOV를
+    조절합니다.
+
+## 주요 코드 바로가기
+
+### 전차 코어
+
+-   [`TankBase.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Character/TankBase.cs)
+    — 플레이어/적 전차의 공통 공격, 포탄 생성, 피격 및 환경 상태 처리
+-   [`TankModel.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Character/TankModel.cs)
+    — 전차 데이터와 HP/피격/사망 상태 관리
+-   [`PlayerTank.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Player/PlayerTank.cs)
+    — 플레이어 전차 입력, 공격, 피격, 사망/리스폰 및 멀티플레이 분기
+-   [`Mover.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Player/Mover.cs)
+    — 가속/감속 기반 전차 이동 및 이동 충돌 처리
+-   [`Turret.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Player/Turret.cs)
+    — 포탑/포신 조준 및 화면 조준점 계산
+
+### 적 AI
+
+-   [`EnemyTank.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Enemy/EnemyTank.cs)
+    — 적 전차의 이동, 조준, 공격, NavMesh 및 상태 전환 관리
+-   [`EnemyState.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Enemy/EnemyState.cs)
+    — Idle / Combat / Dead 상태머신과 성격별 행동
+-   [`EnemySpawner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Enemy/EnemySpawner.cs)
+    — 스테이지별 적 스폰, 동시 등장 수 제한, EMP 처리
+-   [`HeavyTank.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Enemy/HeavyTank.cs)
+    — 중전차의 피격 방향별 데미지 처리
+-   [`DestroyerTank.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Enemy/DestroyerTank.cs)
+    — 포탑 없이 차체를 회전해 조준하는 구축전차
+
+### 멀티플레이어
+
+-   [`NetworkGameManager.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/NetworkGameManager.cs)
+    — 전투 판정, 스테이지 진행, 아이템 효과, 플레이어 상태 등의 RPC
+    중계 허브
+-   [`PlayerNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/PlayerNetworkOwner.cs)
+    — 플레이어별 NetworkVariable, 공격/아이템/상태 동기화
+-   [`EnemyNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/EnemyNetworkOwner.cs)
+    — 적 AI/이동/공격의 네트워크 제어 및 원격 클라이언트 재현
+-   [`ShellNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/ShellNetworkOwner.cs)
+    — 포탄 네트워크 스폰, 서버 판정 및 피격/폭발 결과 전파
+-   [`DroppedItemNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/DroppedItemNetworkOwner.cs)
+    — 드랍 아이템의 네트워크 상태 처리
+-   [`LobbyManager.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/LobbyManager.cs)
+    — Lobby 생성/입장, 목록 갱신, 하트비트 및 룸 상태 관리
+-   [`SpectatorController.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/SpectatorController.cs)
+    — 목숨을 모두 소진한 플레이어의 관전 처리
+
+### 인벤토리 / 아이템
+
+-   [`InventoryModel.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Item/InventoryModel.cs)
+    — 인벤토리 데이터 및 슬롯 상태
+-   [`InventoryView.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Item/InventoryView.cs)
+    — 인벤토리 UI 표현
+-   [`InventoryPresenter.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Item/InventoryPresenter.cs)
+    — Model / View 사이의 입력 및 상태 연결
+-   [`ItemEffectHandler.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Item/ItemEffectHandler.cs)
+    — 아이템 사용 효과 처리
+-   [`EquipmentManager.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Item/Equipment/EquipmentManager.cs)
+    — 주포/포탑/차체 장비 적용 및 관리
+
+### 풀링 / 저장
+
+-   [`Pool.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/_Util/Pool.cs)
+    — 재사용 가능한 오브젝트 풀의 생성/반환 관리
+-   [`PoolManager.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/_Manager/PoolManager.cs)
+    — 게임 내 풀 관리 및 프리팹 접근
+-   [`SaveManager.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Save/SaveManager.cs)
+    — 세이브 데이터 저장/로드 및 슬롯 관리
+-   [`SaveData.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Save/SaveData.cs)
+    — 세이브 데이터 구조
+
+### 카메라 / 에디터
+
+-   [`CameraTarget.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Camera/CameraTarget.cs)
+    — 카메라 회전, 줌, 감도 및 화면 좌표 보정
+-   [`SniperModeController.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Camera/SniperModeController.cs)
+    — 저격 모드 카메라 전환 및 모델 숨김
+-   [`BushOptimizerWindow.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Editor/BushOptimizerWindow.cs)
+    — 수풀 오브젝트 연결/최적화 자동화
+-   [`WaterOptimizerWindow.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Editor/WaterOptimizerWindow.cs)
+    — 물 오브젝트 관련 에디터 자동화
 
 ## 아키텍처 하이라이트
 
@@ -246,7 +344,7 @@ Unity Multiplayer 패키지 설정 마법사에서 각 항목을 다음과 같�
 ## 향후 계획
 
 - 캐릭터 선택 시스템
-- 신규 맵, 보스 콘텐츠
+- 보스 콘텐츠
 - 퀘스트 시스템
 - 맵 에디터 (Steam 창작마당 연동)
 
