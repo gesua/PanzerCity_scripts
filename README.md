@@ -139,20 +139,20 @@ flowchart TD
 
 ### 멀티플레이어
 
--   [`NetworkGameManager.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/NetworkGameManager.cs)
+-   [`NetworkGameManager.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/Network/NetworkGameManager.cs)
     — 전투 판정, 스테이지 진행, 아이템 효과, 플레이어 상태 등의 RPC
     중계 허브
--   [`PlayerNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/PlayerNetworkOwner.cs)
+-   [`PlayerNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/Network/PlayerNetworkOwner.cs)
     — 플레이어별 NetworkVariable, 공격/아이템/상태 동기화
--   [`EnemyNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/EnemyNetworkOwner.cs)
+-   [`EnemyNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/Network/EnemyNetworkOwner.cs)
     — 적 AI/이동/공격의 네트워크 제어 및 원격 클라이언트 재현
--   [`ShellNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/ShellNetworkOwner.cs)
+-   [`ShellNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/Network/ShellNetworkOwner.cs)
     — 포탄 네트워크 스폰, 서버 판정 및 피격/폭발 결과 전파
--   [`DroppedItemNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/DroppedItemNetworkOwner.cs)
+-   [`DroppedItemNetworkOwner.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/Network/DroppedItemNetworkOwner.cs)
     — 드랍 아이템의 네트워크 상태 처리
--   [`LobbyManager.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/LobbyManager.cs)
+-   [`LobbyManager.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/Lobby/LobbyManager.cs)
     — Lobby 생성/입장, 목록 갱신, 하트비트 및 룸 상태 관리
--   [`SpectatorController.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/SpectatorController.cs)
+-   [`SpectatorController.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Multiplayer/Network/SpectatorController.cs)
     — 목숨을 모두 소진한 플레이어의 관전 처리
 
 ### 인벤토리 / 아이템
