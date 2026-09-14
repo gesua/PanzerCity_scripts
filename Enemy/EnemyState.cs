@@ -259,20 +259,19 @@ public class CombatState : EnemyState
     void UpdateCoward()
     {
         if (_enemy.CanAimWhileMoving) _enemy.AimAtTarget(); // 포탑형은 도망 중에도 조준 유지
-        if (HandleAgentMovement() == false) return;
+        if (HandleAgentMovement(_enemy.FleesBackward) == false) return; // 후진 도주형이면 후방 기준
 
-        _enemy.FleeFromTarget(); // 차체는 반대 방향으로 도망
-
+        _enemy.FleeFromTarget(); // 반대 방향으로 도망
         _enemy.AgentMove(); // 이동
     }
 
     /// <summary>
     /// 에이전트로 이동 가능 여부 체크 및 처리
     /// </summary>
-    bool HandleAgentMovement()
+    bool HandleAgentMovement(bool checkBackward = false)
     {
         // 탱크가 막고 있는지 체크(맵 제외)
-        if (_enemy.IsBlocked(true))
+        if (_enemy.IsBlocked(true, checkBackward))
         {
             _enemy.SetEngineEffect(false);
             return false;

@@ -86,6 +86,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     public float SpawnEffectTime => _spawnEffectTime;
     public EnemyPersonality Personality => _personality;
     public bool IsAlive => _model.IsAlive; // 죽은 적을 걸러내야 하는 곳(EMP 등)에서 사용
+    public virtual bool FleesBackward => false;
 
     /// <summary>
     /// 적 제거 이벤트
@@ -149,7 +150,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
         _personality = (EnemyPersonality)UnityEngine.Random.Range(0, Enum.GetValues(typeof(EnemyPersonality)).Length);
 
         // HACK:성격 테스트
-        //_personality = EnemyPersonality.Aggressive;
+        //_personality = EnemyPersonality.Coward;
 
         // 상태 객체들 생성
         // 방치 상태

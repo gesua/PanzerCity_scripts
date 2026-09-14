@@ -9,6 +9,8 @@ public class HeavyTank : EnemyTank
     [Header("----- 컴포넌트(HeavyTank) -----")]
     [SerializeField] Renderer[] _renderers; // 색상 바꿀 렌더러들
 
+    public override bool FleesBackward => true;
+
     // 바뀔 색
     Color[] _hpColors =
     {
@@ -55,18 +57,19 @@ public class HeavyTank : EnemyTank
     }
 
     /// <summary>
-    /// 후진 도주: 정면 장갑이 타겟을 향하도록 차체를 유지한 채 후진한다.
+    /// 후진 도주: 경로 반대 방향을 정면으로 삼아 회전한 뒤, 정렬이 맞으면 후진한다.
+    /// 도주 경로는 타겟에서 멀어지는 방향이라 대체로 정면이 타겟 쪽을 향하지만,
+    /// 장애물을 크게 돌아갈 때는 일시적으로 어긋날 수 있다.
     /// </summary>
     private void FleeBackward()
     {
         if (Target == null) return;
 
-        RotateBodyToward(Target.position, Time.fixedDeltaTime); // 차체를 타겟 쪽으로 회전
+        if (TryGetAgentSteeringDirection(out Vector3 dir) == false) return; // 경로가 아직 준비 안 됐으면 대기
 
-        Vector3 dir = GetFlatDirection(transform.position, Target.position);
-        if (dir.sqrMagnitude < Mathf.Epsilon) return;
+        RotateBodyToward(transform.position - dir, Time.fixedDeltaTime); // 경로 반대 방향을 정면으로
 
-        float angle = Vector3.Angle(transform.forward, dir);
+        float angle = Vector3.Angle(-transform.forward, dir);
         if (angle < 10f && IsBlocked(checkBackward: true) == false)
         {
             MoveBackward();
