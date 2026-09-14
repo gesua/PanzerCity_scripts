@@ -9,7 +9,7 @@ public class HeavyTank : EnemyTank
     [Header("----- 컴포넌트(HeavyTank) -----")]
     [SerializeField] Renderer[] _renderers; // 색상 바꿀 렌더러들
 
-    public override bool FleesBackward => true;
+    public override bool FleesBackward => true; // Coward일 때 후진으로 도주함(CombatState가 후방 기준으로 체크하게 함)
 
     // 바뀔 색
     Color[] _hpColors =

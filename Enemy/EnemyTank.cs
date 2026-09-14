@@ -86,7 +86,6 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     public float SpawnEffectTime => _spawnEffectTime;
     public EnemyPersonality Personality => _personality;
     public bool IsAlive => _model.IsAlive; // 죽은 적을 걸러내야 하는 곳(EMP 등)에서 사용
-    public virtual bool FleesBackward => false;
 
     /// <summary>
     /// 적 제거 이벤트
@@ -106,6 +105,7 @@ public class EnemyTank : TankBase, IPoolReturnHandler
     public Transform Target => _target;
     public virtual bool CanAimWhileMoving => true; // 구축전차를 제외한 나머지는 다 true
     public virtual bool UsesBodyAim => false;
+    public virtual bool FleesBackward => false; // 후진으로 도주하는 탱크(중전차)면 true
 
     protected NavMeshAgent Agent => _agent;
     protected Rigidbody Rigid => _rigid;
