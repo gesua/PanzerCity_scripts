@@ -76,12 +76,12 @@ flowchart TD
 
 | 아이콘 | 이름 | 설명 |
 | --- | --- | --- |
-| | **테두리 벽** | 맵 외곽을 감싸는 파괴 불가능한 벽. 카메라와 플레이어 사이를 가리면 반투명한 빨간 큐브로 표시되어 시야를 가리지 않습니다. |
-| ![파괴 가능한 벽](docs~/icons/wall_destructible.png) | **파괴 가능한 벽** | 큐브 4개가 쌓인 기둥 단위로 반응합니다. 포탄에 맞으면 그 기둥의 큐브들만 물리 힘으로 흩어지고 5초 뒤 사라집니다. 맵에 배치할 때는 4×4 정사각형으로 묶어서 놓는 편이 편해서 그렇게 배치했습니다. |
-| ![흰색 벽](docs~/icons/wall_white.png) | **흰색 벽** | 파괴 불가능한 벽입니다. 벽 자체는 별도 상호작용이 없는 정적 오브젝트지만, 기지무적 아이템을 사용하면 기지 주변에 이 벽이 생기면서 주변 탱크를 밀어내고 종료 시점이 다가오면 깜빡이는 경고로 알려줍니다. |
-| ![수풀](docs~/icons/bush.png) | **수풀** | 탱크를 시각적으로만 숨겨주는 은신 지대입니다(포탄은 그대로 통과·명중). LoL의 부쉬처럼, 완전히 들어간 탱크는 바깥에서 보이지 않고 적도 인식하지 못합니다. |
+| | **테두리 벽** | [`CameraBedrockChange.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Camera/CameraBedrockChange.cs) — 맵 외곽을 감싸는 파괴 불가능한 벽. 카메라와 플레이어 사이를 가리면 반투명한 빨간 큐브로 표시되어 시야를 가리지 않습니다.  |
+| ![파괴 가능한 벽](docs~/icons/wall_destructible.png) | **파괴 가능한 벽** | [`Wall.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/Wall.cs) — 큐브 4개가 쌓인 기둥 단위로 반응합니다. 포탄에 맞으면 그 기둥의 큐브들만 물리 힘으로 흩어지고 5초 뒤 사라집니다. 맵에 배치할 때는 4×4 정사각형으로 묶어서 놓는 편이 편해서 그렇게 배치했습니다.  |
+| ![흰색 벽](docs~/icons/wall_white.png) | **흰색 벽** | [`BaseWall.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/BaseWall.cs) — 파괴 불가능한 벽입니다. 벽 자체는 별도 상호작용이 없는 정적 오브젝트지만, 기지무적 아이템을 사용하면 기지 주변에 이 벽이 생기면서 주변 탱크를 밀어내고 종료 시점이 다가오면 깜빡이는 경고로 알려줍니다.  |
+| ![수풀](docs~/icons/bush.png) | **수풀** | [`BushGroup.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/BushGroup.cs) — 탱크를 시각적으로만 숨겨주는 은신 지대입니다(포탄은 그대로 통과·명중). LoL의 부쉬처럼, 완전히 들어간 탱크는 바깥에서 보이지 않고 적도 인식하지 못합니다.  |
 | ![물](docs~/icons/water.png) | **물** | 바닥에 깔려 있는 지형으로, 탱크가 통과할 수 없는 장애물입니다. |
-| ![진흙](docs~/icons/mud.png) | **진흙** | 바닥에 깔린 감속 지형입니다. 원작에서는 미끄러지는 발판이었지만, 이 프로젝트에서는 밟은 탱크의 이동 속도와 회전 속도를 1/2로 낮추는 방식으로 바꿨습니다. |
+| ![진흙](docs~/icons/mud.png) | **진흙** | [`Mud.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/Mud.cs) — 바닥에 깔린 감속 지형입니다. 원작에서는 미끄러지는 발판이었지만, 이 프로젝트에서는 밟은 탱크의 이동 속도와 회전 속도를 1/2로 낮추는 방식으로 바꿨습니다.  |
 
 ### 아이템
 
@@ -351,6 +351,21 @@ Unity Multiplayer 패키지 설정 마법사에서 각 항목을 다음과 같�
 - 보스 콘텐츠
 - 퀘스트 시스템
 - 맵 에디터 (Steam 창작마당 연동)
+
+## 사용한 에셋
+- [Tanks! | 3D Sample Project](https://assetstore.unity.com/packages/templates/packs/tanks-3d-sample-project-46209) : 적 탱크, 포탄, 이펙트
+- [Tanks | GameDev Starter Kit [Free Edition]](https://assetstore.unity.com/packages/3d/environments/tanks-gamedev-starter-kit-free-edition-243033) : 플레이어 탱크
+- [Particle Pack | Starter Assets](https://assetstore.unity.com/packages/vfx/particles/particle-pack-starter-assets-127325) : 이펙트
+- [URP Stylized Water Shader - Proto Series](https://assetstore.unity.com/packages/vfx/shaders/urp-stylized-water-shader-proto-series-187485) : 물
+- [Crosshairs](https://assetstore.unity.com/packages/2d/gui/icons/crosshairs-216732) : 조준점 UI
+- [Abandoned Factory Buildings - Day/Night Scene](https://assetstore.unity.com/packages/3d/environments/urban/abandoned-factory-buildings-day-night-scene-164492) : 외곽 건물
+- [유니티짱(오오토리 코하쿠)](https://unity3d.jp/unity-chan/) : SD캐릭터, 2D캐릭터
+- [Haon SD series Free Bundle](https://assetstore.unity.com/packages/3d/characters/humanoids/haon-sd-series-free-bundle-84992) : SD캐릭터 옷
+- [Unity Toon Shader v0.14.1](https://docs.unity3d.com/Packages/com.unity.toonshader@0.14/manual/index.html) : 셰이더
+- [RussoOne Font](https://fonts.google.com/specimen/Russo+One) : 영어 폰트
+- [나눔 글꼴](https://hangeul.naver.com/font) : 한글 폰트
+- [Meshy AI](https://www.meshy.ai/ko/?noRedirect=true) : 조각상 모델링
+- [Suno AI](https://suno.com/home) : 타이틀 BGM
 
 ## 개발자
 
