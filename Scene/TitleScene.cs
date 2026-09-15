@@ -386,11 +386,13 @@ public class TitleScene : MonoBehaviour
     public void OpenCredits()
     {
         _credits.SetActive(true);
+        _sparkleManager.PauseAll(); // 타이틀 버튼 반짝임 정지
     }
 
     public void CloseCredits()
     {
         _credits.SetActive(false);
+        _sparkleManager.ResumeAll(); // 반짝임 재개
     }
 
     /// <summary>
