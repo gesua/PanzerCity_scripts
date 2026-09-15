@@ -75,8 +75,10 @@ public class DataManager : MonoBehaviour
             if (data.StageID > _lastStageID) _lastStageID = data.StageID; // 마지막 스테이지 입력
         }
 
+#if UNITY_EDITOR
         // HACK:임시로 마지막 스테이지 변경
         //_lastStageID = 7101;
+#endif
     }
 
     /// <summary>

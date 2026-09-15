@@ -667,6 +667,7 @@ public class GameScene : MonoBehaviour
         _isPaused = !_isPaused;
         _inputSystemHandler.SetInputDisabled(_isPaused);
         _pauseUI.SetActive(_isPaused);
+        if (_isPaused) _player.SetIsAttack(false); // 자동 공격중인거 취소
 
         // 멀티플레이 중인지 확인 (싱글플레이일 때만 시간을 멈춤)
         bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
@@ -1020,6 +1021,7 @@ public class GameScene : MonoBehaviour
 
         //_miniMapUI.ResetSize(); // 미니맵 원래 크기로 복구
         _player.Move(Vector3.zero); // 이동 및 이동 사운드 강제 정지
+        _player.SetIsAttack(false); // 자동 공격중인거 취소
 
         // 마지막 스테이지면 상점 없이 게임 클리어 UI 표시
         // HACK:게임 클리어에서 이어하기 하면 상점 나오게 할거임
