@@ -399,7 +399,7 @@ Unity Multiplayer 패키지 설정 마법사에서 각 항목을 다음과 같�
 - [RussoOne Font](https://fonts.google.com/specimen/Russo+One) : 영어 폰트
 - [나눔 글꼴](https://hangeul.naver.com/font) : 한글 폰트
 - [Meshy AI](https://www.meshy.ai/ko/?noRedirect=true) : 조각상 모델링
-- [Suno AI](https://suno.com/home) : 타이틀 BGM
+- [Suno AI](https://suno.com/home) : 타이틀 BGM, 상점 BGM
 
 ## 개발자
 
