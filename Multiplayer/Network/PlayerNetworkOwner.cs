@@ -53,7 +53,7 @@ public class PlayerNetworkOwner : NetworkBehaviour
         _playerTank.SetNetworkOwner(this);
         _equipCamera.enabled = IsOwner; // 상점 장비칸 미리보기
 
-        _playerTank.OnPlayerRespawn += HandleRemoteRespawn;
+        _playerTank.OnPlayerRespawn += HandlePlayerRespawned;
         // 목숨 UI:전원이 이 값의 변경을 받아서 NetworkGameManager로 릴레이
         _life.OnValueChanged += HandleLifeValueChanged;
         // HP
@@ -265,11 +265,42 @@ public class PlayerNetworkOwner : NetworkBehaviour
     }
 
     /// <summary>
+    /// 소유자 자신의 리스폰 타이머(DeadRoutine) 만료 시점 — 실제 리스폰 자체는 GameScene이 이미 처리하지만,
+    /// 원격 관찰자는 각자 독립적으로 흐르는 로컬 타이머 대신 서버를 거친 이 신호를 받아야 정확히 같은 순간
+    /// 시각 상태를 재현할 수 있음(관찰자 자신의 로컬 타이머는 사망 신호 수신 지연만큼 늦게 시작돼
+    /// 실제 텔레포트(NetworkTransform 동기화)보다 늦게 끝나는 문제가 있었음)
+    /// </summary>
+    void HandlePlayerRespawned()
+    {
+        if (IsOwner == false) return; // 원격 관찰자 자신의 타이머 만료는 더 이상 트리거로 쓰지 않음(서버 경유 알림으로 대체)
+
+        if (IsServer) HandleRespawnOnServer(); // 호스트 자신이면 바로 처리
+        else RequestRespawnServerRpc(); // 비호스트면 서버에 요청
+    }
+
+    /// <summary>
+    /// 리스폰 연출 신호를 전원에게 전달(서버 전용)
+    /// 호스트 자신의 리스폰(HandlePlayerRespawned가 직접 호출) / 원격 클라이언트의 리스폰 요청(RequestRespawnServerRpc) 양쪽에서 사용
+    /// </summary>
+    void HandleRespawnOnServer()
+    {
+        if (IsServer == false) return; // 방어적 가드
+        NotifyRespawnClientRpc();
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    void RequestRespawnServerRpc()
+    {
+        HandleRespawnOnServer();
+    }
+
+    /// <summary>
     /// 멀티플레이:소유자가 아닌 관찰자 쪽에서 리스폰을 재현
     /// GameScene은 로컬 플레이어(소유자)만 처리하므로, 원격 플레이어의 리스폰은 각자 로컬로 독립 재현해야 함
     /// 생명력 체크/게임오버 등 로컬 전용 로직은 소유자 쪽에서 GameScene이 이미 처리하므로 여기선 순수 연출만
     /// </summary>
-    void HandleRemoteRespawn()
+    [ClientRpc]
+    void NotifyRespawnClientRpc()
     {
         if (IsOwner) return; // 소유자 자신은 GameScene이 이미 처리
         StartCoroutine(PlayRemoteRespawnIfNotEliminated());
