@@ -211,6 +211,9 @@ public class ShopUI : MonoBehaviour
 
             _readyCountText.text = ""; // 멀티 준비 완료 텍스트 비워줌
 
+            // 상점 BGM 재생(싱글/멀티 공통 — 사운드는 로컬 연출이라 각자 재생하면 됨)
+            GameManager.Instance.AudioManager.PlayBgm(BgmType.Shop);
+
             // 멀티플레이:상점에서만 서로 커서가 보이도록 송신 시작
             if (_isMultiplayer && _localCursorSync != null)
             {
@@ -235,6 +238,9 @@ public class ShopUI : MonoBehaviour
         {
             // 상점이 닫힐 때 툴팁 숨김
             if (_itemTooltipUI != null) _itemTooltipUI.Hide();
+
+            // 상점 BGM 정지(현재 스테이지 자체 BGM이 없어 그냥 정지 — 추후 스테이지 BGM이 생기면 여기서 그쪽 재생으로 교체)
+            GameManager.Instance.AudioManager.StopBgm();
 
             // 멀티플레이:다음 스테이지로 넘어가면 커서 송신 중단 + 화면에서도 즉시 제거
             if (_isMultiplayer && _localCursorSync != null)

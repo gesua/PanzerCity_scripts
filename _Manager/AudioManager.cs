@@ -4,6 +4,7 @@ using UnityEngine;
 public enum BgmType
 {
     Title,
+    Shop,
 }
 public enum SfxType
 {
