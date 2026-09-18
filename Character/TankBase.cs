@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -20,6 +21,12 @@ public abstract class TankBase : MonoBehaviour, IAttackable
     [SerializeField] AudioClip _moveClip; // 움직이는 소리
 
     bool _prevIsMoving; // 엔진 이펙트 중복 호출 방지
+    bool _wasMovingBeforePause; // 일시정지 시점에 이동 소리가 재생 중이었는지(해제 시 복구용)
+
+    // 현재 씬에 활성화된 모든 탱크(플레이어 + 적) 목록 — 일시정지 시 전체 사운드를 멈추기 위한 용도
+    // EnemySpawner._enemies(생존 적만 담는 게임플레이 판정용 리스트)와는 목적이 달라서 별도로 관리함
+    // Move 소리를 PlayOneShot으로 하기엔 2.75초마다 반복되고, 미묘하게 다르게 30초가 더 나은거 같아서 이렇게 함
+    static readonly List<TankBase> _allTanks = new List<TankBase>();
 
     BushGroup _currentBush; // 현재 들어가있는 풀숲그룹
     int _bushEnterCount; // 풀 경계선에서 꼬이는거 방지
@@ -34,13 +41,29 @@ public abstract class TankBase : MonoBehaviour, IAttackable
 
     protected virtual void Awake()
     {
-        _model = GetComponent<TankModel>();
+        TryGetComponent(out _model);
         _tankData = GameManager.Instance.DataManager.GetTankData(_tankID);
         if (_tankData != null) _model.Initialize(_tankData);
 
         // 피격음/파괴음 공통 구독
         _model.OnHit += HandleHitSound;
         _model.OnDead += HandleDeadSound;
+    }
+
+    /// <summary>
+    /// 전체 탱크 목록 등록 — 풀링되는 적 탱크는 활성화될 때마다(재사용 포함) 다시 등록되어야 하므로 Awake가 아닌 OnEnable에서 처리
+    /// </summary>
+    protected virtual void OnEnable()
+    {
+        _allTanks.Add(this);
+    }
+
+    /// <summary>
+    /// 전체 탱크 목록 해제 — 풀 반환(SetActive(false)) 시점에 함께 빠져야 죽은 탱크의 소리를 계속 붙들고 있지 않음
+    /// </summary>
+    protected virtual void OnDisable()
+    {
+        _allTanks.Remove(this);
     }
 
     /// <summary>
@@ -164,6 +187,38 @@ public abstract class TankBase : MonoBehaviour, IAttackable
         else if (isMoving == false)
         {
             _moveAudioSource.Stop();
+        }
+    }
+
+    /// <summary>
+    /// 일시정지 처리(싱글플레이 전용)
+    /// Time.timeScale = 0f로는 AudioSource 재생이 멈추지 않아서, 이동 소리(_moveAudioSource)만 별도로 Pause/UnPause 처리함
+    /// 엔진 이펙트(_engineEffect)는 파티클 시스템이라 Time.timeScale을 그대로 따라가서 자동으로 멈추므로 건드리지 않음
+    /// </summary>
+    public void SetPaused(bool isPaused)
+    {
+        if (_moveAudioSource == null) return;
+
+        if (isPaused)
+        {
+            _wasMovingBeforePause = _moveAudioSource.isPlaying;
+            if (_wasMovingBeforePause) _moveAudioSource.Pause();
+        }
+        else
+        {
+            if (_wasMovingBeforePause) _moveAudioSource.UnPause();
+        }
+    }
+
+    /// <summary>
+    /// 현재 씬에 활성화된 모든 탱크(플레이어 + 적)의 일시정지 처리를 일괄 호출(싱글플레이 전용, GameScene이 호출)
+    /// 적은 EnemySpawner._enemies가 아닌 이 클래스 자신이 관리하는 _allTanks 기준으로 순회함(주석 참고)
+    /// </summary>
+    public static void SetAllPaused(bool isPaused)
+    {
+        foreach (TankBase tank in _allTanks)
+        {
+            tank.SetPaused(isPaused);
         }
     }
 

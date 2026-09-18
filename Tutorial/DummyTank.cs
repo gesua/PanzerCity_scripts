@@ -88,8 +88,10 @@ public class DummyTank : EnemyTank
         base.TakeHit(ref hitData);
     }
 
-    private void OnEnable()
+    protected override void OnEnable()
     {
+        base.OnEnable(); // _allTanks 등록
+
         switch (_mode)
         {
             case DummyTankMode.None:

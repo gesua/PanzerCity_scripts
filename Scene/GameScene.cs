@@ -673,7 +673,12 @@ public class GameScene : MonoBehaviour
         bool isMultiplayer = NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
         if (isMultiplayer == false)
         {
-            Time.timeScale = _isPaused ? 0f : 1f;
+            Time.timeScale = (_isPaused) ? 0f : 1f;
+
+            // Time.timeScale = 0f로는 이동 소리(AudioSource)가 멈추지 않아서 별도로 처리
+            // (엔진 이펙트는 파티클이라 Time.timeScale을 그대로 따라가서 자동으로 멈춤)
+            // 플레이어뿐 아니라 근처 적 탱크의 이동 소리도 계속 나서, 씬의 모든 탱크를 대상으로 일괄 처리함
+            TankBase.SetAllPaused(_isPaused);
         }
         else
         {
