@@ -75,6 +75,37 @@ public class InputSystemHandler : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 모바일 터치 조이스틱 — 매 프레임 정규화된 방향 값 전달(TouchJoystick이 호출)
+    /// </summary>
+    public void SetMobileMoveInput(Vector2 value)
+    {
+        if (_isInputDisabled) return;
+
+        _moveInput = value;
+    }
+
+    /// <summary>
+    /// 모바일 터치 드래그로 카메라 회전 — 프레임당 델타 값 전달(TouchLookZone이 호출)
+    /// </summary>
+    public void SetMobileLookInput(Vector2 delta)
+    {
+        if (_isInputDisabled) return;
+
+        _cameraRotInput = delta;
+    }
+
+    /// <summary>
+    /// 모바일 터치 발사 버튼 — 누르는 동안 true, 뗄 때 false(TouchFireButton이 호출)
+    /// </summary>
+    public void SetMobileAttackInput(bool isPressed)
+    {
+        if (_isInputDisabled) return;
+
+        _onAttack = isPressed;
+        OnAttackInput?.Invoke(_onAttack);
+    }
+
     // Shift키(저격 모드)
     public void HandleSniperInput(InputAction.CallbackContext context)
     {
