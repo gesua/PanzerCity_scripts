@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 
@@ -29,8 +30,9 @@ public class ShopUI : MonoBehaviour
     [SerializeField] RectTransform _coinEndTr;   // 상점 주인 초상화 쪽 위치 (도착지)
 
     [Header("----- 멀티플레이 원격 커서 -----")]
-    [SerializeField] RectTransform _cursorLayerRoot; // 커서 이미지들이 배치될 부모
+    [SerializeField] RectTransform _cursorLayerRoot; // 원격 커서 이미지들이 배치될 부모(MultiCursor, Canvas_Shop 하위)
     [SerializeField] Image[] _remoteCursorImages; // 색상별 커서 이미지(인덱스 0~3 = 1P~4P)
+    [SerializeField] RectTransform _localCursorParent; // 본인 커서 이미지가 옮겨갈 부모(MyCursor, Canvas_Cursor 하위 — 옵션 등 낮은 SortOrder UI를 다른 플레이어 커서가 가리지 않도록 별도 캔버스에 배치)
 
     Vector3 _tooltipOffset = new Vector3(0f, 200f, 0f); // 상점 아이템용 툴팁 위치 오프셋
 
@@ -43,6 +45,7 @@ public class ShopUI : MonoBehaviour
     bool _isInitialized; // EnsureShopInitialized() 중복 실행 방지 가드
 
     PlayerCursorSync _localCursorSync; // 로컬 플레이어의 커서 송신용 컴포넌트
+    Image _localCursorImage; // 본인 커서 이미지 — MultiCursor에서 분리되어 _localCursorParent 밑으로 옮겨짐(InitializeCursorSync 참고)
     PlayerCursorSync[] _remoteCursorSyncs; // 인덱스 = OwnerClientId, 값 = 해당 플레이어의 커서 동기화 컴포넌트(없으면 null)
     int _pendingCursorSlotCount; // 아직 참조를 못 채운 원격 슬롯 수 — 늦게 스폰 완료되는 클라이언트를 다음 프레임에 재시도로 채우기 위함
     bool _previousCursorVisible; // 상점 진입 전 Cursor.visible 상태 저장 — 나갈 때 그대로 복원(다른 시스템이 커서를 어떻게 쓰고 있었는지 몰라도 안전하게 되돌리기 위함)
@@ -135,9 +138,11 @@ public class ShopUI : MonoBehaviour
         {
             _localCursorSync = localCursorSync;
 
-            // 내 커서를 가장 위로 보이게 배치
+            // 본인 커서 이미지를 MultiCursor(Canvas_Shop)에서 분리해 MyCursor(Canvas_Cursor) 밑으로 옮김
+            // — 옵션 등 낮은 SortOrder UI를 다른 플레이어 커서가 가리는 문제를 별도 캔버스 분리로 해결
             ulong localClientId = NetworkManager.Singleton.LocalClientId;
-            _remoteCursorImages[localClientId].transform.SetAsLastSibling();
+            _localCursorImage = _remoteCursorImages[localClientId];
+            _localCursorImage.transform.SetParent(_localCursorParent, false);
         }
 
         // 원격 플레이어(커서 수신 대상) — OwnerClientId를 그대로 색상 인덱스로 사용(PlayerNetworkOwner.SetTankColorByIndex와 동일한 관례)
@@ -179,6 +184,7 @@ public class ShopUI : MonoBehaviour
         if (_pendingCursorSlotCount > 0) InitializeCursorSync();
 
         UpdateCursors();
+        UpdateLocalCursor();
     }
 
     public void SetShopActive(bool active)
@@ -221,6 +227,8 @@ public class ShopUI : MonoBehaviour
 
                 _previousCursorVisible = Cursor.visible; // 나갈 때 복원할 수 있도록 진입 전 상태 저장
                 Cursor.visible = false; // 커스텀 이미지 커서와 겹쳐 보이지 않도록 OS 기본 커서만 숨김 — CursorLockMode는 그대로 None 유지(잠그면 마우스 자유 이동/클릭 자체가 막혀서 상점 조작과 위치 추적이 둘 다 깨짐)
+
+                _localCursorImage.gameObject.SetActive(true); // 본인 커서 표시 — MyCursor는 HideAllCursors/UpdateCursors 대상이 아니므로 여기서 직접 켬
             }
 
             // HUD 연출:상점 UI(상점 주인 포함) 슬라이드인 시작. 인사(ShowWelcome)는 슬라이드인이 끝난 뒤 재생
@@ -264,8 +272,8 @@ public class ShopUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 멀티플레이:커서 위치를 로컬 화면에 반영 — 지금은 테스트 목적으로 로컬 플레이어 본인 슬롯도 함께 표시함(원래대로 자신만 숨기려면
-    /// shouldShow 조건에 "cursorSync != _localCursorSync"를 다시 추가하면 됨). 상점 진입 시 Cursor.visible을 꺼서 OS 기본 커서와는 안 겹침
+    /// 멀티플레이:다른 플레이어의 커서 위치를 로컬 화면에 반영 — 본인 커서는 MyCursor로 분리되어 UpdateLocalCursor()가 별도로 처리하므로 여기선 건너뜀
+    /// 상점 진입 시 Cursor.visible을 꺼서 OS 기본 커서와는 안 겹침
     /// RectTransformUtility.ScreenPointToWorldPointInRectangle + rectTransform.position(월드 좌표 직접 대입)으로 처리
     /// anchoredPosition 대신 position을 쓰는 이유:커서 이미지마다 Anchor/Pivot/Scale을 자유롭게 잡아도(핫스팟 정렬 등) 항상 정확한 위치에 그려짐 —
     /// anchoredPosition은 그 이미지의 앵커 기준점이 뭐냐에 따라 같은 값이 다른 위치로 해석돼서 이미지마다 앵커 설정을 신경 써야 하는 문제가 있었음
@@ -277,6 +285,9 @@ public class ShopUI : MonoBehaviour
         {
             PlayerCursorSync cursorSync = _remoteCursorSyncs[i];
             Image cursorImage = _remoteCursorImages[i];
+
+            // 본인 슬롯은 MyCursor로 옮겨져 UpdateLocalCursor()가 그리므로 여기서 건너뜀
+            if (cursorSync == _localCursorSync) continue;
 
             // 대상 플레이어가 없거나(접속 안 함) 상점을 안 열어놨으면 숨김
             bool shouldShow = (cursorSync != null) && cursorSync.IsCursorActive;
@@ -293,6 +304,24 @@ public class ShopUI : MonoBehaviour
             {
                 cursorImage.rectTransform.position = worldPos;
             }
+        }
+    }
+
+    /// <summary>
+    /// 본인 커서 위치를 로컬 마우스 좌표로 직접 갱신 — 네트워크 왕복 없이 즉시 반영됨
+    /// (다른 클라이언트 화면에 내 커서를 보여주는 건 별개 경로 — PlayerCursorSync.Update()가 각자 자기 위치를 네트워크로 계속 송신함)
+    /// </summary>
+    void UpdateLocalCursor()
+    {
+        if (_localCursorImage == null) return; // 아직 로컬 스폰 전이면 대기
+        if (_localCursorImage.gameObject.activeSelf == false) return; // 상점이 안 열려있으면 갱신 불필요
+        if (Mouse.current == null) return; // 마우스 장치가 없으면 갱신하지 않음(방어적 가드)
+
+        Vector2 screenPoint = Mouse.current.position.ReadValue();
+
+        if (RectTransformUtility.ScreenPointToWorldPointInRectangle(_localCursorParent, screenPoint, null, out Vector3 worldPos))
+        {
+            _localCursorImage.rectTransform.position = worldPos;
         }
     }
 
