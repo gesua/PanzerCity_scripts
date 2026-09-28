@@ -53,6 +53,13 @@ public class TouchJoystick : MonoBehaviour, IPointerDownHandler, IDragHandler, I
         _handle.anchoredPosition = _handleOriginPos + clampedOffset;
 
         Vector2 normalizedValue = clampedOffset / _handleRange;
+
+        // 좌우 입력이 더 크면 세로 입력을 제거해 좌우 회전만 함
+        if (Mathf.Abs(normalizedValue.x) > Mathf.Abs(normalizedValue.y))
+        {
+            normalizedValue.y = 0f;
+        }
+
         _inputSystemHandler.SetMobileMoveInput(normalizedValue);
     }
 }
