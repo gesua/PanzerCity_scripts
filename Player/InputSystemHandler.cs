@@ -106,6 +106,26 @@ public class InputSystemHandler : MonoBehaviour
         OnAttackInput?.Invoke(_onAttack);
     }
 
+    /// <summary>
+    /// 모바일 터치 퀵슬롯 버튼 — 누르는 즉시 해당 슬롯 사용(TouchQuickSlotButton이 호출)
+    /// </summary>
+    public void SetMobileQuickSlotInput(int slotIndex)
+    {
+        if (_isInputDisabled) return;
+
+        OnQuickSlotInput?.Invoke(slotIndex);
+    }
+
+    /// <summary>
+    /// 모바일 터치 미니맵 버튼 — 누르는 즉시 토글(TouchMiniMapButton이 호출)
+    /// </summary>
+    public void SetMobileMapInput()
+    {
+        if (_isInputDisabled) return;
+
+        OnMapInput?.Invoke();
+    }
+
     // Shift키(저격 모드)
     public void HandleSniperInput(InputAction.CallbackContext context)
     {
