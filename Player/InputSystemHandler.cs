@@ -96,6 +96,16 @@ public class InputSystemHandler : MonoBehaviour
     }
 
     /// <summary>
+    /// 모바일 두 손가락 확대/축소 입력(TouchPinchZoom이 호출)
+    /// </summary>
+    public void SetMobileZoomInput(Vector2 value)
+    {
+        if (_isInputDisabled) return;
+
+        _cameraZoomInput = value;
+    }
+
+    /// <summary>
     /// 모바일 터치 발사 버튼 — 누르는 동안 true, 뗄 때 false(TouchFireButton이 호출)
     /// </summary>
     public void SetMobileAttackInput(bool isPressed)
@@ -134,6 +144,16 @@ public class InputSystemHandler : MonoBehaviour
         if (_isInputDisabled) return;
 
         OnSniperInput?.Invoke();
+    }
+
+    /// <summary>
+    /// 모바일 터치 오른쪽 UI 버튼 — 누르는 즉시 토글(TouchRightUIButton이 호출)
+    /// </summary>
+    public void SetMobileToggleRightUIInput()
+    {
+        if (_isInputDisabled) return;
+
+        OnToggleRightUIInput?.Invoke();
     }
 
     // Shift키(저격 모드)
