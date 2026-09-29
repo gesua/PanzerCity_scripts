@@ -126,6 +126,16 @@ public class InputSystemHandler : MonoBehaviour
         OnMapInput?.Invoke();
     }
 
+    /// <summary>
+    /// 모바일 터치 저격 모드 버튼 — 누르는 즉시 토글(TouchSniperButton이 호출)
+    /// </summary>
+    public void SetMobileSniperInput()
+    {
+        if (_isInputDisabled) return;
+
+        OnSniperInput?.Invoke();
+    }
+
     // Shift키(저격 모드)
     public void HandleSniperInput(InputAction.CallbackContext context)
     {
