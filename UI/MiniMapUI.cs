@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +10,11 @@ public class MiniMapUI : MonoBehaviour
 {
     [SerializeField] RectTransform _miniMap;
     [SerializeField] float _expandDuration = 0.3f;
+
+    // 앵커와 피벗은 항상 같은 값으로 씀 — anchoredPosition이 앵커 지점 기준 오프셋이 되므로
+    // Expand로 캔버스 크기가 달라져도 구석/중앙 위치를 Unity 레이아웃이 알아서 맞춰줌
+    static readonly Vector2 SmallAnchor = new Vector2(1f, 0f);     // 기본: 오른쪽 아래 구석
+    static readonly Vector2 LargeAnchor = new Vector2(0.5f, 0.5f); // 확대: 화면 중앙
 
     Vector2 _smallSize;    // 기본 크기
     Vector2 _smallPos;     // 기본 위치
@@ -26,7 +32,7 @@ public class MiniMapUI : MonoBehaviour
 
         // 미니맵 세팅
         _smallSize = _miniMap.sizeDelta; // 현재 크기
-        _smallPos = new Vector2(referenceResolution.x * 0.5f - _smallSize.x * 0.5f, -referenceResolution.y * 0.5f + _smallSize.y * 0.5f);
+        _smallPos = Vector2.zero; // 오른쪽 아래 구석은 SmallAnchor(앵커/피벗)가 잡아주므로 오프셋 불필요
 
         // 확대맵 세팅
         float screenSize = Mathf.Min(referenceResolution.x, referenceResolution.y);
@@ -34,8 +40,7 @@ public class MiniMapUI : MonoBehaviour
         _largePos = Vector2.zero; // 화면 중앙
 
         // 미니맵 초기화(해상도에 따라 달라질 수 있으니)
-        _miniMap.sizeDelta = _smallSize;
-        _miniMap.anchoredPosition = _smallPos;
+        ApplyLayout(SmallAnchor, _smallSize, _smallPos);
     }
 
     /// <summary>
@@ -53,17 +58,20 @@ public class MiniMapUI : MonoBehaviour
     /// </summary>
     IEnumerator ExpandRoutine(bool isExpand)
     {
+        Vector2 startAnchor = _miniMap.anchorMin; // 앵커와 피벗이 항상 같은 값(한 점 앵커)이라 anchorMin으로 현재 값을 읽음
         Vector2 startSize = _miniMap.sizeDelta;
         Vector2 startPos = _miniMap.anchoredPosition;
-        Vector2 targetSize, targetPos;
+        Vector2 targetAnchor, targetSize, targetPos;
 
         if (isExpand)
         {
+            targetAnchor = LargeAnchor;
             targetSize = _largeSize;
             targetPos = _largePos;
         }
         else
         {
+            targetAnchor = SmallAnchor;
             targetSize = _smallSize;
             targetPos = _smallPos;
         }
@@ -75,13 +83,14 @@ public class MiniMapUI : MonoBehaviour
             float progress = timer / _expandDuration;
             progress = Mathf.SmoothStep(0f, 1f, progress);
 
-            _miniMap.sizeDelta = Vector2.Lerp(startSize, targetSize, progress);
-            _miniMap.anchoredPosition = Vector2.Lerp(startPos, targetPos, progress);
+            ApplyLayout(
+                Vector2.Lerp(startAnchor, targetAnchor, progress),
+                Vector2.Lerp(startSize, targetSize, progress),
+                Vector2.Lerp(startPos, targetPos, progress));
             yield return null;
         }
 
-        _miniMap.sizeDelta = targetSize;
-        _miniMap.anchoredPosition = targetPos;
+        ApplyLayout(targetAnchor, targetSize, targetPos);
     }
 
     /// <summary>
@@ -95,8 +104,23 @@ public class MiniMapUI : MonoBehaviour
             if (_expandRoutine != null) StopCoroutine(_expandRoutine);
 
             // 코루틴 없이 즉시 원래 크기와 위치로 되돌림
-            _miniMap.sizeDelta = _smallSize;
-            _miniMap.anchoredPosition = _smallPos;
+            ApplyLayout(SmallAnchor, _smallSize, _smallPos);
         }
+    }
+
+    /// <summary>
+    /// 앵커/피벗/크기/위치를 한 번에 적용
+    /// 앵커와 피벗을 같은 값으로 세팅하므로 anchoredPosition은 앵커 지점 기준 오프셋이 됨
+    /// </summary>
+    /// <param name="anchor">앵커 및 피벗 (구석은 (1, 0), 중앙은 (0.5, 0.5))</param>
+    /// <param name="size">크기 (앵커가 한 점이라 sizeDelta가 곧 실제 크기)</param>
+    /// <param name="pos">앵커 지점 기준 위치</param>
+    void ApplyLayout(Vector2 anchor, Vector2 size, Vector2 pos)
+    {
+        _miniMap.anchorMin = anchor;
+        _miniMap.anchorMax = anchor;
+        _miniMap.pivot = anchor;
+        _miniMap.sizeDelta = size;
+        _miniMap.anchoredPosition = pos;
     }
 }
