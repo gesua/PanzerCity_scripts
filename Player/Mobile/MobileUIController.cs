@@ -17,7 +17,7 @@ public class MobileUIController : MonoBehaviour
 
 #if UNITY_EDITOR
         // 에디터에서는 MobileTestMode가 활성화된 경우 모바일 UI 표시
-        if (_mobileTestMode != null && _mobileTestMode.isActiveAndEnabled)
+        if (_mobileTestMode != null && _mobileTestMode.enabled)
             isMobile = true;
 #endif
 

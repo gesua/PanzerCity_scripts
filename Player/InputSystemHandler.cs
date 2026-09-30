@@ -156,6 +156,16 @@ public class InputSystemHandler : MonoBehaviour
         OnToggleRightUIInput?.Invoke();
     }
 
+    /// <summary>
+    /// 모바일 터치 줍기 버튼 — 누르는 즉시 줍기(TouchInteractButton이 호출)
+    /// </summary>
+    public void SetMobileInteractInput()
+    {
+        if (_isInputDisabled) return;
+
+        OnInteractInput?.Invoke();
+    }
+
     // Shift키(저격 모드)
     public void HandleSniperInput(InputAction.CallbackContext context)
     {
@@ -229,6 +239,7 @@ public class InputSystemHandler : MonoBehaviour
     // F키(상호작용, 아이템 줍기)
     public void HandleInteractInput(InputAction.CallbackContext context)
     {
+        if (_isInputDisabled) return;
         if (context.performed) OnInteractInput?.Invoke();
     }
 
