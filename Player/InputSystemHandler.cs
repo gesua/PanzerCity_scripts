@@ -166,6 +166,16 @@ public class InputSystemHandler : MonoBehaviour
         OnInteractInput?.Invoke();
     }
 
+    /// <summary>
+    /// 모바일 터치 관전 전환 버튼 — 누르는 즉시 다음 관전 대상으로 전환(TouchSpectateButton이 호출)
+    /// </summary>
+    public void SetMobileSpectateNextInput()
+    {
+        if (_isInputDisabled) return;
+
+        OnSpectateNextInput?.Invoke();
+    }
+
     // Shift키(저격 모드)
     public void HandleSniperInput(InputAction.CallbackContext context)
     {

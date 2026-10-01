@@ -11,7 +11,6 @@ public class PickupHintIcon : MonoBehaviour
 
     void Start()
     {
-        Debug.Log($"뭐가 문제여 {MobileUIController.IsMobile}");
         if (MobileUIController.IsMobile == false) return;
 
         _pcIcon.SetActive(false);

@@ -23,6 +23,7 @@ public class GameScene : MonoBehaviour
     [SerializeField] PlayerTank _player;
     [SerializeField] CameraTarget _cameraTarget;
     [SerializeField] SpectatorController _spectatorController; // 멀티플레이:관전 모드 카메라 전환
+    [SerializeField] GameObject _mobileSpectateButton; // 모바일 관전 대상 전환 버튼(전환할 대상이 2명 이상일 때만 표시)
     [SerializeField] SniperModeController _sniperMode;
     [SerializeField] CinemachineBrain _cinemachineBrain; // 블렌드 방식 변경용
     [SerializeField] SceneEffect _sceneEffect;
@@ -216,6 +217,9 @@ public class GameScene : MonoBehaviour
             _inputSystemHandler.OnSpectatePrevInput += HandleSpectatePrevInput;
             _inputSystemHandler.OnSpectateNextInput += HandleSpectateNextInput;
 
+            // 관전 모드:전환할 대상이 2명 이상일 때만 모바일 전환 버튼 표시
+            _spectatorController.OnSwitchableChanged += HandleSpectateSwitchableChanged;
+
             // 멀티플레이: 여기까지 도달했다는 건 자신과 이미 스폰된 다른 플레이어들의 로컬 세팅이 모두 끝났다는 뜻
             // — 씬 로드 완료 시점이 아닌 이 시점을 기준으로 삼아야 전원 동시 시작(색상/목숨 UI/적 스폰)이 보장됨
             NetworkGameManager.Instance.RequestReadyForGameServerRpc();
@@ -404,6 +408,10 @@ public class GameScene : MonoBehaviour
 
         _inputSystemHandler.OnSpectatePrevInput -= HandleSpectatePrevInput;
         _inputSystemHandler.OnSpectateNextInput -= HandleSpectateNextInput;
+        if (_spectatorController != null)
+        {
+            _spectatorController.OnSwitchableChanged -= HandleSpectateSwitchableChanged;
+        }
     }
 
     void OnStageLoaded(Scene scene, LoadSceneMode mode)
@@ -915,6 +923,16 @@ public class GameScene : MonoBehaviour
         if (_isPaused) return;
 
         _spectatorController.SpectateNext();
+    }
+
+    /// <summary>
+    /// 관전 대상 전환 가능 여부 변경 수신(SpectatorController가 발행) — 모바일 전환 버튼 표시/숨김
+    /// </summary>
+    void HandleSpectateSwitchableChanged(bool isSwitchable)
+    {
+        if (_mobileSpectateButton == null) return; // 버튼이 배치되지 않은 씬
+
+        _mobileSpectateButton.SetActive(isSwitchable);
     }
 
     /// <summary>

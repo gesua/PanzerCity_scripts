@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -8,9 +9,12 @@ using UnityEngine;
 /// </summary>
 public class SpectatorController : MonoBehaviour
 {
+    public event Action<bool> OnSwitchableChanged; // 관전 대상 전환이 가능한지(살아있는 아군 2명 이상) 변경됨 — 모바일 전환 버튼 표시용
+
     CameraTarget _cameraTarget;
     List<PlayerNetworkOwner> _aliveTargets = new(); // 현재 관전 가능한(목숨이 남은) 아군 목록
     int _currentIndex;
+    bool _isSwitchable; // 마지막으로 알린 전환 가능 여부(값이 바뀔 때만 이벤트 발행)
 
     /// <summary>
     /// 관전 모드 진입 — 로컬 플레이어를 제외한 살아있는 아군 목록을 구성하고 첫 대상으로 카메라 전환
@@ -23,6 +27,7 @@ public class SpectatorController : MonoBehaviour
         NetworkGameManager.Instance.OnPlayerLifeChanged += HandlePlayerLifeChanged;
 
         RefreshAliveTargets();
+        RefreshSwitchable();
 
         _currentIndex = 0;
         ApplyCurrentTarget(true);
@@ -41,6 +46,7 @@ public class SpectatorController : MonoBehaviour
 
         _cameraTarget = null;
         _aliveTargets.Clear();
+        RefreshSwitchable();
     }
 
     /// <summary>
@@ -77,6 +83,7 @@ public class SpectatorController : MonoBehaviour
         PlayerNetworkOwner currentTarget = (_aliveTargets.Count > 0) ? _aliveTargets[_currentIndex] : null;
 
         RefreshAliveTargets();
+        RefreshSwitchable();
 
         if (_aliveTargets.Count == 0) return; // 전원 사망 케이스는 GameOverUI 쪽에서 별도 처리됨
 
@@ -122,5 +129,17 @@ public class SpectatorController : MonoBehaviour
         {
             _cameraTarget.ResetToSpectateAngle();
         }
+    }
+
+    /// <summary>
+    /// 관전 중이고 전환할 수 있는 대상(살아있는 아군)이 2명 이상인지 갱신 — 값이 바뀔 때만 알림
+    /// </summary>
+    void RefreshSwitchable()
+    {
+        bool isSwitchable = (_cameraTarget != null) && (_aliveTargets.Count >= 2);
+        if (_isSwitchable == isSwitchable) return;
+
+        _isSwitchable = isSwitchable;
+        OnSwitchableChanged?.Invoke(_isSwitchable);
     }
 }
