@@ -16,6 +16,15 @@ public class SpectatorController : MonoBehaviour
     int _currentIndex;
     bool _isSwitchable; // 마지막으로 알린 전환 가능 여부(값이 바뀔 때만 이벤트 발행)
 
+    void Update()
+    {
+        if (_cameraTarget == null) return; // 관전 중이 아니면 무시
+        if (HasDestroyedTarget() == false) return;
+
+        bool targetChanged = SyncTargets();
+        ApplyCurrentTarget(targetChanged);
+    }
+
     /// <summary>
     /// 관전 모드 진입 — 로컬 플레이어를 제외한 살아있는 아군 목록을 구성하고 첫 대상으로 카메라 전환
     /// 목숨 변경 이벤트는 관전 중일 때만 들을 필요가 있어 여기서 구독(OnEnable이 아님:씬 로드 순서상 이 시점엔 NetworkGameManager.Instance가 아직 준비 안 됐을 수 있음)
@@ -80,19 +89,29 @@ public class SpectatorController : MonoBehaviour
     {
         if (_cameraTarget == null) return; // 관전 중이 아니면 무시
 
+        bool targetChanged = SyncTargets();
+        ApplyCurrentTarget(targetChanged);
+    }
+
+    /// <summary>
+    /// 관전 대상 목록을 다시 구성하고 지금 보던 대상 기준으로 인덱스를 맞춤(목숨 변경, 접속 종료로 대상이 사라진 경우 공통)
+    /// </summary>
+    /// <returns>보던 대상이 사라져서 다른 대상으로 바뀌었으면 true</returns>
+    bool SyncTargets()
+    {
         PlayerNetworkOwner currentTarget = (_aliveTargets.Count > 0) ? _aliveTargets[_currentIndex] : null;
 
         RefreshAliveTargets();
         RefreshSwitchable();
 
-        if (_aliveTargets.Count == 0) return; // 전원 사망 케이스는 GameOverUI 쪽에서 별도 처리됨
+        if (_aliveTargets.Count == 0) return false; // 전원 사망 케이스는 GameOverUI 쪽에서 별도 처리됨
 
         int foundIndex = (currentTarget != null) ? _aliveTargets.IndexOf(currentTarget) : -1;
         bool targetChanged = (foundIndex < 0); // 보던 대상을 목록에서 못 찾았으면(사망) 전환된 것
 
         _currentIndex = (foundIndex >= 0) ? foundIndex : 0; // 보던 대상이 사라졌으면(사망) 목록의 첫 생존자로
 
-        ApplyCurrentTarget(targetChanged);
+        return targetChanged;
     }
 
     /// <summary>
@@ -121,7 +140,10 @@ public class SpectatorController : MonoBehaviour
     void ApplyCurrentTarget(bool resetAngle)
     {
         if (_aliveTargets.Count == 0) return;
-        if (_aliveTargets[_currentIndex].TryGetComponent(out PlayerTank playerTank) == false) return;
+
+        PlayerNetworkOwner target = _aliveTargets[_currentIndex];
+        if (target == null) return; // 이미 파괴된 대상(다음 프레임 Update에서 목록이 정리됨)
+        if (target.TryGetComponent(out PlayerTank playerTank) == false) return;
 
         _cameraTarget.SetTarget(playerTank.transform);
 
@@ -141,5 +163,20 @@ public class SpectatorController : MonoBehaviour
 
         _isSwitchable = isSwitchable;
         OnSwitchableChanged?.Invoke(_isSwitchable);
+    }
+
+    /// <summary>
+    /// 접속 종료 등으로 파괴된 대상이 목록에 남아있는지 확인
+    /// 접속 종료는 목숨 변경 이벤트가 발생하지 않고 알림(RPC)이 오브젝트 파괴보다 먼저 도착할 수도 있어서,
+    /// 이벤트에 맡기지 않고 대상이 실제로 파괴됐는지를 직접 확인함
+    /// </summary>
+    bool HasDestroyedTarget()
+    {
+        foreach (PlayerNetworkOwner target in _aliveTargets)
+        {
+            if (target == null) return true;
+        }
+
+        return false;
     }
 }
