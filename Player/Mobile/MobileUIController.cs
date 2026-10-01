@@ -11,6 +11,8 @@ public class MobileUIController : MonoBehaviour
     [SerializeField] MobileTestMode _mobileTestMode;
 #endif
 
+    public static bool IsMobile { get; private set; } // 모바일 여부(줍기 힌트처럼 플랫폼별로 표시가 달라지는 스크립트가 참조)
+
     void Awake()
     {
         bool isMobile = Application.isMobilePlatform;
@@ -20,6 +22,8 @@ public class MobileUIController : MonoBehaviour
         if (_mobileTestMode != null && _mobileTestMode.enabled)
             isMobile = true;
 #endif
+
+        IsMobile = isMobile;
 
         foreach (GameObject uiObject in _mobileUIObjects)
         {
