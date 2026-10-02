@@ -33,16 +33,6 @@ public class TutorialClearStep : TutorialStep
         // 상점 오픈
         gameScene.TutorialClear();
 
-        // _tipUI Y값 이동
-        if (_tipUI != null)
-        {
-            if (_tipUI.TryGetComponent(out RectTransform tipRect))
-            {
-                if (tipRect != null)
-                    tipRect.anchoredPosition += new Vector2(0f, 400f);
-            }
-        }
-
         // 상점 메시지로 갱신
         if (!string.IsNullOrEmpty(_shopMessageKey))
             _mainHintUI?.Show(_shopMessageKey);
