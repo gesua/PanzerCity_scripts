@@ -24,6 +24,9 @@ public class OptionUI : MonoBehaviour
     [SerializeField] Slider _mouseSensitivitySlider;
     [SerializeField] TMP_Text _valueText;
 
+    [Header("----- PC 전용(모바일에서 숨김) -----")]
+    [SerializeField] GameObject[] _desktopOnlyRows;
+
     OptionManager _optionManager;
 
     bool _subscribed;
@@ -48,12 +51,8 @@ public class OptionUI : MonoBehaviour
 
         OptionData data = _optionManager.OptionData;
 
-        /*/ 모바일에선 해상도와 전체화면이 의미 없음(근데 아직 확인은 안 해봄
-#if UNITY_ANDROID || UNITY_IOS
-    _resolutionDropdown.gameObject.SetActive(false);
-    _fullscreenToggle.gameObject.SetActive(false);
-#endif
-        //*/
+        // 모바일에서 옵션 숨김
+        ApplyPlatformVisibility();
 
         // 해상도 드롭다운 옵션 생성
         _resolutionDropdown.ClearOptions();
@@ -85,6 +84,22 @@ public class OptionUI : MonoBehaviour
         _resolutionDropdown.RefreshShownValue();
         _languageDropdown.RefreshShownValue();
         _qualityDropdown.RefreshShownValue();
+    }
+
+    /// <summary>
+    /// 모바일이면 PC 전용 옵션 숨기고, 아니면 보이게 함
+    /// Device.Application은 실기기에선 Application과 동일하고, 에디터에선 Device Simulator의 시뮬레이션 값을 따름
+    /// </summary>
+    void ApplyPlatformVisibility()
+    {
+        bool isMobile = UnityEngine.Device.Application.isMobilePlatform;
+
+        foreach (GameObject row in _desktopOnlyRows)
+        {
+            if (row == null) continue;
+
+            row.SetActive(isMobile == false);
+        }
     }
 
     /// <summary>
