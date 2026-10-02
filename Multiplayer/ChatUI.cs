@@ -224,13 +224,15 @@ public class ChatUI : MonoBehaviour
     /// <summary>
     /// 관전 대상 전환(Q/E) 안내는 방금 탈락한 그 플레이어 본인 화면에만 표시 — 탈락 순간이 실제로 관전을 시작하는
     /// 시점이라 그때 보여줌(3명 미만이면 전환할 대상 자체가 없으므로 생략)
+    /// PC는 Q/E 키, 모바일은 전환 버튼 기준이라 서로 다른 안내 문구를 사용함
     /// </summary>
     void ShowSpectateHintIfEliminatedIsMe(ulong eliminatedClientId)
     {
         if (eliminatedClientId != NetworkManager.Singleton.LocalClientId) return;
         if (NetworkManager.Singleton.ConnectedClientsIds.Count < 3) return;
 
-        string message = LocalizationSettings.StringDatabase.GetLocalizedString("Localization", "UI_SPECTATE_CHANGE");
+        string key = (MobileUIController.IsMobile) ? "UI_SPECTATE_CHANGE_MOBILE" : "UI_SPECTATE_CHANGE_PC";
+        string message = LocalizationSettings.StringDatabase.GetLocalizedString("Localization", key);
 
         AppendLog(message);
         RefreshActivity();
