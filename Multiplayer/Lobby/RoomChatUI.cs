@@ -37,8 +37,9 @@ public class RoomChatUI : MonoBehaviour
         {
             _inputField.interactable = false;
         }
-        else
+        else if (Application.isMobilePlatform == false)
         {
+            // PC에서는 룸 입장 시 채팅 입력창에 자동으로 포커스를 줌
             _inputField.ActivateInputField();
         }
     }
@@ -105,7 +106,12 @@ public class RoomChatUI : MonoBehaviour
         _logText.text = string.Empty;
 
         _inputField.interactable = true; // 연결 완료 — 입력 가능하게 전환
-        _inputField.ActivateInputField(); // 여태 비활성이라 못 잡았던 포커스를 여기서 잡음
+
+        // PC에서는 룸 입장 시 자동으로 포커스를 잡지만, 모바일에서는 사용자가 직접 입력창을 터치하게 함
+        if (Application.isMobilePlatform == false)
+        {
+            _inputField.ActivateInputField();
+        }
     }
 
     /// <summary>
@@ -126,7 +132,12 @@ public class RoomChatUI : MonoBehaviour
     void HandleEndEdit(string text)
     {
         _inputField.text = string.Empty;
-        _inputField.ActivateInputField();
+
+        // 모바일에서는 포커스를 다시 잡지 않음 — 키보드를 닫을 수 있도록 함
+        if (Application.isMobilePlatform == false)
+        {
+            _inputField.ActivateInputField();
+        }
     }
 
     /// <summary>
