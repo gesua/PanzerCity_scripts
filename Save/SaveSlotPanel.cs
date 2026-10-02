@@ -53,7 +53,12 @@ public class SaveSlotPanel : MonoBehaviour
     public void OnClickNameEdit()
     {
         _nameInput.interactable = true;
-        _nameInput.ActivateInputField();
+
+        // 모바일에선 포커스 하지 않음
+        if (Application.isMobilePlatform == false)
+        {
+            _nameInput.ActivateInputField();
+        }
     }
 
     /// <summary>
