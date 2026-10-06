@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using Unity.Netcode;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.Localization.Settings;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -52,6 +54,9 @@ public class LobbyScene : MonoBehaviour
 
     Coroutine _autoRefreshCoroutine; // 자동 새로고침 코루틴 추적용
 
+    TMP_InputField[] _joinInputs;   // 로비 입장 폼의 Tab 이동 순서(방 이름 → 암호)
+    TMP_InputField[] _createInputs; // 방 만들기 폼의 Tab 이동 순서(방 제목 → 암호)
+
     void Start()
     {
         LobbyManager.Instance.OnLobbyListUpdated += RefreshLobbyListUI;
@@ -66,7 +71,14 @@ public class LobbyScene : MonoBehaviour
         LobbyManager.Instance.PendingLobbyAudioListener = _audioListener; // AudioListener 메시지 처리용
         LobbyManager.Instance.PendingLobbyEventSystem = _eventSystem; // EventSystem 중복 방지용
 
+        InitializeInputShortcuts(); // 입력창 Enter/Tab 단축키 세팅
+
         ShowPanel(_nicknamePanel);
+    }
+
+    void Update()
+    {
+        HandleTabNavigation();
     }
 
     void OnDestroy()
@@ -107,6 +119,13 @@ public class LobbyScene : MonoBehaviour
             AutoRefreshLobbyList();
             _autoRefreshCoroutine = StartCoroutine(AutoRefreshRoutine());
         }
+
+        // 패널이 열릴 때 해당 패널의 기본 입력창에 포커스(룸 패널은 RoomChatUI가 직접 관리함)
+        TMP_InputField defaultInput = GetDefaultInput(targetPanel);
+        if (defaultInput != null)
+        {
+            FocusInput(defaultInput);
+        }
     }
 
     /// <summary>
@@ -141,6 +160,113 @@ public class LobbyScene : MonoBehaviour
     }
 
     /// <summary>
+    /// 입력창 단축키 세팅 — Enter로 각 패널의 확인 버튼과 같은 동작 실행, 폼별 Tab 이동 순서 등록
+    /// </summary>
+    void InitializeInputShortcuts()
+    {
+        _joinInputs = new TMP_InputField[] { _joinRoomNameInput, _joinRoomPasswordInput };
+        _createInputs = new TMP_InputField[] { _createRoomNameInput, _createRoomPasswordInput };
+
+        RegisterSubmit(_nicknameInput, OnNicknameConfirmed);
+
+        foreach (TMP_InputField inputField in _joinInputs)
+        {
+            RegisterSubmit(inputField, OnJoinRoomClicked);
+        }
+
+        foreach (TMP_InputField inputField in _createInputs)
+        {
+            RegisterSubmit(inputField, OnCreateRoomClicked);
+        }
+    }
+
+    /// <summary>
+    /// 입력창에서 Enter를 누르면 확인 버튼과 같은 동작을 실행하도록 연결
+    /// Enter를 키 입력으로 직접 판정하면 한글 조합/키패드 Enter에서 어긋나므로 TMP의 onSubmit을 사용함(ChatUI와 동일)
+    /// </summary>
+    void RegisterSubmit(TMP_InputField inputField, Action submitAction)
+    {
+        inputField.onSubmit.AddListener(_ =>
+        {
+            submitAction();
+
+            // Enter 제출 뒤에는 입력창 포커스가 풀릴 수 있으므로, 패널이 그대로 남아있으면(빈 닉네임, 방 이름 중복 등) 포커스를 되돌림
+            FocusInput(inputField);
+        });
+    }
+
+    /// <summary>
+    /// Tab / Shift+Tab으로 같은 폼 안의 입력창 사이를 이동(uGUI/TMP는 Tab 이동을 기본 지원하지 않음)
+    /// </summary>
+    void HandleTabNavigation()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null) return;
+        if (keyboard.tabKey.wasPressedThisFrame == false) return;
+
+        bool isReverse = keyboard.shiftKey.isPressed;
+
+        // 포커스를 가진 입력창이 속한 폼(방 만들기 / 로비 입장)만 반응함
+        if (TryMoveFocus(_createInputs, isReverse)) return;
+        TryMoveFocus(_joinInputs, isReverse);
+    }
+
+    /// <summary>
+    /// 폼의 입력창 중 포커스를 가진 것이 있으면 다음(Shift면 이전) 입력창으로 포커스를 옮김
+    /// </summary>
+    /// <param name="inputs">Tab 이동 순서대로 담긴 입력창들</param>
+    /// <param name="isReverse">역방향(Shift+Tab)인지</param>
+    /// <returns>이 폼에서 포커스를 옮겼는지</returns>
+    bool TryMoveFocus(TMP_InputField[] inputs, bool isReverse)
+    {
+        for (int i = 0; i < inputs.Length; i++)
+        {
+            if (inputs[i].isFocused == false) continue;
+
+            int step = (isReverse) ? -1 : 1;
+            int nextIndex = (i + step + inputs.Length) % inputs.Length;
+
+            FocusInput(inputs[nextIndex]);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 입력창에 포커스를 줌
+    /// 패널이 켜진 같은 프레임에는 EventSystem의 선택 상태에 덮어써질 수 있어 한 프레임 뒤에 처리함
+    /// 모바일에서는 키보드가 갑자기 뜨지 않도록 포커스를 주지 않음(RoomChatUI와 동일한 기준)
+    /// </summary>
+    void FocusInput(TMP_InputField inputField)
+    {
+        if (Application.isMobilePlatform) return;
+
+        StartCoroutine(FocusInputRoutine(inputField));
+    }
+
+    IEnumerator FocusInputRoutine(TMP_InputField inputField)
+    {
+        yield return null;
+
+        // 한 프레임 사이에 패널이 닫혔다면(닉네임 확인 후 패널 전환, 방 생성 성공 등) 포커스를 주지 않음
+        if (inputField.gameObject.activeInHierarchy == false) yield break;
+
+        inputField.ActivateInputField();
+    }
+
+    /// <summary>
+    /// 패널이 열릴 때 기본으로 포커스를 줄 입력창 반환(없으면 null — 룸 패널은 RoomChatUI가 직접 관리함)
+    /// </summary>
+    TMP_InputField GetDefaultInput(GameObject panel)
+    {
+        if (panel == _nicknamePanel) return _nicknameInput;
+        if (panel == _lobbyPanel) return _joinRoomNameInput;
+
+        return null;
+    }
+
+    /// <summary>
     /// 닉네임 확인 → 로비 패널로
     /// </summary>
     public void OnNicknameConfirmed()
@@ -160,6 +286,7 @@ public class LobbyScene : MonoBehaviour
     public void CreateUIOpen()
     {
         _createPanel.SetActive(true);
+        FocusInput(_createRoomNameInput);
     }
 
     /// <summary>
@@ -168,6 +295,7 @@ public class LobbyScene : MonoBehaviour
     public void CreateUIClose()
     {
         _createPanel.SetActive(false);
+        FocusInput(_joinRoomNameInput); // 취소로 닫으면 로비의 방 이름칸으로 포커스 복귀
     }
 
     /// <summary>
