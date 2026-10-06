@@ -121,7 +121,12 @@ public class SaveSlotUI : MonoBehaviour
         {
             saveManager.CreateNewSlot(slotIndex);
             _slots[slotIndex].Refresh(saveManager.GetSlotData(slotIndex));
-            _slots[slotIndex].OnClickNameEdit(); // 생성 직후 바로 이름 수정
+
+            // 모바일에선 바로 수정하지 않음
+            if (Application.isMobilePlatform == false)
+            {
+                _slots[slotIndex].OnClickNameEdit(); // 생성 직후 바로 이름 수정
+            }
             return;
         }
 
