@@ -19,6 +19,8 @@ public class OptionUI : MonoBehaviour
     [SerializeField] TMP_Dropdown _resolutionDropdown;
     [SerializeField] Toggle _fullscreenToggle;
     [SerializeField] TMP_Dropdown _qualityDropdown;
+    [SerializeField] Slider _brightnessSlider;
+    [SerializeField] TMP_Text _brightnessValueText; // %로 표시(마우스 감도용 _valueText와 별개)
 
     [Header("----- 마우스 -----")]
     [SerializeField] Slider _mouseSensitivitySlider;
@@ -78,6 +80,8 @@ public class OptionUI : MonoBehaviour
         _resolutionDropdown.value = data.ResolutionIndex;
         _fullscreenToggle.isOn = data.Fullscreen;
         _qualityDropdown.value = _optionManager.OptionData.QualityIndex;
+        _brightnessSlider.value = data.Brightness;
+        _brightnessValueText.text = ToBrightnessPercentText(data.Brightness);
         _mouseSensitivitySlider.value = data.MouseSensitivity;
         _valueText.text = data.MouseSensitivity.ToString("F2");
 
@@ -116,6 +120,7 @@ public class OptionUI : MonoBehaviour
         _resolutionDropdown.onValueChanged.AddListener(_optionManager.ApplyResolution);
         _fullscreenToggle.onValueChanged.AddListener(_optionManager.ApplyFullscreen);
         _qualityDropdown.onValueChanged.AddListener(_optionManager.ApplyQuality);
+        _brightnessSlider.onValueChanged.AddListener(OnBrightnessChanged);
         _mouseSensitivitySlider.onValueChanged.AddListener(OnSensitivityChanged);
 
         _subscribed = true;
@@ -135,6 +140,7 @@ public class OptionUI : MonoBehaviour
         _resolutionDropdown.onValueChanged.RemoveListener(_optionManager.ApplyResolution);
         _fullscreenToggle.onValueChanged.RemoveListener(_optionManager.ApplyFullscreen);
         _qualityDropdown.onValueChanged.RemoveListener(_optionManager.ApplyQuality);
+        _brightnessSlider.onValueChanged.RemoveListener(OnBrightnessChanged);
         _mouseSensitivitySlider.onValueChanged.RemoveListener(OnSensitivityChanged);
 
         _subscribed = false;
@@ -156,6 +162,24 @@ public class OptionUI : MonoBehaviour
     {
         _valueText.text = value.ToString("F2");
         _optionManager.ApplyMouseSensitivity(value);
+    }
+
+    /// <summary>
+    /// 화면 밝기 변경
+    /// </summary>
+    void OnBrightnessChanged(float value)
+    {
+        _brightnessValueText.text = ToBrightnessPercentText(value);
+        _optionManager.ApplyBrightness(value);
+    }
+
+    /// <summary>
+    /// 밝기 배율(0.5~2.0)을 퍼센트 텍스트로 변환 (예: 1f -> "100%")
+    /// InitUI/OnBrightnessChanged 공용
+    /// </summary>
+    string ToBrightnessPercentText(float value)
+    {
+        return $"{Mathf.RoundToInt(value * 100f)}%";
     }
 
     /// <summary>

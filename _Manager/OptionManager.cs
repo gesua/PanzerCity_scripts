@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.Localization.Settings;
+using UnityEngine.Rendering.Universal;
 
 /// <summary>
 /// 옵션 설정 관리
@@ -13,6 +14,8 @@ public class OptionManager : MonoBehaviour
     AudioMixer _audioMixer;
     OptionData _optionData = new OptionData();
     Resolution[] _resolutions;
+
+    ColorAdjustments _colorAdjustments; // 밝기(Post Exposure) 조절용 캐싱 — ScenePostProcessing이 씬 진입/퇴장 시 등록/해제함
 
     public event Action<float> OnMouseSensitivityChanged;
 
@@ -34,6 +37,30 @@ public class OptionManager : MonoBehaviour
 #if UNITY_ANDROID || UNITY_IOS
     Application.targetFrameRate = 60; // 모바일은 VSync를 끄므로 프레임을 직접 제한
 #endif
+    }
+
+    /// <summary>
+    /// 밝기(감마) 조절 대상 등록 — 게임씬 Global Volume(SceneEffect가 쓰는 것과 같은 프로필)에 붙은
+    /// ScenePostProcessing이 자기 씬 진입 시 호출함
+    /// Volume 자체는 게임씬 로컬 오브젝트라 씬을 나가면 파괴되므로, 등록 즉시 현재 저장된 값을 반영해서
+    /// 씬 진입 시점부터 바로 밝기가 맞게 보이도록 함
+    /// </summary>
+    public void RegisterColorAdjustments(ColorAdjustments colorAdjustments)
+    {
+        _colorAdjustments = colorAdjustments;
+        ApplyBrightness(_optionData.Brightness);
+    }
+
+    /// <summary>
+    /// 밝기(감마) 조절 대상 해제 — ScenePostProcessing이 자기 씬 퇴장(OnDestroy) 시 호출함
+    /// 같은 인스턴스일 때만 null 처리 — 이미 다른 씬(재진입 등)이 새로 등록해둔 참조를
+    /// 이전 씬의 파괴 타이밍에 잘못 덮어써서 지워버리는 것 방지
+    /// </summary>
+    public void UnregisterColorAdjustments(ColorAdjustments colorAdjustments)
+    {
+        if (_colorAdjustments != colorAdjustments) return;
+
+        _colorAdjustments = null;
     }
 
     /// <summary>
@@ -83,6 +110,7 @@ public class OptionManager : MonoBehaviour
         ApplyFullscreen(_optionData.Fullscreen);
         ApplyQuality(_optionData.QualityIndex);
         ApplyMouseSensitivity(_optionData.MouseSensitivity);
+        ApplyBrightness(_optionData.Brightness);
     }
 
     /// <summary>
@@ -204,6 +232,20 @@ public class OptionManager : MonoBehaviour
     {
         _optionData.SetMouseSensitivity(value);
         OnMouseSensitivityChanged?.Invoke(value);
+    }
+
+    /// <summary>
+    /// 화면 밝기(감마) — value는 0.5~2.0 배율(1f가 기본값 100%)
+    /// Post Exposure는 EV(로그 스케일) 단위라 배율을 그대로 넣으면 안 되므로 밑이 2인 로그로 변환해서 대입
+    /// (직접 테스트하면서 체감이 이상하면 이 변환식을 조정할 예정)
+    /// </summary>
+    public void ApplyBrightness(float value)
+    {
+        _optionData.SetBrightness(value);
+
+        if (_colorAdjustments == null) return;
+
+        _colorAdjustments.postExposure.value = Mathf.Log(value, 2f);
     }
 
     /// <summary>

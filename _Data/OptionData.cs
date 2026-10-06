@@ -13,6 +13,7 @@ public class OptionData
     const string KEY_FULLSCREEN = "Fullscreen";
     const string KEY_QUALITY_INDEX = "QualityIndex";
     const string KEY_MOUSE_SENSITIVITY = "MouseSensitivity";
+    const string KEY_BRIGHTNESS = "Brightness";
 
     public string Language { get; private set; }
     public float MasterVolume { get; private set; }
@@ -22,6 +23,7 @@ public class OptionData
     public bool Fullscreen { get; private set; }
     public int QualityIndex { get; private set; }
     public float MouseSensitivity { get; private set; }
+    public float Brightness { get; private set; } // 100%(1f) 기준, 화면 밝기(감마) 배율
 
     /// <summary>
     /// 저장된 값 불러오기
@@ -36,6 +38,7 @@ public class OptionData
         Fullscreen = PlayerPrefs.GetInt(KEY_FULLSCREEN, 1) == 1;
         QualityIndex = PlayerPrefs.GetInt(KEY_QUALITY_INDEX, 1);
         MouseSensitivity = PlayerPrefs.GetFloat(KEY_MOUSE_SENSITIVITY, 0.1f);
+        Brightness = PlayerPrefs.GetFloat(KEY_BRIGHTNESS, 1f);
     }
 
     /// <summary>
@@ -51,6 +54,7 @@ public class OptionData
         PlayerPrefs.SetInt(KEY_FULLSCREEN, Fullscreen ? 1 : 0);
         PlayerPrefs.SetInt(KEY_QUALITY_INDEX, QualityIndex);
         PlayerPrefs.SetFloat(KEY_MOUSE_SENSITIVITY, MouseSensitivity);
+        PlayerPrefs.SetFloat(KEY_BRIGHTNESS, Brightness);
         PlayerPrefs.Save();
     }
 
@@ -62,4 +66,5 @@ public class OptionData
     public void SetFullscreen(bool value) { Fullscreen = value; }
     public void SetQualityIndex(int index) { QualityIndex = index; }
     public void SetMouseSensitivity(float value) { MouseSensitivity = value; }
+    public void SetBrightness(float value) { Brightness = value; }
 }
