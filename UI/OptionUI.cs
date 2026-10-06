@@ -65,7 +65,7 @@ public class OptionUI : MonoBehaviour
 
         // 그래픽 품질 드롭다운 옵션 생성
         _qualityDropdown.ClearOptions();
-        foreach (string quality in QualitySettings.names)
+        foreach (string quality in _optionManager.GetQualityNames())
         {
             _qualityDropdown.options.Add(new TMP_Dropdown.OptionData(quality));
         }

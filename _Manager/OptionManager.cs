@@ -19,12 +19,21 @@ public class OptionManager : MonoBehaviour
     public OptionData OptionData => _optionData;
     public Resolution[] GetResolutions() => _resolutions;
 
+    const string MobileQualityPrefix = "Mobile_"; // 모바일 전용 Quality 레벨 이름 접두사
+
+    List<int> _qualityLevelIndices = new List<int>(); // 현재 플랫폼에서 선택 가능한 Quality 레벨의 전역 인덱스(옵션 드롭다운 순서와 동일)
+
     public void Initialize()
     {
         _audioMixer = Resources.Load<AudioMixer>("Audio/AudioMixer");
         _resolutions = GetUniqueResolutions();
+        BuildQualityLevelList();
         _optionData.Load();
         Apply();
+
+#if UNITY_ANDROID || UNITY_IOS
+    Application.targetFrameRate = 60; // 모바일은 VSync를 끄므로 프레임을 직접 제한
+#endif
     }
 
     /// <summary>
@@ -178,10 +187,13 @@ public class OptionManager : MonoBehaviour
     /// <summary>
     /// 그래픽 품질
     /// </summary>
+    /// <param name="index">옵션 드롭다운 순서(전역 Quality 인덱스가 아님)</param>
     public void ApplyQuality(int index)
     {
         _optionData.SetQualityIndex(index);
-        QualitySettings.SetQualityLevel(index);
+        if (index < 0 || index >= _qualityLevelIndices.Count) return;
+
+        QualitySettings.SetQualityLevel(_qualityLevelIndices[index]);
     }
 
     /// <summary>
@@ -200,5 +212,56 @@ public class OptionManager : MonoBehaviour
     public void Save()
     {
         _optionData.Save();
+    }
+
+    /// <summary>
+    /// 현재 플랫폼에서 선택 가능한 Quality 레벨 목록 구성
+    /// 모바일 빌드는 "Mobile_" 접두사 레벨만, 그 외 플랫폼은 접두사가 없는 레벨만 사용
+    /// </summary>
+    void BuildQualityLevelList()
+    {
+#if UNITY_ANDROID || UNITY_IOS
+    bool isMobilePlatform = true;
+#else
+        bool isMobilePlatform = false;
+#endif
+
+        _qualityLevelIndices.Clear();
+
+        string[] names = QualitySettings.names;
+        for (int i = 0; i < names.Length; i++)
+        {
+            bool isMobileLevel = names[i].StartsWith(MobileQualityPrefix);
+            if (isMobileLevel == isMobilePlatform) _qualityLevelIndices.Add(i);
+        }
+
+        // 해당 플랫폼용 레벨이 하나도 없으면(에디터 설정 누락) 전체 레벨을 그대로 사용
+        if (_qualityLevelIndices.Count == 0)
+        {
+            Debug.LogWarning("현재 플랫폼에 맞는 Quality 레벨이 없어 전체 레벨을 사용합니다.");
+            for (int i = 0; i < names.Length; i++)
+            {
+                _qualityLevelIndices.Add(i);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 옵션 드롭다운에 표시할 Quality 이름 목록 (모바일 접두사는 제거해서 Low/Medium/High로 표시)
+    /// </summary>
+    public List<string> GetQualityNames()
+    {
+        List<string> result = new List<string>();
+        string[] names = QualitySettings.names;
+
+        foreach (int levelIndex in _qualityLevelIndices)
+        {
+            string levelName = names[levelIndex];
+            if (levelName.StartsWith(MobileQualityPrefix)) levelName = levelName.Substring(MobileQualityPrefix.Length);
+
+            result.Add(levelName);
+        }
+
+        return result;
     }
 }
