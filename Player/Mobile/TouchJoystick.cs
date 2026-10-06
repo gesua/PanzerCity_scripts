@@ -11,6 +11,7 @@ public class TouchJoystick : MonoBehaviour, IPointerDownHandler, IDragHandler, I
     [SerializeField] InputSystemHandler _inputSystemHandler;
     [SerializeField] RectTransform _handle; // 손가락을 따라가는 핸들
     [SerializeField] float _handleRange = 100f; // 핸들이 배경 중심에서 최대로 벗어날 수 있는 픽셀 거리
+    [SerializeField, Range(0f, 90f)] float _horizontalOnlyAngle = 30f; // 수평축(좌/우)에서 위아래로 이 각도 이내면 세로 입력을 제거(좌우 회전 전용), 45면 기존(|x| > |y|)과 사실상 동일
 
     RectTransform _background; // 조이스틱 배경
     Vector2 _handleOriginPos;  // 핸들 원래(중앙) 위치
@@ -55,7 +56,9 @@ public class TouchJoystick : MonoBehaviour, IPointerDownHandler, IDragHandler, I
         Vector2 normalizedValue = clampedOffset / _handleRange;
 
         // 좌우 입력이 더 크면 세로 입력을 제거해 좌우 회전만 함
-        if (Mathf.Abs(normalizedValue.x) > Mathf.Abs(normalizedValue.y))
+        // 수평축(좌/우)에서 위아래로 _horizontalOnlyAngle 이내일 때만 좌우 입력이 더 큰 것으로 봄
+        float angleFromHorizontal = Mathf.Atan2(Mathf.Abs(normalizedValue.y), Mathf.Abs(normalizedValue.x)) * Mathf.Rad2Deg;
+        if (angleFromHorizontal < _horizontalOnlyAngle)
         {
             normalizedValue.y = 0f;
         }
