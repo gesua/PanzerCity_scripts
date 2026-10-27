@@ -115,6 +115,7 @@ public class Pool
         if (go == null)
         {
             Debug.LogWarning("오브젝트가 이미 사라져서 반환 불가");
+            _activeObjects.Remove(go); // 파괴된 참조가 남아 ReturnAll 때마다 경고가 반복되는 것 방지
             return;
         }
 

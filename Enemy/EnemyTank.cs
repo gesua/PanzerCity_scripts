@@ -851,6 +851,9 @@ public class EnemyTank : TankBase, IPoolReturnHandler
 
         // 제거 이벤트 구독 해지
         OnDead = null;
+
+        // 아이템 드랍 알림 구독 해지(스폰마다 EnemySpawner가 새로 구독하므로 지난 스테이지의 구독자가 남지 않게 함)
+        _itemDropper.ClearListeners();
     }
 
     /// <summary>

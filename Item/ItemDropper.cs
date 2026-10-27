@@ -21,6 +21,15 @@ public class ItemDropper : MonoBehaviour
     }
 
     /// <summary>
+    /// 드랍 알림 구독자 전체 해제(EnemyTank가 풀 반환 직전에 호출)
+    /// 풀에서 재사용되는 적에게 스폰마다 EnemySpawner가 구독을 추가하므로, 반환 시 비우지 않으면 지난 스테이지의 구독자가 계속 쌓임
+    /// </summary>
+    public void ClearListeners()
+    {
+        OnItemDropped = null;
+    }
+
+    /// <summary>
     /// 드랍 확률 체크 및 아이템 선택
     /// </summary>
     public void TryDrop(int dropChance, int dropGroupID)

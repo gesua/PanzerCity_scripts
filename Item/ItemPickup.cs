@@ -86,8 +86,7 @@ public class ItemPickup : MonoBehaviour
     {
         if (_isDeadCheck()) // 죽었으면 UI 안 띄움
         {
-            _pickupUI.transform.SetParent(transform); // 복귀
-            _pickupUI.SetActive(false);
+            ReleasePickupUI(); // 복귀
             return;
         }
 
@@ -96,8 +95,7 @@ public class ItemPickup : MonoBehaviour
         if (colliders.Length == 0)
         {
             _nearestItem = null;
-            _pickupUI.transform.SetParent(transform); // 복귀
-            _pickupUI.SetActive(false);
+            ReleasePickupUI(); // 복귀
             SyncTutorialTooltip(null);
             return;
         }
@@ -124,8 +122,7 @@ public class ItemPickup : MonoBehaviour
         }
         else
         {
-            _pickupUI.transform.SetParent(transform); // 복귀
-            _pickupUI.SetActive(false);
+            ReleasePickupUI(); // 복귀
             SyncTutorialTooltip(null);
         }
     }
@@ -152,6 +149,16 @@ public class ItemPickup : MonoBehaviour
     }
 
     /// <summary>
+    /// 줍기 UI를 플레이어 아래로 회수하고 숨김
+    /// 아이템의 자식으로 붙은 채 아이템이 풀로 반환되거나 씬이 파괴되면 UI가 풀 아이템에 딸려 남거나 함께 파괴되므로, 그 전에 회수해야 함
+    /// </summary>
+    public void ReleasePickupUI()
+    {
+        _pickupUI.transform.SetParent(transform);
+        _pickupUI.SetActive(false);
+    }
+
+    /// <summary>
     /// 아이템 줍기
     /// </summary>
     public void TryPickup()
@@ -160,8 +167,7 @@ public class ItemPickup : MonoBehaviour
         if (_nearestItem == null) return;
 
         // 아이템 파괴 전에 UI를 먼저 원래 부모로 복귀
-        _pickupUI.transform.SetParent(transform);
-        _pickupUI.SetActive(false);
+        ReleasePickupUI();
 
         // 멀티플레이:서버에 픽업 승인 요청(동시 픽업 경합은 서버가 판정)
         if (_networkOwner != null)

@@ -243,6 +243,7 @@ public class EnemySpawner : MonoBehaviour
 
         if (enemy.TryGetComponent(out ItemDropper itemDropper))
         {
+            // 구독 해제는 풀 반환 시 EnemyTank.OnBeforeReturnToPool에서 ItemDropper.ClearListeners로 처리됨
             itemDropper.OnItemDropped += item => OnItemDropped?.Invoke(item);
         }
 

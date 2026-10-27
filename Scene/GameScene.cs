@@ -404,6 +404,7 @@ public class GameScene : MonoBehaviour
         {
             GameManager.Instance.PlayerData.OnGoldChanged -= _gameInfoUI.UpdateGold;
             GameManager.Instance.PlayerData.OnLifeChanged -= HandleLocalLifeChanged;
+            GameManager.Instance.OptionManager.OnMouseSensitivityChanged -= _cameraTarget.SetSensitivity;
         }
 
         _inputSystemHandler.OnSpectatePrevInput -= HandleSpectatePrevInput;
@@ -1292,6 +1293,10 @@ public class GameScene : MonoBehaviour
     /// </summary>
     void HandleTitleRequested()
     {
+        // 줍기 UI가 풀 아이템의 자식으로 붙은 채 씬이 파괴되면 DontDestroyOnLoad 풀에 고아로 남으므로, 반환 전에 플레이어로 회수
+        // (멀티에서 방장 이탈 등으로 플레이어가 이미 파괴된 경우엔 회수할 대상이 없어 건너뜀)
+        if (_player != null) _player.ItemPickup.ReleasePickupUI();
+
         // 남아있는 포탄, 아이템 등을 모든 Pool로 강제 반환
         GameManager.Instance.PoolManager.ReturnAllPools();
 
