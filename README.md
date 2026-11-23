@@ -175,7 +175,7 @@ flowchart TD
 
 | | 이름 | 설명 |
 | --- | --- | --- |
-| — | 테두리 벽 | [`CameraBedrockChange.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Camera/CameraBedrockChange.cs) — 맵 외곽을 감싸는 파괴 불가능한 벽. 카메라와 플레이어 사이를 가리면 반투명한 빨간 큐브로 표시되어 시야를 가리지 않습니다.  |
+|  | 테두리 벽 | [`CameraBedrockChange.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Camera/CameraBedrockChange.cs) — 맵 외곽을 감싸는 파괴 불가능한 벽. 카메라와 플레이어 사이를 가리면 반투명한 빨간 큐브로 표시되어 시야를 가리지 않습니다.  |
 | ![파괴 가능한 벽](docs~/icons/wall_destructible.png) | 파&#8288;괴&#160;가&#8288;능&#8288;한&#160;벽 | [`Wall.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/Wall.cs) — 큐브 4개가 쌓인 기둥 단위로 반응합니다. 포탄에 맞으면 그 기둥의 큐브들만 물리 힘으로 흩어지고 5초 뒤 사라집니다. 맵에 배치할 때는 4×4 정사각형으로 묶어서 놓는 편이 편해서 그렇게 배치했습니다. HQ 주변의 기지 벽은 아군 포탄으로는 부술 수 없고, 적 포탄에 부서지면 경고가 표시됩니다.  |
 | ![흰색 벽](docs~/icons/wall_white.png) | 흰색 벽 | [`BaseWall.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/BaseWall.cs) — 파괴 불가능한 벽입니다. 벽 자체는 별도 상호작용이 없는 정적 오브젝트지만, 기지무적 아이템을 사용하면 기지 주변에 이 벽이 생기면서 주변 탱크를 밀어내고 부서진 기지 벽을 복구하며, 종료 시점이 다가오면 깜빡이는 경고로 알려줍니다.  |
 | ![수풀](docs~/icons/bush.png) | 수풀 | [`BushGroup.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/BushGroup.cs) — 탱크를 가려주는 은신 지대입니다(포탄은 그대로 통과·명중). LoL의 부쉬처럼, 완전히 들어간 탱크는 바깥에서 보이지 않고, 수풀 안의 플레이어는 같은 수풀에 있지 않은 적이 인식하지 못합니다. 플레이어가 안으로 들어가면 수풀이 반투명해져 안쪽을 볼 수 있습니다.  |
@@ -526,7 +526,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     A["씬의 모든 BushBlock 수집"] --> B["모든 방향 판넬을 먼저 켜서 초기화<br>(여러 번 실행해도 같은 결과)"]
-    B --> C["블록 쌍마다<br>로컬 X/Z 좌표 차이 계산 (Y는 무시)"]
+    B --> C["블록 쌍마다<br>로컬 X/Z 좌표<br>차이 계산<br>(Y는 무시)"]
     C --> D{"한 칸(_gridSize ± _tolerance)<br>이웃인가?"}
     D -- 아니오 --> C
     D -- 예 --> E["이웃이 있는<br>방향 판별<br>(Z+ / Z-<br>/ X+ / X-)"]
@@ -574,7 +574,7 @@ bool isVerticalNeighbor =
 | 치트 토글 | `GameScene` | Inspector 체크박스로 아이템 지급(ID 지정) · 골드 지급 · 스테이지 즉시 클리어를 실행합니다. 체크하면 `Update`에서 한 번 실행하고 해제되며, 에디터에서만 동작합니다. |
 | 무적 · HP 무한 | `TankModel` | Inspector 토글(`_noDamage`, `_infiniteHP`)로 피격 · 사망을 무시해 스테이지 흐름을 빠르게 확인합니다. |
 | Gizmos 시각화 | `EnemyTank`, `EnemySpawner`, `StageScene`, `PlayerTank` | 적의 이동 차단 Raycast(막히면 빨강)와 NavMesh 경로, 스폰 체크 반경, 플레이어 스폰 지점, 리스폰 밀어내기 반경을 씬 뷰에 표시합니다. |
-| 에디터 전용 테스트 분기 | `EnemyTank`, `DataManager` | 적 성격 고정, 마지막 스테이지 변경 같은 테스트 코드를 `#if UNITY_EDITOR` 안에 주석으로 두고 필요할 때만 켭니다. |
+| 에디터 전용<br>테스트 분기 | `EnemyTank`, `DataManager` | 적 성격 고정, 마지막 스테이지 변경 같은 테스트 코드를 `#if UNITY_EDITOR` 안에 주석으로 두고 필요할 때만 켭니다. |
 | FPS 카운터 | `FPSCounter` | 프레임 시간을 평균내어 FPS를 표시합니다. 씬을 다시 불러올 때 복제본이 쌓이지 않도록 하나만 유지하고, 중복을 제거하면 경고 로그를 남깁니다. |
 | 모바일 테스트 모드 | `MobileTestMode` | 에디터에서 마우스를 가상 터치로 바꾸고 커서 잠금을 풀어, 조이스틱 · 룩존 · 버튼을 마우스로 눌러 볼 수 있게 합니다. 빌드에서는 아무 동작도 하지 않습니다. |
 | 멀&#8288;티&#8288;플&#8288;레&#8288;이&#8288;어&#160;테&#8288;스&#8288;트 | Unity Multiplayer Play Mode | 에디터에서 가상 플레이어를 함께 실행해 멀티플레이어 흐름을 테스트합니다. |
