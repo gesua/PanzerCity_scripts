@@ -7,7 +7,8 @@
 | Steam | 출시 ([스토어 페이지](https://store.steampowered.com/app/5299150/PanzerCity/)) |
 | Android (Google Play) | 출시 준비 중 |
 
-> 이 저장소는 전체 Unity 프로젝트 중 스크립트(C#) 폴더만 발췌한 코드 샘플입니다. 유료 에셋 등 리소스 파일은 라이선스상 포함되어 있지 않습니다.
+> 이 저장소는 전체 Unity 프로젝트 중 스크립트(C#) 폴더만 발췌한 코드 샘플입니다.<br>
+유료 에셋 등 리소스 파일은 라이선스상 포함되어 있지 않습니다.
 
 ## 목차
 
@@ -38,10 +39,6 @@
 
 *▶ 클릭하면 유튜브에서 재생됩니다*
 
-<!--
-인게임 이미지 자리 — 스크린샷을 `docs~/screenshots/`에 올린 뒤 이 주석을 해제하세요.
-파일명은 아래 예시를 쓰거나, 실제 파일명에 맞게 경로만 바꿔 주세요.
-
 ### 인게임 화면
 
 | | |
@@ -49,7 +46,6 @@
 | ![타이틀 화면](docs~/screenshots/title.png) | ![전투 화면 (3인칭)](docs~/screenshots/battle.png) |
 | ![저격 모드](docs~/screenshots/sniper.png) | ![상점과 인벤토리](docs~/screenshots/shop.png) |
 | ![멀티플레이어 로비](docs~/screenshots/lobby.png) | ![모바일 터치 화면](docs~/screenshots/mobile.png) |
--->
 
 ## 기술 스택
 
@@ -69,7 +65,8 @@
 
 **전투 · AI**
 
-- 플레이어 · 적 전차 공통 모듈 — `TankBase` / `TankModel` / `HitZone`, 부위별(정면 · 측면 · 후면) 피격, 폭발 범위 피해 ([상세](#1-전차-공통-모듈-설계))
+- 플레이어 · 적 전차 공통 모듈<br>
+— `TankBase` / `TankModel` / `HitZone`, 부위별(정면 · 측면 · 후면) 피격, 폭발 범위 피해 ([상세](#1-전차-공통-모듈-설계))
 - 적 AI 상태머신 — 성격 4종, NavMesh 경로 탐색 + 직접 회전 제어, 시야 · 수풀 감지 ([상세](#3-적-ai-구조))
 - 적 전차 4종과 스폰 시스템 — 데이터 테이블 기반 스폰 순서 · 간격 · 동시 등장 수 ([게임플레이 구조](#게임플레이-구조))
 - 맵 장애물 — 파괴 가능한 벽, 기지 벽, 수풀, 진흙, 물
@@ -111,7 +108,8 @@
 
 **플랫폼 대응**
 
-- PC(키보드 · 마우스)와 모바일(터치) 입력을 `InputSystemHandler` 한 곳으로 일원화 — 조이스틱, 룩존, 핀치 줌, 터치 버튼 ([상세](#11-모바일-환경-대응))
+- PC(키보드 · 마우스)와 모바일(터치) 입력을 `InputSystemHandler` 한 곳으로 일원화<br>
+— 조이스틱, 룩존, 핀치 줌, 터치 버튼 ([상세](#11-모바일-환경-대응))
 - 플랫폼별 UI · 문구 분기 (줍기 힌트 아이콘, 튜토리얼 · 관전 안내 문구)
 
 **연출 · UX**
@@ -123,7 +121,8 @@
 
 ### 스테이지 진행
 
-25개 스테이지로 구성되어 있고, 스테이지마다 적 전차 20대가 순차적으로 스폰됩니다. 5스테이지 단위로 스폰 간격이 0.2초씩 짧아지고 동시 등장 가능 수가 1대씩 늘어나며 난이도가 단계적으로 올라갑니다.
+25개 스테이지로 구성되어 있고, 스테이지마다 적 전차 20대가 순차적으로 스폰됩니다.<br>
+5스테이지 단위로 스폰 간격이 0.2초씩 짧아지고 동시 등장 가능 수가 1대씩 늘어나며 난이도가 단계적으로 올라갑니다.
 
 | 스테이지 | 스폰 간격 | 최대 동시 등장 |
 | --- | --- | --- |
@@ -135,7 +134,7 @@
 
 ```mermaid
 flowchart TD
-    A[스테이지 시작] --> B[적 전차 20대 순차 스폰]
+    A[스테이지 시작] --> B[적 전차 20대<br>순차 스폰]
     B --> C{20대 모두 격파?}
     C -- 아니오 --> B
     C -- 예 --> D[스테이지 클리어 팝업]
@@ -149,16 +148,17 @@ flowchart TD
 
 ### 적 전차 종류
 
-| 아이콘 | 타입 | 특징 |
+| | 타입 | 특징 |
 | --- | --- | --- |
 | ![경전차](docs~/icons/LightTank.png) | 경전차 | 이동속도·공격속도가 빠릅니다. 직격 데미지는 받지 않고, 폭발 범위에 휘말릴 때만 파괴됩니다. |
-| ![중형전차](docs~/icons/MediumTank.png) | 중형전차 | 가장 많이 등장하는 기본형으로, 능력치가 전반적으로 평균입니다. |
-| ![중전차](docs~/icons/HeavyTank.png) | 중전차 | 유일하게 HP 4를 가진 적입니다. 이동속도·공격속도는 느리지만, 피격 방향에 따라 데미지가 다릅니다(정면 1 · 측면 2 · 후면 3) — 측면을 2번 맞으면 격파됩니다. 방향마다 데미지가 달라 체감 체력을 가늠하기 어려운 만큼, 남은 체력에 따라 초록→노랑→주황→빨강으로 색이 바뀌어 알려줍니다. |
+| ![중형전차](docs~/icons/MediumTank.png) | 중&#8288;형&#8288;전&#8288;차 | 가장 많이 등장하는 기본형으로, 능력치가 전반적으로 평균입니다. |
+| ![중전차](docs~/icons/HeavyTank.png) | 중전차 | 유일하게 HP 4를 가진 적입니다. 이동속도·공격속도는 느리지만, 피격 방향에 따라 데미지가 다릅니다.<br>(정면 1 · 측면 2 · 후면 3) — 측면을 2번 맞으면 격파됩니다. 방향마다 데미지가 달라 체감 체력을 가늠하기 어려운 만큼, 남은 체력에 따라 초록→노랑→주황→빨강으로 색이 바뀌어 알려줍니다. |
 | ![구축전차](docs~/icons/DestroyerTank.png) | 구축전차 | 유일하게 포탑이 없어 차체 전체를 돌려 조준합니다. 포탄 속도가 다른 타입보다 빠릅니다. |
 
 ### 행동 패턴
 
-적의 이동 방식은 전차 타입과 별개로 네 가지 성격 중 하나가 지정됩니다(구축전차는 고정형 · 공격형 중에서만 지정됩니다). 성격과 무관하게 모두 배회 상태로 시작하고, 플레이어를 발견하는 순간 성격별로 다른 행동으로 전환됩니다.
+적의 이동 방식은 전차 타입과 별개로 네 가지 성격 중 하나가 지정됩니다(구축전차는 고정형 · 공격형 중에서만 지정됩니다).<br>
+성격과 무관하게 모두 배회 상태로 시작하고, 플레이어를 발견하는 순간 성격별로 다른 행동으로 전환됩니다.
 
 ```mermaid
 flowchart TD
@@ -173,14 +173,14 @@ flowchart TD
 
 ### 맵 장애물
 
-| 아이콘 | 이름 | 설명 |
+| | 이름 | 설명 |
 | --- | --- | --- |
-| — | **테두리 벽** | [`CameraBedrockChange.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Camera/CameraBedrockChange.cs) — 맵 외곽을 감싸는 파괴 불가능한 벽. 카메라와 플레이어 사이를 가리면 반투명한 빨간 큐브로 표시되어 시야를 가리지 않습니다.  |
-| ![파괴 가능한 벽](docs~/icons/wall_destructible.png) | **파괴 가능한 벽** | [`Wall.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/Wall.cs) — 큐브 4개가 쌓인 기둥 단위로 반응합니다. 포탄에 맞으면 그 기둥의 큐브들만 물리 힘으로 흩어지고 5초 뒤 사라집니다. 맵에 배치할 때는 4×4 정사각형으로 묶어서 놓는 편이 편해서 그렇게 배치했습니다. HQ 주변의 기지 벽은 아군 포탄으로는 부술 수 없고, 적 포탄에 부서지면 경고가 표시됩니다.  |
-| ![흰색 벽](docs~/icons/wall_white.png) | **흰색 벽** | [`BaseWall.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/BaseWall.cs) — 파괴 불가능한 벽입니다. 벽 자체는 별도 상호작용이 없는 정적 오브젝트지만, 기지무적 아이템을 사용하면 기지 주변에 이 벽이 생기면서 주변 탱크를 밀어내고 부서진 기지 벽을 복구하며, 종료 시점이 다가오면 깜빡이는 경고로 알려줍니다.  |
-| ![수풀](docs~/icons/bush.png) | **수풀** | [`BushGroup.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/BushGroup.cs) — 탱크를 가려주는 은신 지대입니다(포탄은 그대로 통과·명중). LoL의 부쉬처럼, 완전히 들어간 탱크는 바깥에서 보이지 않고, 수풀 안의 플레이어는 같은 수풀에 있지 않은 적이 인식하지 못합니다. 플레이어가 안으로 들어가면 수풀이 반투명해져 안쪽을 볼 수 있습니다.  |
-| ![물](docs~/icons/water.png) | **물** | 바닥에 깔려 있는 지형으로, 탱크가 통과할 수 없는 장애물입니다. |
-| ![진흙](docs~/icons/mud.png) | **진흙** | [`Mud.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/Mud.cs) — 바닥에 깔린 감속 지형입니다. 원작에서는 미끄러지는 발판이었지만, 이 프로젝트에서는 밟은 탱크의 이동 속도와 회전 속도를 1/2로 낮추는 방식으로 바꿨습니다.  |
+| — | 테두리 벽 | [`CameraBedrockChange.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Camera/CameraBedrockChange.cs) — 맵 외곽을 감싸는 파괴 불가능한 벽. 카메라와 플레이어 사이를 가리면 반투명한 빨간 큐브로 표시되어 시야를 가리지 않습니다.  |
+| ![파괴 가능한 벽](docs~/icons/wall_destructible.png) | 파&#8288;괴&#160;가&#8288;능&#8288;한&#160;벽 | [`Wall.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/Wall.cs) — 큐브 4개가 쌓인 기둥 단위로 반응합니다. 포탄에 맞으면 그 기둥의 큐브들만 물리 힘으로 흩어지고 5초 뒤 사라집니다. 맵에 배치할 때는 4×4 정사각형으로 묶어서 놓는 편이 편해서 그렇게 배치했습니다. HQ 주변의 기지 벽은 아군 포탄으로는 부술 수 없고, 적 포탄에 부서지면 경고가 표시됩니다.  |
+| ![흰색 벽](docs~/icons/wall_white.png) | 흰색 벽 | [`BaseWall.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/BaseWall.cs) — 파괴 불가능한 벽입니다. 벽 자체는 별도 상호작용이 없는 정적 오브젝트지만, 기지무적 아이템을 사용하면 기지 주변에 이 벽이 생기면서 주변 탱크를 밀어내고 부서진 기지 벽을 복구하며, 종료 시점이 다가오면 깜빡이는 경고로 알려줍니다.  |
+| ![수풀](docs~/icons/bush.png) | 수풀 | [`BushGroup.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/BushGroup.cs) — 탱크를 가려주는 은신 지대입니다(포탄은 그대로 통과·명중). LoL의 부쉬처럼, 완전히 들어간 탱크는 바깥에서 보이지 않고, 수풀 안의 플레이어는 같은 수풀에 있지 않은 적이 인식하지 못합니다. 플레이어가 안으로 들어가면 수풀이 반투명해져 안쪽을 볼 수 있습니다.  |
+| ![물](docs~/icons/water.png) | 물 | 바닥에 깔려 있는 지형으로, 탱크가 통과할 수 없는 장애물입니다. |
+| ![진흙](docs~/icons/mud.png) | 진흙 | [`Mud.cs`](https://github.com/gesua/PanzerCity_scripts/blob/main/Environment/Mud.cs) — 바닥에 깔린 감속 지형입니다. 원작에서는 미끄러지는 발판이었지만, 이 프로젝트에서는 밟은 탱크의 이동 속도와 회전 속도를 1/2로 낮추는 방식으로 바꿨습니다.  |
 
 ### 아이템 / 장비
 
@@ -204,7 +204,8 @@ flowchart TD
 
 ### 1. 전차 공통 모듈 설계
 
-플레이어 전차와 적 전차 4종은 같은 공통 모듈 위에서 동작합니다. 입력으로 움직이느냐 AI로 움직이느냐만 다르고, 스탯 · 피격 · 사망 · 발사 · 환경 반응은 한 벌의 코드를 공유합니다.
+플레이어 전차와 적 전차 4종은 같은 공통 모듈 위에서 동작합니다.<br>
+입력으로 움직이느냐 AI로 움직이느냐만 다르고, 스탯 · 피격 · 사망 · 발사 · 환경 반응은 한 벌의 코드를 공유합니다.
 
 ```mermaid
 flowchart TD
@@ -235,16 +236,17 @@ flowchart TD
 | 피격 경로 | `Shell` → `HitZone` → `TankBase.TakeHit(ref HitData)` | `HitZone`이 맞은 부위(정면 / 측면 / 후면)를 `HitData`에 기록해 넘깁니다. `HitData`는 공격자가 플레이어인지(`IsPlayerAttack`)도 담고 있어, 참조를 보낼 수 없는 RPC에서도 판정에 쓸 수 있습니다. |
 | 범위 피해 | `IExplosionDamageable` | 경전차 · 벽 · 벽 조각이 구현해, 직격(`IDamageable`)과 폭발 범위 피해를 분리합니다. |
 | 환경 반응 | `TankBase.OnBushEnter` / `OnMudEnter` | 수풀 · 진흙 진입을 카운터로 관리해 경계에서 상태가 꼬이지 않게 합니다. 속도 배율은 `ApplySpeedMultiplier`로 플레이어(`Mover`)와 적(NavMeshAgent)에 각각 반영합니다. |
-| 피격음 · 파괴음 | `TankBase` | 공통으로 구독해 재생하고, 폭탄 일괄 처치 중에는 큐에 모았다가 한 번만 재생합니다. |
+| 피&#8288;격&#8288;음&#160;·&#160;파&#8288;괴&#8288;음 | `TankBase` | 공통으로 구독해 재생하고, 폭탄 일괄 처치 중에는 큐에 모았다가 한 번만 재생합니다. |
 
-적 상태머신(`EnemyState`)은 한 벌만 두고, 타입마다 달라지는 부분은 `EnemyTank`의 가상 멤버로 열어 두었습니다. 상태머신은 전차 타입을 알 필요가 없습니다.
+적 상태머신(`EnemyState`)은 한 벌만 두고, 타입마다 달라지는 부분은 `EnemyTank`의 가상 멤버로 열어 두었습니다.<br>
+상태머신은 전차 타입을 알 필요가 없습니다.
 
 | 가상 멤버 | 기본 동작 | 재정의 |
 | --- | --- | --- |
-| `CanAimWhileMoving`, `UsesBodyAim`, `AimAtTarget()` | 포탑으로 조준하고 이동 중에도 조준 | `DestroyerTank` — 포탑이 없어 차체를 돌려 조준하고, 이동 중에는 조준하지 않음 |
-| `AgentMove()`, `FleesBackward` | 경로 방향으로 회전한 뒤 전진 | `HeavyTank` — 도주형일 때 후진으로 이탈, `DestroyerTank` — 시야가 트이면 조준 방향으로만 전진 |
+| `CanAimWhileMoving`, `UsesBodyAim`, `AimAtTarget()` | 포탑으로 조준하고 이동 중에도 조준 | `DestroyerTank` — 포탑이 없어 차체를 돌려 조준하고,<br> 이동 중에는 조준하지 않음 |
+| `AgentMove()`, `FleesBackward` | 경로 방향으로<br> 회전한 뒤 전진 | `HeavyTank` — 도주형일 때 후진으로 이탈, `DestroyerTank` — 시야가 트이면 조준 방향으로만 전진 |
 | `CanAttackTarget()` | 감지되면 발사 | `DestroyerTank` — 더 좁은 정렬 각도 안에서만 발사 |
-| `TakeHit(ref HitData)` | 받은 데미지 그대로 적용 | `HeavyTank` — 부위별 추가 데미지 |
+| `TakeHit(ref HitData)` | 받은 데미지<br> 그대로 적용 | `HeavyTank` — 부위별 추가 데미지 |
 
 ```csharp
 // HeavyTank.cs — TakeHit()
@@ -553,7 +555,7 @@ bool isVerticalNeighbor =
 - 이웃을 감지했는데 끈 판넬이 하나도 없으면 판넬 이름이 실제 오브젝트와 맞지 않는 것으로 보고 경고 로그를 남깁니다.
 - `모든 판넬 다시 켜기` 버튼으로 초기 상태로 되돌릴 수 있습니다.
 
-<!-- ![수풀 겹침 최적화 툴 창](docs~/screenshots/bush-optimizer-window.png) -->
+![수풀 겹침 최적화 툴 창](docs~/screenshots/bush-optimizer-window.png)
 
 ![풀숲 오브젝트가 밀집 배치된 맵 구간](docs~/gifs/dense-bushes.gif)
 
